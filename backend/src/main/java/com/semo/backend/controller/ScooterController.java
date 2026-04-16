@@ -5,6 +5,7 @@ import com.semo.backend.dto.ScooterResponseDTO;
 import com.semo.backend.entity.Scooter;
 import com.semo.backend.repository.ScooterRepository;
 import com.semo.backend.service.ScooterService;
+
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +32,7 @@ public class ScooterController {
     }
 
     @GetMapping
-    public List<Scooter> getAllScooters() {
-        return scooterRepository.findAll();
+    public List<ScooterResponseDTO> getAllScooters() {
+        return scooterService.getAllScooters();
     }
 }
