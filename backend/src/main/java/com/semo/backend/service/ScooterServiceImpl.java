@@ -4,6 +4,8 @@ import com.semo.backend.dto.ScooterRequestDTO;
 import com.semo.backend.dto.ScooterResponseDTO;
 import com.semo.backend.entity.Scooter;
 import com.semo.backend.repository.ScooterRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -22,7 +24,7 @@ public class ScooterServiceImpl implements ScooterService {
     public ScooterResponseDTO createScooter(ScooterRequestDTO requestDTO) {
         Scooter scooter = new Scooter();
         scooter.setCodeName(requestDTO.getName());
-        scooter.setBatteryLevel(requestDTO.getBatteryLevel().doubleValue());
+        scooter.setBatteryLevel(requestDTO.getBatteryLevel().intValue());
         scooter.setStatus(requestDTO.getStatus());
 
         Scooter savedScooter = scooterRepository.save(scooter);
@@ -55,5 +57,21 @@ public class ScooterServiceImpl implements ScooterService {
         }
 
         return responseDTOs;
+    }
+
+    @Override
+    public Page<ScooterResponseDTO> getAllScootersPaged(int page, int size) {
+        Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+
+        Page<Scooter> scooterPage = scooterRepository.findAll(pageable);
+
+        return scooterPage.map(scooter -> {
+            ScooterResponseDTO dto = new ScooterResponseDTO();
+            dto.setId(scooter.getId().longValue());
+            dto.setName(scooter.getCodeName());
+            dto.setBatteryLevel(scooter.getBatteryLevel().intValue());
+            dto.setStatus(scooter.getStatus());
+            return dto;
+        });
     }
 }

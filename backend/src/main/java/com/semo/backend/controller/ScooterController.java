@@ -7,6 +7,7 @@ import com.semo.backend.repository.ScooterRepository;
 import com.semo.backend.service.ScooterService;
 
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -34,5 +35,12 @@ public class ScooterController {
     @GetMapping
     public List<ScooterResponseDTO> getAllScooters() {
         return scooterService.getAllScooters();
+    }
+
+    // Endpoint: GET /api/scooters/paged?page=0&size=5
+    @GetMapping("/paged")
+    public ResponseEntity<Page<ScooterResponseDTO>> getAllScootersPaged(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+        Page<ScooterResponseDTO> pagedResult = scooterService.getAllScootersPaged(page, size);
+        return ResponseEntity.ok(pagedResult);
     }
 }

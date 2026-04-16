@@ -1,6 +1,9 @@
 package com.semo.backend.entity;
 
 import jakarta.persistence.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -17,7 +20,7 @@ public class Scooter {
     private String status;
 
     @Column(name = "battery_level")
-    private Double batteryLevel;
+    private Integer batteryLevel;
 
     @Column(name = "cycle_count")
     private Integer cycleCount;
@@ -33,7 +36,21 @@ public class Scooter {
     @Column(name = "current_lng")
     private Double currentLng;
 
+    @CreatedDate
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
     public Scooter() {
+    }
+
+    public Scooter(String codeName, Integer batteryLevel, String status) {
+        this.codeName = codeName;
+        this.batteryLevel = batteryLevel;
+        this.status = status;
     }
 
     public Integer getId() { return id; }
@@ -45,8 +62,8 @@ public class Scooter {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
-    public Double getBatteryLevel() { return batteryLevel; }
-    public void setBatteryLevel(Double batteryLevel) { this.batteryLevel = batteryLevel; }
+    public Integer getBatteryLevel() { return batteryLevel; }
+    public void setBatteryLevel(Integer batteryLevel) { this.batteryLevel = batteryLevel; }
 
     public Integer getCycleCount() { return cycleCount; }
     public void setCycleCount(Integer cycleCount) { this.cycleCount = cycleCount; }
@@ -62,4 +79,10 @@ public class Scooter {
 
     public Double getCurrentLng() { return currentLng; }
     public void setCurrentLng(Double currentLng) { this.currentLng = currentLng; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }
