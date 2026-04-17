@@ -2,6 +2,7 @@ package com.semo.backend.controller;
 
 import java.util.List;
 
+import com.semo.backend.service.ScooterService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,8 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.semo.backend.dto.ScooterRequestDTO;
 import com.semo.backend.dto.ScooterResponseDTO;
-import com.semo.backend.repository.ScooterRepository;
-import com.semo.backend.service.ScooterService;
 
 import jakarta.validation.Valid;
 
@@ -25,11 +24,9 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/scooters")
 public class ScooterController {
 
-    private final ScooterRepository scooterRepository;
     private final ScooterService scooterService;
 
-    public ScooterController(ScooterRepository scooterRepository, ScooterService scooterService) {
-        this.scooterRepository = scooterRepository;
+    public ScooterController(ScooterService scooterService) {
         this.scooterService = scooterService;
     }
 

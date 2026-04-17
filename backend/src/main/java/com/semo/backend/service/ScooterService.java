@@ -1,22 +1,123 @@
 package com.semo.backend.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
 
 import com.semo.backend.dto.ScooterRequestDTO;
 import com.semo.backend.dto.ScooterResponseDTO;
+import com.semo.backend.entity.Scooter;
+import com.semo.backend.repository.ScooterRepository;
 
-public interface ScooterService {
-    ScooterResponseDTO createScooter(ScooterRequestDTO requestDTO);
+@Service
+public class ScooterService {
 
-    List<ScooterResponseDTO> getAllScooters();
+    private final ScooterRepository scooterRepository;
 
-    Page<ScooterResponseDTO> getAllScootersPaged(int page, int size);
+    public ScooterService(ScooterRepository scooterRepository) {
+        this.scooterRepository = scooterRepository;
+    }
 
-    List<ScooterResponseDTO> getScootersByStatus(String status);
+    public ScooterResponseDTO createScooter(ScooterRequestDTO requestDTO) {
+        Scooter scooter = new Scooter();
+        scooter.setCodeName(requestDTO.getName());
+        scooter.setBatteryLevel(requestDTO.getBatteryLevel());
+        scooter.setStatus(requestDTO.getStatus());
 
-    ScooterResponseDTO getScooterById(Integer id);
+        Scooter savedScooter = scooterRepository.save(scooter);
 
-    ScooterResponseDTO updateScooter(Integer id, ScooterRequestDTO requestDTO);
+        ScooterResponseDTO responseDTO = new ScooterResponseDTO();
+        responseDTO.setId(savedScooter.getId().longValue());
+        responseDTO.setName(savedScooter.getCodeName());
+        responseDTO.setBatteryLevel(savedScooter.getBatteryLevel());
+        responseDTO.setStatus(savedScooter.getStatus());
+
+        return responseDTO;
+    }
+
+    public List<ScooterResponseDTO> getAllScooters() {
+        List<Scooter> scooters = scooterRepository.findAll();
+        List<ScooterResponseDTO> responseDTOs = new ArrayList<>();
+
+        for (Scooter scooter : scooters) {
+            ScooterResponseDTO dto = new ScooterResponseDTO();
+
+            if (scooter.getId() != null)
+                dto.setId(scooter.getId().longValue());
+            dto.setName(scooter.getCodeName());
+            if (scooter.getBatteryLevel() != null)
+                dto.setBatteryLevel(scooter.getBatteryLevel());
+            dto.setStatus(scooter.getStatus());
+
+            responseDTOs.add(dto);
+        }
+
+        return responseDTOs;
+    }
+
+    public Page<ScooterResponseDTO> getAllScootersPaged(int page, int size) {
+        Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+
+        Page<Scooter> scooterPage = scooterRepository.findAll(pageable);
+
+        return scooterPage.map(scooter -> {
+            ScooterResponseDTO dto = new ScooterResponseDTO();
+            dto.setId(scooter.getId().longValue());
+            dto.setName(scooter.getCodeName());
+            dto.setBatteryLevel(scooter.getBatteryLevel());
+            dto.setStatus(scooter.getStatus());
+            return dto;
+        });
+    }
+
+    public List<ScooterResponseDTO> getScootersByStatus(String status) {
+        List<Scooter> scooters = scooterRepository.findByStatus(status);
+        List<ScooterResponseDTO> responseDTOs = new ArrayList<>();
+
+        for (Scooter scooter : scooters) {
+            ScooterResponseDTO dto = new ScooterResponseDTO();
+            dto.setId(scooter.getId().longValue());
+            dto.setName(scooter.getCodeName());
+            dto.setBatteryLevel(scooter.getBatteryLevel());
+            dto.setStatus(scooter.getStatus());
+            responseDTOs.add(dto);
+        }
+
+        return responseDTOs;
+    }
+
+    public ScooterResponseDTO getScooterById(Integer id) {
+        Scooter scooter = scooterRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy xe với ID: " + id));
+
+        ScooterResponseDTO responseDTO = new ScooterResponseDTO();
+        responseDTO.setId(scooter.getId().longValue());
+        responseDTO.setName(scooter.getCodeName());
+        responseDTO.setBatteryLevel(scooter.getBatteryLevel());
+        responseDTO.setStatus(scooter.getStatus());
+
+        return responseDTO;
+    }
+
+    public ScooterResponseDTO updateScooter(Integer id, ScooterRequestDTO requestDTO) {
+        Scooter scooter = scooterRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy xe với ID: " + id));
+
+        scooter.setCodeName(requestDTO.getName());
+        scooter.setBatteryLevel(requestDTO.getBatteryLevel());
+        scooter.setStatus(requestDTO.getStatus());
+
+        Scooter updatedScooter = scooterRepository.save(scooter);
+
+        ScooterResponseDTO responseDTO = new ScooterResponseDTO();
+        responseDTO.setId(updatedScooter.getId().longValue());
+        responseDTO.setName(updatedScooter.getCodeName());
+        responseDTO.setBatteryLevel(updatedScooter.getBatteryLevel());
+        responseDTO.setStatus(updatedScooter.getStatus());
+
+        return responseDTO;
+    }
 }
