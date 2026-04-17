@@ -47,10 +47,13 @@ public class Scooter {
     public Scooter() {
     }
 
-    public Scooter(String codeName, Integer batteryLevel, String status) {
+    public Scooter(String codeName, Integer batteryLevel, String status ) {
         this.codeName = codeName;
         this.batteryLevel = batteryLevel;
         this.status = status;
+        this.updatedAt = this.createdAt = LocalDateTime.now(); // Tự động lấy thời gian hiện tại khi tạo scooter
+        //  = LocalDateTime.now(); // Tự động lấy thời gian hiện tại khi tạo scooter
+
     }
 
     public Integer getId() { return id; }
