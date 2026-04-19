@@ -1,8 +1,8 @@
 package com.semo.backend.dto;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalDateTime;
 
 public class MaintenanceLogRequestDTO {
 
@@ -13,9 +13,8 @@ public class MaintenanceLogRequestDTO {
     private String description;
 
     @NotNull(message = "Chi phí sửa không được để trống")
+    @Min(value = 0, message = "Chi phí không được là số âm")
     private Double cost;
-
-    private LocalDateTime createdAt; // Thêm trường created để lưu thời gian tạo log
 
     public MaintenanceLogRequestDTO() {
     }
@@ -42,12 +41,5 @@ public class MaintenanceLogRequestDTO {
 
     public void setCost(Double cost) {
         this.cost = cost;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
     }
 }

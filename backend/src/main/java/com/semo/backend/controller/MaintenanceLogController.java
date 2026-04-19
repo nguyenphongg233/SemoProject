@@ -15,7 +15,6 @@ import com.semo.backend.dto.MaintenanceLogRequestDTO;
 import com.semo.backend.dto.MaintenanceLogResponseDTO;
 import com.semo.backend.service.MaintenanceLogService;
 
-import java.time.LocalDateTime;
 import jakarta.validation.Valid;
 
 @RestController
@@ -31,7 +30,6 @@ public class MaintenanceLogController {
     @PostMapping
     public ResponseEntity<MaintenanceLogResponseDTO> createMaintenanceLog(
             @Valid @RequestBody MaintenanceLogRequestDTO requestDTO) {
-        requestDTO.setCreatedAt(LocalDateTime.now()); // Đảm bảo thời gian tạo được thiết lập
         MaintenanceLogResponseDTO responseDTO = maintenanceLogService.createMaintenanceLog(requestDTO);
         return new ResponseEntity<>(responseDTO, HttpStatus.CREATED);
     }

@@ -26,13 +26,15 @@ public class MaintenanceLogService {
 
     public MaintenanceLogResponseDTO createMaintenanceLog(MaintenanceLogRequestDTO requestDTO) {
         Scooter scooter = scooterRepository.findById(requestDTO.getScooterId())
-                .orElseThrow(() -> new IllegalArgumentException("ID xe không tồn tại"));
+                .orElseThrow(() -> new RuntimeException("ID xe không tồn tại"));
+
+        scooter.setStatus("MAINTENANCE");
+        scooterRepository.save(scooter);
 
         MaintenanceLog maintenanceLog = new MaintenanceLog();
         maintenanceLog.setDescription(requestDTO.getDescription());
         maintenanceLog.setCost(requestDTO.getCost());
         maintenanceLog.setScooter(scooter);
-        maintenanceLog.setCreatedAt(requestDTO.getCreatedAt()); // Sử dụng thời gian tạo từ request DTO
 
         MaintenanceLog savedLog = maintenanceLogRepository.save(maintenanceLog);
 
@@ -41,7 +43,7 @@ public class MaintenanceLogService {
 
     public List<MaintenanceLogResponseDTO> getMaintenanceLogsByScooterId(Integer scooterId) {
         Scooter scooter = scooterRepository.findById(scooterId)
-                .orElseThrow(() -> new IllegalArgumentException("ID xe không tồn tại"));
+                .orElseThrow(() -> new RuntimeException("ID xe không tồn tại"));
 
         List<MaintenanceLog> logs = maintenanceLogRepository.findByScooterId(scooterId);
         List<MaintenanceLogResponseDTO> responseDTOs = new ArrayList<>();
