@@ -3,10 +3,12 @@ package com.semo.backend.entity;
 import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "scooters")
 public class Scooter {
 
@@ -51,9 +53,6 @@ public class Scooter {
         this.codeName = codeName;
         this.batteryLevel = batteryLevel;
         this.status = status;
-        this.updatedAt = this.createdAt = LocalDateTime.now(); // Tự động lấy thời gian hiện tại khi tạo scooter
-        //  = LocalDateTime.now(); // Tự động lấy thời gian hiện tại khi tạo scooter
-
     }
 
     public Integer getId() { return id; }
