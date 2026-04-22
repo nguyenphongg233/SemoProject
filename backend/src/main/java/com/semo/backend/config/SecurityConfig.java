@@ -37,6 +37,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/users/check-email").permitAll()
                         .requestMatchers("/api/users").hasRole("ADMIN")
+                        .requestMatchers("/api/upload/avatar").authenticated()
+                        .requestMatchers("/api/upload/scooter/**").hasRole("ADMIN")
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/v3/api-docs/**").permitAll()
