@@ -54,6 +54,15 @@ Create a new user account.
 
 Authenticate user and get JWT token.
 
+Tài khoản admin seeded sẵn để test:
+
+```json
+{
+  "email": "admin@semo.com",
+  "password": "Admin@123"
+}
+```
+
 **Request:**
 ```json
 {
@@ -78,6 +87,8 @@ Authenticate user and get JWT token.
 Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9...
 ```
 
+Token trả về chứa `role` và `userId`. Khi gọi các endpoint quản trị như `/api/users`, hãy đăng nhập bằng tài khoản admin và truyền token trong header `Authorization`.
+
 ---
 
 ## 👤 Users API
@@ -85,7 +96,14 @@ Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9...
 ### Get All Users
 **GET** `/api/users`
 
-Retrieve all users (public endpoint).
+Retrieve all users.
+
+**Access:** `ADMIN` only. Endpoint này yêu cầu JWT token của admin.
+
+**Headers:**
+```
+Authorization: Bearer <admin_token>
+```
 
 **Response (200 OK):**
 ```json
@@ -166,7 +184,9 @@ Authorization: Bearer <token>
 ### Get Users by Role
 **GET** `/api/users/by-role?role=ADMIN`
 
-Retrieve all users with a specific role (ADMIN only).
+Retrieve all users with a specific role.
+
+**Access:** requires authentication. Thực tế thường dùng với token admin khi quản trị.
 
 **Headers:**
 ```
@@ -196,7 +216,14 @@ Authorization: Bearer <admin_token>
 ### Create User
 **POST** `/api/users`
 
-Create a new user (public endpoint).
+Create a new user.
+
+**Access:** `ADMIN` only. Endpoint này cũng cần JWT token của admin.
+
+**Headers:**
+```
+Authorization: Bearer <admin_token>
+```
 
 **Request:**
 ```json
@@ -269,6 +296,58 @@ Authorization: Bearer <admin_token>
 ```
 
 **Response (204 No Content)**
+
+---
+
+### Admin: Reset User Password
+**POST** `/api/users/{id}/reset-password`
+
+Reset a user's password (ADMIN only). Admin can provide a `newPassword` in the body, otherwise the backend will generate a temporary password and return it once in the response.
+
+**Headers:**
+```
+Authorization: Bearer <admin_token>
+```
+
+**Request (optional):**
+```json
+{
+  "newPassword": "OptionalNewPass@123"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "newPassword": "GeneratedOrProvidedPlaintextPass"
+}
+```
+
+> Security note: the plaintext returned is only shown once by the API; admin should communicate it securely to the user and the user must change it on first login.
+
+---
+
+### Change Password (User)
+**PUT** `/api/users/{id}/change-password`
+
+Authenticated user can change their own password by providing the current password and new password. Admins should use the reset endpoint instead.
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Request:**
+```json
+{
+  "currentPassword": "OldPass@123",
+  "newPassword": "NewPass@123"
+}
+```
+
+**Response:**
+204 No Content
+
 
 ---
 
@@ -683,12 +762,12 @@ Authorization: Bearer <admin_token>
 
 | Endpoint | Role Required |
 |----------|---------------|
-| POST /api/users | Public |
-| GET /api/users | Public |
-| GET /api/users/{id} | CUSTOMER / ADMIN |
-| GET /api/users/by-email | CUSTOMER / ADMIN |
-| GET /api/users/by-role | ADMIN |
-| PUT /api/users/{id} | CUSTOMER / ADMIN |
+| POST /api/users | ADMIN |
+| GET /api/users | ADMIN |
+| GET /api/users/{id} | Authenticated |
+| GET /api/users/by-email | Authenticated |
+| GET /api/users/by-role | Authenticated |
+| PUT /api/users/{id} | Authenticated |
 | DELETE /api/users/{id} | ADMIN |
 | GET /api/users/check-email | Public |
 | POST /api/auth/register | Public |
@@ -725,19 +804,19 @@ POST http://localhost:8080/api/auth/login
 Content-Type: application/json
 
 {
-  "email": "testuser@example.com",
-  "password": "Test@1234"
+  "email": "admin@semo.com",
+  "password": "Admin@123"
 }
 ```
 
 ### 3. Use Token in Subsequent Requests
 ```
-GET http://localhost:8080/api/users/1
-Authorization: Bearer <token_from_login>
+GET http://localhost:8080/api/users
+Authorization: Bearer <admin_token_from_login>
 Content-Type: application/json
 ```
 
 ---
 
-**Last Updated:** April 20, 2026  
-**Version:** 1.0
+**Last Updated:** May 27, 2026  
+**Version:** 1.1

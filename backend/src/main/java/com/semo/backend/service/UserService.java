@@ -153,6 +153,54 @@ public class UserService {
     }
 
     /**
+     * Admin reset password for a user. If newPassword is null or empty, generate a
+     * temporary one.
+     * Returns the plaintext new password (one-time) so admin can communicate it to
+     * the user.
+     */
+    @Transactional
+    public String adminResetPassword(Integer id, String newPassword) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy User với ID: " + id));
+
+        String rawPassword = newPassword;
+        if (rawPassword == null || rawPassword.isEmpty()) {
+            rawPassword = generateTemporaryPassword();
+        }
+
+        user.setPassword(passwordEncoder.encode(rawPassword));
+        userRepository.save(user);
+        return rawPassword;
+    }
+
+    /**
+     * Change password for a user. Verifies current password before updating.
+     */
+    @Transactional
+    public void changePassword(Integer id, String currentPassword, String newPassword) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy User với ID: " + id));
+
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new RuntimeException("Mật khẩu hiện tại không đúng.");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
+    private String generateTemporaryPassword() {
+        // Simple temporary password generator: 12 chars alphanumeric with symbols
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*";
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 12; i++) {
+            int idx = (int) (Math.random() * chars.length());
+            sb.append(chars.charAt(idx));
+        }
+        return sb.toString();
+    }
+
+    /**
      * Lấy User entity (không phải DTO) theo email
      * Dùng cho internal processing (authentication, ...)
      * 
