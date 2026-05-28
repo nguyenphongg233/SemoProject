@@ -19,6 +19,7 @@ public class Scooter {
     @Column(name = "code_name")
     private String codeName;
 
+    // status: ("MAINTENANCE", "AVAILABLE", "IN_USE")
     private String status;
 
     @Column(name = "battery_level")

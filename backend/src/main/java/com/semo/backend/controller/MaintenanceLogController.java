@@ -40,4 +40,11 @@ public class MaintenanceLogController {
         List<MaintenanceLogResponseDTO> logs = maintenanceLogService.getMaintenanceLogsByScooterId(scooterId);
         return ResponseEntity.ok(logs);
     }
+
+    @PostMapping("/{scooterId}/resolve")
+    public ResponseEntity<String> resolveEntity(@PathVariable Integer scooterId) {
+        maintenanceLogService.resolveMaintenance(scooterId);
+        return ResponseEntity.ok("Đã sửa chữa và sạc đầy xe thành công! Xe đã sẵn sàng phục vụ.");
+    }
+
 }

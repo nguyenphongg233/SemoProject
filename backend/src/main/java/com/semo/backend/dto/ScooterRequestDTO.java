@@ -16,7 +16,7 @@ public class ScooterRequestDTO {
     private Integer batteryLevel;
 
     @NotBlank(message = "Trạng thái xe không được để trống")
-    private String status; // Ví dụ: AVAILABLE, IN_USE, MAINTENANCE
+    private String status; // AVAILABLE, IN_USE, MAINTENANCE
 
     // Constructors
     public ScooterRequestDTO() {}

@@ -3,6 +3,7 @@ package com.semo.backend.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import com.semo.backend.dto.MaintenanceLogRequestDTO;
@@ -63,5 +64,20 @@ public class MaintenanceLogService {
         responseDTO.setCost(maintenanceLog.getCost());
         responseDTO.setCreatedAt(maintenanceLog.getCreatedAt());
         return responseDTO;
+    }
+
+    @Transactional
+    public void resolveMaintenance(Integer scooterId) {
+        Scooter scooter = scooterRepository.findById(scooterId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy xe với ID: " + scooterId));
+
+        if (!"MAINTENANCE".equals(scooter.getStatus()))
+            throw new RuntimeException("Xe này không nằm trong danh sách bảo trì!");
+
+        scooter.setStatus("AVAILABLE");
+        scooter.setBatteryLevel(100);
+        scooter.setTemperature(25.0);
+
+        scooterRepository.save(scooter);
     }
 }
