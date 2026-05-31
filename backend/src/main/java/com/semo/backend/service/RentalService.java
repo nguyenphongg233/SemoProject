@@ -64,15 +64,28 @@ public class RentalService {
 
     @Transactional
     public RentalResponseDTO endRental(Integer rentalId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            throw new RuntimeException("Truy cập bị từ chối: Vui lòng đăng nhập lại!");
+        }
+
+        User loggedInUser = userRepository.findByEmail(auth.getName())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng hệ thống"));
+
         Rental rental = rentalRepository.findById(rentalId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy chuyến đi"));
+
+        User rentalOwner = rental.getUser();
+
+        if (!rentalOwner.getId().equals(loggedInUser.getId()) && !"ADMIN".equals(loggedInUser.getRole())) {
+            throw new RuntimeException("Lỗi bảo mật: Bạn không có quyền kết thúc chuyến đi của người khác!");
+        }
 
         if ("COMPLETED".equals(rental.getStatus()))
             throw new RuntimeException("Chuyến đi này đã được thanh toán rồi!");
 
         rental.setEndTime(LocalDateTime.now());
 
-        User user = rental.getUser();
         Scooter scooter = rental.getScooter();
 
         long minutes = Duration.between(rental.getStartTime(), rental.getEndTime()).toMinutes();
@@ -80,7 +93,7 @@ public class RentalService {
             minutes = 1;
 
         double amount = minutes * 1000.0;
-        if ("ADMIN".equals(user.getRole()))
+        if ("ADMIN".equals(rentalOwner.getRole()))
             amount = 0.0;
 
         rental.setTotalPrice(amount);
@@ -88,7 +101,8 @@ public class RentalService {
 
         scooter.setStatus("AVAILABLE");
 
-        user.subtractBalance(amount);
+        if (!"ADMIN".equals(rentalOwner.getRole()))
+            rentalOwner.subtractBalance(amount - 50000.0);
 
         return mapToDTO(rental);
     }
