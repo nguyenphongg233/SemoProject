@@ -1,0 +1,12 @@
+// Canonical scooter status values aligned with the backend.
+export const SCOOTER_STATUSES = {
+  AVAILABLE: 'AVAILABLE',
+  IN_USE: 'IN_USE',
+  MAINTENANCE: 'MAINTENANCE',
+}
+
+export const SCOOTER_STATUS_OPTIONS = [
+  SCOOTER_STATUSES.AVAILABLE,
+  SCOOTER_STATUSES.IN_USE,
+  SCOOTER_STATUSES.MAINTENANCE,
+]

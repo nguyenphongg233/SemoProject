@@ -3,7 +3,6 @@ package com.semo.backend.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -27,6 +26,8 @@ public class ScooterService {
         scooter.setCodeName(requestDTO.getName());
         scooter.setBatteryLevel(requestDTO.getBatteryLevel());
         scooter.setStatus(requestDTO.getStatus());
+        scooter.setCurrentLat(requestDTO.getCurrentLat());
+        scooter.setCurrentLng(requestDTO.getCurrentLng());
 
         Scooter savedScooter = scooterRepository.save(scooter);
         return mapToResponseDTO(savedScooter);
@@ -64,6 +65,12 @@ public class ScooterService {
         scooter.setCodeName(requestDTO.getName());
         scooter.setBatteryLevel(requestDTO.getBatteryLevel());
         scooter.setStatus(requestDTO.getStatus());
+        if (requestDTO.getCurrentLat() != null) {
+            scooter.setCurrentLat(requestDTO.getCurrentLat());
+        }
+        if (requestDTO.getCurrentLng() != null) {
+            scooter.setCurrentLng(requestDTO.getCurrentLng());
+        }
 
         Scooter updatedScooter = scooterRepository.save(scooter);
         return mapToResponseDTO(updatedScooter);
@@ -77,6 +84,8 @@ public class ScooterService {
         dto.setName(scooter.getCodeName());
         dto.setBatteryLevel(scooter.getBatteryLevel());
         dto.setStatus(scooter.getStatus());
+        dto.setCurrentLat(scooter.getCurrentLat());
+        dto.setCurrentLng(scooter.getCurrentLng());
 
         dto.setCreatedAt(scooter.getCreatedAt());
         dto.setUpdatedAt(scooter.getUpdatedAt());

@@ -1,6 +1,7 @@
 package com.semo.backend.seeder;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,7 +20,7 @@ public class DatabaseSeeder implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
 
     public DatabaseSeeder(ScooterRepository scooterRepository, UserRepository userRepository,
-                          PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder) {
         this.scooterRepository = scooterRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -57,17 +58,52 @@ public class DatabaseSeeder implements CommandLineRunner {
 
         // Seed scooters
         if (scooterRepository.count() == 0) {
-            Scooter s1 = new Scooter("VinFast Feliz S", 100, "AVAILABLE");
-            Scooter s2 = new Scooter("Honda Vision 2023", 45, "IN_USE");
-            Scooter s3 = new Scooter("Yamaha Grande", 12, "MAINTENANCE");
-            Scooter s4 = new Scooter("DatBike Weaver++", 88, "AVAILABLE");
-            Scooter s5 = new Scooter("Yadea Xmen Neo", 5, "MAINTENANCE");
-            Scooter s6 = new Scooter("Gogoro 2 Series", 60, "AVAILABLE");
-            Scooter s7 = new Scooter("Segway Ninebot S", 30, "IN_USE");
-            Scooter s8 = new Scooter("Super Soco CUx", 15, "MAINTENANCE");
+            Scooter s1 = createScooter("VinFast Feliz S", 100, "AVAILABLE", 21.00555, 105.84335);
+            Scooter s2 = createScooter("Honda Vision 2023", 45, "IN_USE", 21.00498, 105.84292);
+            Scooter s3 = createScooter("Yamaha Grande", 12, "MAINTENANCE", 21.00521, 105.84411);
+            Scooter s4 = createScooter("DatBike Weaver++", 88, "AVAILABLE", 21.00618, 105.84378);
+            Scooter s5 = createScooter("Yadea Xmen Neo", 5, "MAINTENANCE", 21.00441, 105.84366);
+            Scooter s6 = createScooter("Gogoro 2 Series", 60, "AVAILABLE", 21.00592, 105.84248);
+            Scooter s7 = createScooter("Segway Ninebot S", 30, "IN_USE", 21.00396, 105.84308);
+            Scooter s8 = createScooter("Super Soco CUx", 15, "MAINTENANCE", 21.00577, 105.84442);
 
             scooterRepository.saveAll(Arrays.asList(s1, s2, s3, s4, s5, s6, s7, s8));
             System.out.println("✅ Đã bơm dữ liệu mẫu cho bảng Scooters thành công!");
         }
+
+        List<Scooter> scooters = scooterRepository.findAll();
+        boolean updated = false;
+        double[][] fallbackPositions = new double[][] {
+                { 21.00555, 105.84335 },
+                { 21.00498, 105.84292 },
+                { 21.00521, 105.84411 },
+                { 21.00618, 105.84378 },
+                { 21.00441, 105.84366 },
+                { 21.00592, 105.84248 },
+                { 21.00396, 105.84308 },
+                { 21.00577, 105.84442 },
+        };
+
+        for (int i = 0; i < scooters.size(); i++) {
+            Scooter scooter = scooters.get(i);
+            if (scooter.getCurrentLat() == null || scooter.getCurrentLng() == null) {
+                double[] position = fallbackPositions[i % fallbackPositions.length];
+                scooter.setCurrentLat(position[0]);
+                scooter.setCurrentLng(position[1]);
+                updated = true;
+            }
+        }
+
+        if (updated) {
+            scooterRepository.saveAll(scooters);
+            System.out.println("✅ Đã bổ sung tọa độ cho các scooter chưa có vị trí.");
+        }
+    }
+
+    private Scooter createScooter(String codeName, Integer batteryLevel, String status, Double lat, Double lng) {
+        Scooter scooter = new Scooter(codeName, batteryLevel, status);
+        scooter.setCurrentLat(lat);
+        scooter.setCurrentLng(lng);
+        return scooter;
     }
 }
