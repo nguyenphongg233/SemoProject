@@ -7,31 +7,40 @@ import AuthLayout from '../layouts/AuthLayout'
 import ProtectedRoute from './ProtectedRoute'
 import { ROUTES } from '../constants/routes'
 import { ROLES } from '../constants/roles'
+import Login from '../pages/auth/Login'
+import Register from '../pages/auth/Register'
+import DashboardPage from '../pages/dashboard/DashboardPage'
+import ProfilePage from '../pages/profile/ProfilePage'
+import AnalyticsPage from '../pages/admin/AnalyticsPage'
+import MaintenancePage from '../pages/admin/MaintenancePage'
+import RentalsPage from '../pages/admin/RentalsPage'
+import ScootersPage from '../pages/admin/ScootersPage'
+import UsersPage from '../pages/admin/UsersPage'
 
 export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
         <Route element={<AuthLayout />}>
-          <Route path={ROUTES.LOGIN} element={null} />
-          <Route path={ROUTES.REGISTER} element={null} />
+          <Route path={ROUTES.LOGIN} element={<Login />} />
+          <Route path={ROUTES.REGISTER} element={<Register />} />
         </Route>
 
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
             <Route path={ROUTES.HOME} element={<Navigate to={ROUTES.DASHBOARD} replace />} />
-            <Route path={ROUTES.DASHBOARD} element={null} />
-            <Route path={ROUTES.PROFILE} element={null} />
+            <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
+            <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
           </Route>
         </Route>
 
         <Route element={<ProtectedRoute requiredRoles={[ROLES.ADMIN]} />}>
           <Route element={<AdminLayout />}>
-            <Route path={ROUTES.USERS} element={null} />
-            <Route path={ROUTES.SCOOTERS} element={null} />
-            <Route path={ROUTES.RENTALS} element={null} />
-            <Route path={ROUTES.MAINTENANCE} element={null} />
-            <Route path={ROUTES.ANALYTICS} element={null} />
+            <Route path={ROUTES.USERS} element={<UsersPage />} />
+            <Route path={ROUTES.SCOOTERS} element={<ScootersPage />} />
+            <Route path={ROUTES.RENTALS} element={<RentalsPage />} />
+            <Route path={ROUTES.MAINTENANCE} element={<MaintenancePage />} />
+            <Route path={ROUTES.ANALYTICS} element={<AnalyticsPage />} />
           </Route>
         </Route>
 

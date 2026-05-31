@@ -1,5 +1,5 @@
 // Centralized runtime environment values for the frontend app.
-const DEFAULT_API_URL = 'http://localhost:8080'
+const DEFAULT_API_URL = "http://localhost:8888"
 
 function getEnvValue(key, fallback = '') {
   const value = import.meta.env[key]
