@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { ROUTES } from '../../constants/routes'
+import { ROLES } from '../../constants/roles'
 import { useAuth } from '../../hooks/useAuth'
 import { Alert, Button, Card, TextField } from '../../components/ui'
 import { AuthShell } from '../../components/layout'
@@ -20,8 +21,8 @@ export default function Login() {
     setError(null)
     setLoading(true)
     try {
-      await login({ email, password })
-      navigate(ROUTES.DASHBOARD, { replace: true })
+      const response = await login({ email, password })
+      navigate(ROUTES.HOME, { replace: true })
     } catch (err) {
       setError(err?.message || 'Login failed')
     } finally {

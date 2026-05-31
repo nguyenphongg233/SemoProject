@@ -18,8 +18,8 @@ export default function Table({ columns, rows, rowKey, emptyMessage = 'No data a
               </td>
             </tr>
           ) : (
-            rows.map((row) => (
-              <tr key={rowKey(row)}>
+            rows.map((row, index) => (
+              <tr key={rowKey(row, index)}>
                 {columns.map((column) => (
                   <td key={column.key}>{column.render ? column.render(row) : row[column.key]}</td>
                 ))}

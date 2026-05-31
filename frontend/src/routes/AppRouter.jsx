@@ -7,6 +7,7 @@ import AuthLayout from '../layouts/AuthLayout'
 import ProtectedRoute from './ProtectedRoute'
 import { ROUTES } from '../constants/routes'
 import { ROLES } from '../constants/roles'
+import { useAuth } from '../hooks/useAuth'
 import Login from '../pages/auth/Login'
 import Register from '../pages/auth/Register'
 import DashboardPage from '../pages/dashboard/DashboardPage'
@@ -16,6 +17,22 @@ import MaintenancePage from '../pages/admin/MaintenancePage'
 import RentalsPage from '../pages/admin/RentalsPage'
 import ScootersPage from '../pages/admin/ScootersPage'
 import UsersPage from '../pages/admin/UsersPage'
+
+function RoleHomeRedirect() {
+  const { user } = useAuth()
+
+  return <Navigate to={user?.role === ROLES.ADMIN ? ROUTES.USERS : ROUTES.DASHBOARD} replace />
+}
+
+function RoleDashboardRoute() {
+  const { user } = useAuth()
+
+  if (user?.role === ROLES.ADMIN) {
+    return <Navigate to={ROUTES.USERS} replace />
+  }
+
+  return <DashboardPage />
+}
 
 export default function AppRouter() {
   return (
@@ -28,8 +45,8 @@ export default function AppRouter() {
 
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
-            <Route path={ROUTES.HOME} element={<Navigate to={ROUTES.DASHBOARD} replace />} />
-            <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
+            <Route path={ROUTES.HOME} element={<RoleHomeRedirect />} />
+            <Route path={ROUTES.DASHBOARD} element={<RoleDashboardRoute />} />
             <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
           </Route>
         </Route>

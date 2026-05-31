@@ -158,6 +158,12 @@ input {
   border-color: rgba(197, 57, 57, 0.16);
 }
 
+.ui-alert--success {
+  color: #146b41;
+  background: rgba(20, 107, 65, 0.08);
+  border-color: rgba(20, 107, 65, 0.16);
+}
+
 .auth-shell {
   display: grid;
   min-height: 100vh;
@@ -476,6 +482,10 @@ input {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.stats-grid--compact {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .stat-card__label,
 .stat-card__note,
 .empty-state__text {
@@ -524,6 +534,47 @@ input {
 .ui-table__empty {
   text-align: center;
   color: var(--text-muted);
+}
+
+.form-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.two-column-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.modal-actions,
+.table-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.table-actions--wrap {
+  flex-wrap: wrap;
+}
+
+.modal-copy,
+.profile-note {
+  margin: 0 0 1rem;
+  color: var(--text-muted);
+}
+
+.result-list,
+.profile-details {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.analytics-form {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
 }
 
 .ui-modal {
@@ -653,6 +704,12 @@ input {
   }
 
   .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid--compact,
+  .two-column-grid,
+  .analytics-form {
     grid-template-columns: 1fr;
   }
 }
