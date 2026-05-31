@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 import { SectionHeader } from '../../components/layout'
 import { Card, Table } from '../../components/ui'
+import ScooterMap from '../../components/map/ScooterMap'
 import { getAllScooters } from '../../features/scooters'
 import { SCOOTER_STATUSES } from '../../constants/statuses'
 import { formatBatteryLevel, formatDateTime } from '../../utils/formatters'
@@ -125,6 +126,16 @@ export default function DashboardPage() {
           </Card>
         ))}
       </div>
+
+      <Card>
+        <SectionHeader
+          eyebrow="Map view"
+          title="Scooters around Bach Khoa"
+          description="Live scooter positions rendered on a real OpenStreetMap layer using their current coordinates."
+        />
+        {error && <div className="ui-alert ui-alert--error dashboard__error">{error}</div>}
+        <ScooterMap scooters={scooters} />
+      </Card>
 
       <Card>
         <SectionHeader

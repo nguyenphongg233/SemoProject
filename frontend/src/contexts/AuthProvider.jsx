@@ -1,25 +1,26 @@
 // Provider that owns auth state, persistence, and session actions.
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 import { ROLES } from '../constants/roles'
-import { STORAGE_KEYS } from '../constants/storageKeys'
 import { decodeJwtPayload } from '../utils/jwt'
+import {
+  clearAuthSession,
+  getAuthToken,
+  getAuthUser,
+  setAuthToken,
+  setAuthUser,
+} from '../utils/authSession'
 import { login as loginRequest, register as registerRequest } from '../features/auth/api'
-import { useLocalStorage } from '../hooks/useLocalStorage'
 import { AuthContext } from './authContext'
 
 function readStoredUser() {
-  const storedUser = localStorage.getItem(STORAGE_KEYS.AUTH_USER)
+  const storedUser = getAuthUser()
 
   if (storedUser) {
-    try {
-      return JSON.parse(storedUser)
-    } catch {
-      localStorage.removeItem(STORAGE_KEYS.AUTH_USER)
-    }
+    return storedUser
   }
 
-  const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)
+  const token = getAuthToken()
   if (!token) {
     return null
   }
@@ -38,8 +39,8 @@ function readStoredUser() {
 }
 
 export function AuthProvider({ children }) {
-  const [token, setToken, clearToken] = useLocalStorage(STORAGE_KEYS.AUTH_TOKEN, null)
-  const [user, setUser, clearUser] = useLocalStorage(STORAGE_KEYS.AUTH_USER, readStoredUser())
+  const [token, setTokenState] = useState(() => getAuthToken())
+  const [user, setUserState] = useState(() => readStoredUser())
 
   const isAuthenticated = Boolean(token)
   const isAdmin = user?.role === ROLES.ADMIN
@@ -53,11 +54,13 @@ export function AuthProvider({ children }) {
       role: response.role,
     }
 
-    setToken(response.token)
-    setUser(nextUser)
+    setTokenState(response.token)
+    setUserState(nextUser)
+    setAuthToken(response.token)
+    setAuthUser(nextUser)
 
     return response
-  }, [setToken, setUser])
+  }, [])
 
   const register = useCallback(async (request) => {
     const response = await registerRequest(request)
@@ -65,15 +68,17 @@ export function AuthProvider({ children }) {
   }, [])
 
   const logout = useCallback(() => {
-    clearToken()
-    clearUser()
-  }, [clearToken, clearUser])
+    setTokenState(null)
+    setUserState(null)
+    clearAuthSession()
+  }, [])
 
   const updateUser = useCallback(
     (nextUser) => {
-      setUser(nextUser)
+      setUserState(nextUser)
+      setAuthUser(nextUser)
     },
-    [setUser],
+    [],
   )
 
   const value = useMemo(

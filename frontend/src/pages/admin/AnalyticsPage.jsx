@@ -3,6 +3,9 @@ import { useState } from 'react'
 
 import { SectionHeader } from '../../components/layout'
 import { Alert, Button, Card, Table, TextField } from '../../components/ui'
+import ScooterMap from '../../components/map/ScooterMap'
+import { SCOOTER_STATUSES } from '../../constants/statuses'
+import { getAllScooters } from '../../features/scooters'
 import { getOptimalStations } from '../../features/analytics'
 import { getApiErrorMessage } from '../../utils/apiError'
 
@@ -11,6 +14,7 @@ export default function AnalyticsPage() {
   const [points, setPoints] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [scooters, setScooters] = useState([])
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -18,8 +22,9 @@ export default function AnalyticsPage() {
     setError('')
 
     try {
-      const data = await getOptimalStations(Number(k))
+      const [data, scootersData] = await Promise.all([getOptimalStations(Number(k)), getAllScooters()])
       setPoints(Array.isArray(data) ? data : [])
+      setScooters(Array.isArray(scootersData) ? scootersData : [])
     } catch (err) {
       setError(getApiErrorMessage(err, 'Unable to load optimal stations'))
       setPoints([])
@@ -58,6 +63,18 @@ export default function AnalyticsPage() {
             {loading ? 'Calculating…' : 'Calculate'}
           </Button>
         </form>
+      </Card>
+
+      <Card>
+        <div style={{ height: 420 }}>
+          <ScooterMap
+            scooters={scooters}
+            stations={points.map((p, i) => ({ lat: p.lat, lng: p.lng, name: `Station ${i + 1}` }))}
+          />
+        </div>
+        <p className="muted small" style={{ marginTop: 8 }}>
+          KMeans cluster centers shown on the map as stations.
+        </p>
       </Card>
 
       <Card>

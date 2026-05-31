@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import { SectionHeader } from '../../components/layout'
+import ScooterMap from '../../components/map/ScooterMap'
 import { Alert, Button, Card, Modal, Table, TextField } from '../../components/ui'
 import { SCOOTER_STATUSES } from '../../constants/statuses'
 import { createScooter, getAllScooters, updateScooter } from '../../features/scooters'
@@ -13,6 +14,8 @@ const initialForm = {
   name: '',
   batteryLevel: 100,
   status: SCOOTER_STATUSES.AVAILABLE,
+  currentLat: '',
+  currentLng: '',
 }
 
 function getStatusLabel(status) {
@@ -79,6 +82,12 @@ export default function ScootersPage() {
     { key: 'name', label: 'Scooter' },
     { key: 'batteryLevel', label: 'Battery', render: (row) => formatBatteryLevel(row.batteryLevel) },
     { key: 'status', label: 'Status', render: (row) => getStatusLabel(row.status) },
+    {
+      key: 'location',
+      label: 'Location',
+      render: (row) =>
+        row.currentLat && row.currentLng ? `${Number(row.currentLat).toFixed(5)}, ${Number(row.currentLng).toFixed(5)}` : '-',
+    },
     { key: 'updatedAt', label: 'Updated', render: (row) => formatDateTime(row.updatedAt || row.createdAt) || '-' },
     {
       key: 'actions',
@@ -98,12 +107,26 @@ export default function ScootersPage() {
     setIsModalOpen(true)
   }
 
+  function handleMapClick({ lat, lng }) {
+    setForm({
+      id: null,
+      name: '',
+      batteryLevel: 100,
+      status: SCOOTER_STATUSES.AVAILABLE,
+      currentLat: lat?.toFixed ? lat.toFixed(5) : lat,
+      currentLng: lng?.toFixed ? lng.toFixed(5) : lng,
+    })
+    setIsModalOpen(true)
+  }
+
   function openEdit(row) {
     setForm({
       id: row.id,
       name: row.name || '',
       batteryLevel: row.batteryLevel ?? 100,
       status: row.status || SCOOTER_STATUSES.AVAILABLE,
+      currentLat: row.currentLat ?? '',
+      currentLng: row.currentLng ?? '',
     })
     setIsModalOpen(true)
   }
@@ -117,6 +140,8 @@ export default function ScootersPage() {
       name: form.name,
       batteryLevel: Number(form.batteryLevel),
       status: form.status,
+      currentLat: form.currentLat === '' ? null : Number(form.currentLat),
+      currentLng: form.currentLng === '' ? null : Number(form.currentLng),
     }
 
     try {
@@ -155,6 +180,15 @@ export default function ScootersPage() {
       </div>
 
       {error && <Alert>{error}</Alert>}
+
+      <Card>
+        <div style={{ height: 420 }}>
+          <ScooterMap scooters={scooters} onMapClick={handleMapClick} />
+        </div>
+        <p className="muted small" style={{ marginTop: 8 }}>
+          Click on the map to add a scooter at that location.
+        </p>
+      </Card>
 
       <Card>
         <Table
@@ -198,6 +232,26 @@ export default function ScootersPage() {
             value={form.batteryLevel}
             onChange={(event) => setForm((current) => ({ ...current, batteryLevel: event.target.value }))}
             required
+          />
+
+          <TextField
+            label="Latitude"
+            type="number"
+            name="currentLat"
+            step="0.00001"
+            value={form.currentLat}
+            onChange={(event) => setForm((current) => ({ ...current, currentLat: event.target.value }))}
+            placeholder="21.00520"
+          />
+
+          <TextField
+            label="Longitude"
+            type="number"
+            name="currentLng"
+            step="0.00001"
+            value={form.currentLng}
+            onChange={(event) => setForm((current) => ({ ...current, currentLng: event.target.value }))}
+            placeholder="105.84330"
           />
 
           <label className="ui-field">

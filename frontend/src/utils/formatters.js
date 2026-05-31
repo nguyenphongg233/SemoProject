@@ -64,3 +64,14 @@ export function formatBatteryLevel(value) {
 
   return `${level}%`
 }
+
+export function formatCoordinates(lat, lng) {
+  const latitude = Number(lat)
+  const longitude = Number(lng)
+
+  if (Number.isNaN(latitude) || Number.isNaN(longitude)) {
+    return ''
+  }
+
+  return `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`
+}

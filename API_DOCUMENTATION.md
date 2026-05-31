@@ -1,7 +1,17 @@
 # API Documentation
 
 Tài liệu này tổng hợp các endpoint hiện có trong Backend.  
-Ký hiệu `{{baseUrl}}` là địa chỉ backend, ví dụ: `http://localhost:8080`.
+Ký hiệu `{{baseUrl}}` là địa chỉ backend, ví dụ: `http://localhost:8888`.
+
+## Tài khoản mặc định
+
+- Customer: `customer@semo.com` / `Customer@123`
+
+## Ghi chú chung
+
+- Các request cần đăng nhập phải gắn JWT ở header `Authorization: Bearer <token>`.
+- Endpoint quản trị yêu cầu role `ADMIN`.
+- Upload dùng `multipart/form-data` với field tên `file`.
 
 ## 1. Auth API
 
@@ -66,6 +76,5 @@ Ký hiệu `{{baseUrl}}` là địa chỉ backend, ví dụ: `http://localhost:8
 
 ## Ghi chú nhanh
 
-- Các endpoint upload dùng `multipart/form-data` với field tên là `file`.
 - Một số endpoint yêu cầu JWT token hoặc quyền `ADMIN` theo cấu hình bảo mật của project.
 - Cú pháp trong bảng là dạng gọi API thực tế, chỉ thay `{{baseUrl}}` bằng địa chỉ backend đang chạy.

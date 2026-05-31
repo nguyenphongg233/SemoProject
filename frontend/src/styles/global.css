@@ -164,6 +164,67 @@ input {
   border-color: rgba(20, 107, 65, 0.16);
 }
 
+.scooter-map {
+  position: relative;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.scooter-map__canvas {
+  width: 100%;
+  height: 520px;
+  border-radius: 22px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.scooter-map__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem 1.2rem;
+  font-size: 0.92rem;
+  color: var(--text-muted);
+}
+
+.scooter-map__legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.scooter-map__swatch {
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.scooter-map__swatch--available {
+  background: #1f6f78;
+}
+
+.scooter-map__swatch--in-use {
+  background: #d38a15;
+}
+
+.scooter-map__swatch--maintenance {
+  background: #c53939;
+}
+
+.scooter-map__empty {
+  padding: 0.9rem 1rem;
+  border-radius: 16px;
+  background: rgba(31, 111, 120, 0.08);
+  border: 1px solid rgba(31, 111, 120, 0.16);
+  color: var(--text-muted);
+}
+
+.scooter-map__popup {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 180px;
+}
+
 .auth-shell {
   display: grid;
   min-height: 100vh;

@@ -2,14 +2,14 @@
 import axios from 'axios'
 
 import { APP_ENV } from './env'
-import { STORAGE_KEYS } from '../constants/storageKeys'
+import { getAuthToken, removeAuthToken } from '../utils/authSession'
 
 function getToken() {
-  return localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)
+  return getAuthToken()
 }
 
 function clearToken() {
-  localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN)
+  removeAuthToken()
 }
 
 export const axiosClient = axios.create({
