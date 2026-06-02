@@ -1,5 +1,12 @@
-// Nút bấm tái sử dụng — Tech Blue variants: primary / secondary / destructive / ghost.
-// Hỗ trợ thêm prop `leadingIcon` (ReactNode) để hiển thị icon ở đầu nút.
+import type { ButtonHTMLAttributes, ReactNode } from 'react'
+
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  children: ReactNode
+  variant?: 'primary' | 'secondary' | 'destructive' | 'ghost'
+  leadingIcon?: ReactNode
+  trailingIcon?: ReactNode
+}
+
 export default function Button({
   children,
   variant = 'primary',
@@ -9,7 +16,7 @@ export default function Button({
   leadingIcon = null,
   trailingIcon = null,
   ...props
-}) {
+}: ButtonProps) {
   const variantClass = `ui-button--${variant}`
 
   return (

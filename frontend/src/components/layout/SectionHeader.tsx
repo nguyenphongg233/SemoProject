@@ -1,5 +1,14 @@
-// Simple reusable section header for pages and panels.
-export default function SectionHeader({ eyebrow, title, description, actions }) {
+import type { ReactNode } from 'react'
+
+interface SectionHeaderProps {
+  eyebrow?: string;
+  title: string;
+  description?: string;
+  actions?: ReactNode;
+}
+
+// 2. Gắn interface vào component
+export default function SectionHeader({ eyebrow, title, description, actions }: SectionHeaderProps) {
   return (
     <div className="section-header">
       <div>

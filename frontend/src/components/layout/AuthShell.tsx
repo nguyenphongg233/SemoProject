@@ -1,8 +1,16 @@
-// Khung trang xác thực (Login/Register) — Tech Blue Luxury.
-// Panel trái: brand story với hiệu ứng orb phát sáng. Panel phải: form đăng nhập/đăng ký.
+import type { ReactNode } from 'react'
 import { Zap, ShieldCheck, Activity } from 'lucide-react'
 
-export default function AuthShell({ eyebrow, title, description, children }) {
+// 1. Định nghĩa kiểu dữ liệu cho Props
+interface AuthShellProps {
+  eyebrow?: string;
+  title: string;
+  description: string;
+  children: ReactNode;
+}
+
+// 2. Gắn AuthShellProps vào function
+export default function AuthShell({ eyebrow, title, description, children }: AuthShellProps) {
   return (
     <div className="auth-shell">
       <aside className="auth-shell__panel">

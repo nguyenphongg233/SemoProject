@@ -1,42 +1,41 @@
-// Bản đồ xe điện quanh Bách Khoa — Tech Blue theme.
-// CircleMarker dùng tông xanh dương để đồng bộ với theme.
 import { useMemo, useState } from 'react'
-
 import 'leaflet/dist/leaflet.css'
 import { CircleMarker, MapContainer, Popup, TileLayer, Tooltip, useMapEvents } from 'react-leaflet'
+import type { LeafletMouseEvent } from 'leaflet'
 
 import { SCOOTER_STATUSES } from '../../constants/statuses'
 import { formatBatteryLevel, formatCoordinates } from '../../utils/formatters'
+import type { Scooter, LatLngPos, Station } from '../../types/models'
 
-const BACH_KHOA_CENTER = [21.0052, 105.8433]
-const NORTHERN_VIETNAM_BOUNDS = [
+const BACH_KHOA_CENTER: [number, number] = [21.0052, 105.8433]
+const NORTHERN_VIETNAM_BOUNDS: [[number, number], [number, number]] = [
   [17.95, 102.10],
   [23.75, 108.20],
 ]
 
-// Tech Blue palette:
-//  - AVAILABLE: cyan sáng (sẵn sàng)
-//  - IN_USE:    xanh dương đậm (đang đi)
-//  - MAINTENANCE: hồng cảnh báo
-const statusStyles = {
+const statusStyles: Record<string, { color: string; fillColor: string }> = {
   [SCOOTER_STATUSES.AVAILABLE]:   { color: '#00D1FF', fillColor: '#00D1FF' },
   [SCOOTER_STATUSES.IN_USE]:      { color: '#0052FF', fillColor: '#0052FF' },
   [SCOOTER_STATUSES.MAINTENANCE]: { color: '#FF5C7A', fillColor: '#FF5C7A' },
 }
 
-const statusLabels = {
+const statusLabels: Record<string, string> = {
   [SCOOTER_STATUSES.AVAILABLE]:   'Sẵn sàng',
   [SCOOTER_STATUSES.IN_USE]:      'Đang đi',
   [SCOOTER_STATUSES.MAINTENANCE]: 'Bảo trì',
 }
 
-function resolveMarkerStyle(status) {
+function resolveMarkerStyle(status: string) {
   return statusStyles[status] || { color: '#8BA0C7', fillColor: '#8BA0C7' }
 }
 
-function MapClickHandler({ onClick }) {
+interface MapClickHandlerProps {
+  onClick?: (pos: LatLngPos) => void;
+}
+
+function MapClickHandler({ onClick }: MapClickHandlerProps) {
   useMapEvents({
-    click(e) {
+    click(e: LeafletMouseEvent) {
       const { lat, lng } = e.latlng
       onClick?.({ lat, lng })
     },
@@ -44,12 +43,20 @@ function MapClickHandler({ onClick }) {
   return null
 }
 
-export default function ScooterMap({ scooters = [], stations = [], onMapClick }) {
-  const [preview, setPreview] = useState(null)
+// Định nghĩa Props cho ScooterMap
+interface ScooterMapProps {
+  scooters?: Scooter[];
+  stations?: Station[];
+  onMapClick?: (pos: LatLngPos) => void;
+}
+
+export default function ScooterMap({ scooters = [], stations = [], onMapClick }: ScooterMapProps) {
+  const [preview, setPreview] = useState<LatLngPos | null>(null)
+
   const mappedScooters = useMemo(
     () =>
       scooters.filter(
-        (s) => Number.isFinite(Number(s.currentLat)) && Number.isFinite(Number(s.currentLng)),
+        (s) => s.currentLat !== null && s.currentLng !== null && Number.isFinite(Number(s.currentLat)) && Number.isFinite(Number(s.currentLng)),
       ),
     [scooters],
   )

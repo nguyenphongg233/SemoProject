@@ -1,6 +1,4 @@
-// Khung ứng dụng cho người dùng đã đăng nhập (sidebar + topbar).
-// Giữ nguyên cấu trúc và hành vi để các trang Admin tiếp tục hoạt động;
-// chỉ thay đổi màu sắc, icon, và nhãn (Vietnamese cho user mode).
+import type { ReactNode } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard,
@@ -19,15 +17,22 @@ import { ROLES } from '../../constants/roles'
 import { useAuth } from '../../hooks/useAuth'
 import { Button } from '../ui'
 
+// 1. Định nghĩa kiểu cho một phần tử menu
+interface NavItem {
+  label: string;
+  to: string;
+  icon: ReactNode;
+}
+
 const ICON_PROPS = { size: 18, strokeWidth: 1.7 }
 
-const userNavItems = [
+const userNavItems: NavItem[] = [
   { label: 'Bảng điều khiển', to: ROUTES.DASHBOARD, icon: <LayoutDashboard {...ICON_PROPS} /> },
-  { label: 'Đặt xe',          to: ROUTES.BOOKING,   icon: <MapPinned     {...ICON_PROPS} /> },
-  { label: 'Tài khoản & Ví',  to: ROUTES.PROFILE,   icon: <UserCircle    {...ICON_PROPS} /> },
+  { label: 'Đặt xe',          to: ROUTES.BOOKING,   icon: <MapPinned      {...ICON_PROPS} /> },
+  { label: 'Tài khoản & Ví',  to: ROUTES.PROFILE,   icon: <UserCircle     {...ICON_PROPS} /> },
 ]
 
-const adminNavItems = [
+const adminNavItems: NavItem[] = [
   { label: 'Users',       to: ROUTES.USERS,       icon: <Users    {...ICON_PROPS} /> },
   { label: 'Scooters',    to: ROUTES.SCOOTERS,    icon: <Bike     {...ICON_PROPS} /> },
   { label: 'Rentals',     to: ROUTES.RENTALS,     icon: <Receipt  {...ICON_PROPS} /> },
@@ -35,7 +40,14 @@ const adminNavItems = [
   { label: 'Analytics',   to: ROUTES.ANALYTICS,   icon: <BarChart3 {...ICON_PROPS} /> },
 ]
 
-function NavList({ items, sectionLabel, onNavigate }) {
+// 2. Định nghĩa Props cho component NavList
+interface NavListProps {
+  items: NavItem[];
+  sectionLabel?: string;
+  onNavigate?: () => void; // Cho phép onNavigate không bắt buộc (khắc phục Error 2741)
+}
+
+function NavList({ items, sectionLabel, onNavigate }: NavListProps) {
   return (
     <nav className="app-shell__nav">
       {sectionLabel && <p className="app-shell__nav-label">{sectionLabel}</p>}
@@ -62,9 +74,15 @@ function getInitials(name = '', email = '') {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
 }
 
-export default function AppShell({ mode = 'user', children }) {
+// 3. Định nghĩa Props cho component AppShell
+interface AppShellProps {
+  mode?: 'user' | 'admin';
+  children: ReactNode;
+}
+
+export default function AppShell({ mode = 'user', children }: AppShellProps) {
   const navigate = useNavigate()
-  const { user, logout } = useAuth()
+  const { user, logout } = useAuth() // Sẽ tự động nhận diện type từ AuthContextType
 
   const isAdminMode = mode === 'admin'
   const navItems = isAdminMode ? adminNavItems : userNavItems

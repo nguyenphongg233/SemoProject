@@ -1,6 +1,13 @@
-// Trường nhập liệu có label, error và helper text.
-// Hỗ trợ tuỳ chọn `leadingIcon` (icon hiển thị trong input — phong cách công nghệ).
-// Hỗ trợ tuỳ chọn `trailingAction` (nút bên phải, ví dụ: ẩn/hiện mật khẩu).
+import type { InputHTMLAttributes, ReactNode } from 'react'
+
+interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
+  label?: string
+  error?: string | null
+  helpText?: string | null
+  leadingIcon?: ReactNode
+  trailingAction?: ReactNode
+}
+
 export default function TextField({
   label,
   error,
@@ -10,7 +17,7 @@ export default function TextField({
   leadingIcon = null,
   trailingAction = null,
   ...props
-}) {
+}: TextFieldProps) {
   const fieldId = id || props.name
   const describedBy = [error ? `${fieldId}-error` : null, helpText ? `${fieldId}-help` : null]
     .filter(Boolean)
