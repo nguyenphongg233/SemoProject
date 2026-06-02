@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.semo.backend.dto.ScooterRequestDTO;
 import com.semo.backend.dto.ScooterResponseDTO;
@@ -15,7 +16,6 @@ import com.semo.backend.entity.Scooter;
 import com.semo.backend.repository.ScooterRepository;
 import com.semo.backend.entity.User;
 import com.semo.backend.repository.UserRepository;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ScooterService {
