@@ -1,6 +1,10 @@
 // Provider giữ trạng thái xác thực, lưu trữ session và các action liên quan.
 // Đã giữ nguyên cấu trúc cũ; bổ sung tiện ích `setBalance(newBalance)` cho ví người dùng.
 import { useCallback, useMemo, useState } from 'react'
+import type { ReactNode } from 'react' 
+
+// 1. Import kiểu dữ liệu User chính thống của dự án
+import type { User } from '../types/models'
 
 import { ROLES } from '../constants/roles'
 import { decodeJwtPayload } from '../utils/jwt'
@@ -14,9 +18,13 @@ import {
 import { login as loginRequest, register as registerRequest } from '../features/auth/api'
 import { AuthContext } from './authContext'
 
-function readStoredUser() {
+interface AuthProviderProps {
+  children: ReactNode
+}
+
+function readStoredUser(): User | null {
   const storedUser = getAuthUser()
-  if (storedUser) return storedUser
+  if (storedUser) return storedUser as User
 
   const token = getAuthToken()
   if (!token) return null
@@ -25,7 +33,8 @@ function readStoredUser() {
   if (!payload) return null
 
   return {
-    id: payload.userId ?? null,
+    // Ép kiểu về dạng Number để khớp với model hệ thống
+    id: payload.userId ? Number(payload.userId) : null,
     email: payload.sub ?? '',
     fullName: '',
     role: payload.role ?? ROLES.CUSTOMER,
@@ -33,21 +42,22 @@ function readStoredUser() {
   }
 }
 
-export function AuthProvider({ children }) {
-  const [token, setTokenState] = useState(() => getAuthToken())
-  const [user, setUserState] = useState(() => readStoredUser())
+export function AuthProvider({ children }: AuthProviderProps) {
+  const [token, setTokenState] = useState<string | null>(() => getAuthToken())
+  const [user, setUserState] = useState<User | null>(() => readStoredUser())
 
   const isAuthenticated = Boolean(token)
   const isAdmin = user?.role === ROLES.ADMIN
 
-  const login = useCallback(async (request) => {
+  const login = useCallback(async (request: any) => {
     const response = await loginRequest(request)
-    const nextUser = {
-      id: response.userId,
+    const nextUser: User = {
+      // Đảm bảo id trả về từ API được convert sang number nếu nó đang là string
+      id: response.userId ? Number(response.userId) : null,
       email: response.email,
       fullName: response.fullName,
       role: response.role,
-      balance: response.balance ?? null, // sẽ là null nếu backend chưa trả balance trong LoginResponseDTO
+      balance: response.balance ?? null,
     }
 
     setTokenState(response.token)
@@ -58,7 +68,7 @@ export function AuthProvider({ children }) {
     return response
   }, [])
 
-  const register = useCallback(async (request) => registerRequest(request), [])
+  const register = useCallback(async (request: any) => registerRequest(request), [])
 
   const logout = useCallback(() => {
     setTokenState(null)
@@ -66,15 +76,14 @@ export function AuthProvider({ children }) {
     clearAuthSession()
   }, [])
 
-  const updateUser = useCallback((nextUser) => {
+  const updateUser = useCallback((nextUser: User | null) => {
     setUserState(nextUser)
     setAuthUser(nextUser)
   }, [])
 
-  // Cập nhật riêng số dư ví — dùng cho ProfilePage sau khi gọi deposit thành công.
-  const setBalance = useCallback((newBalance) => {
-    setUserState((current) => {
-      const next = { ...(current || {}), balance: Number(newBalance) }
+  const setBalance = useCallback((newBalance: number | string) => {
+    setUserState((current: User | null) => {
+      const next = { ...(current || {}), balance: Number(newBalance) } as User
       setAuthUser(next)
       return next
     })
