@@ -11,6 +11,7 @@ import {
   Wrench,
   BarChart3,
   LogOut,
+  MapPinned,
 } from 'lucide-react'
 
 import { ROUTES } from '../../constants/routes'
@@ -22,6 +23,7 @@ const ICON_PROPS = { size: 18, strokeWidth: 1.7 }
 
 const userNavItems = [
   { label: 'Bảng điều khiển', to: ROUTES.DASHBOARD, icon: <LayoutDashboard {...ICON_PROPS} /> },
+  { label: 'Đặt xe',          to: ROUTES.BOOKING,   icon: <MapPinned     {...ICON_PROPS} /> },
   { label: 'Tài khoản & Ví',  to: ROUTES.PROFILE,   icon: <UserCircle    {...ICON_PROPS} /> },
 ]
 
