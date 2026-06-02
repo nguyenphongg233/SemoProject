@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
-    "paths": {                                  // Thêm
-      "@/*": ["./src/*"],                       // Thêm
-      "@components/*": ["./src/components/*"]   // Thêm
-    },                                          // Thêm
+    "paths": {
+      "@/*": ["./src/*"],
+      "@components/*": ["./src/components/*"]
+    },
     "target": "es2023",
     "lib": ["ES2023", "DOM"],
     "module": "esnext",

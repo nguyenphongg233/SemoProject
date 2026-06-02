@@ -1,10 +1,10 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
-import path from 'node:path'                                        // Thêm
-import { fileURLToPath } from 'node:url'                            // Thêm
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))      // Thêm
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 
 // https://vite.dev/config/
@@ -13,10 +13,10 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
-  resolve: {                                                        // Thêm
-    alias: {                                                        // Thêm
-      '@': path.resolve(__dirname, './src'),                        // Thêm
-      '@components': path.resolve(__dirname, './src/components')    // Thêm
-    },                                                              // Thêm
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+      '@components': path.resolve(__dirname, './src/components')
+    },
   },
 })
