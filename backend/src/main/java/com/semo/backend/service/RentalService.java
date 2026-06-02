@@ -112,7 +112,7 @@ public class RentalService {
     }
 
     @Transactional(readOnly = true)
-    public List<RentalResponseDTO> getMyRentalHistory(String status) {
+    public List<RentalResponseDTO> getRentalHistory(String status) {
         status = (status == null || status.isBlank()) ? "ALL" : status.trim().toUpperCase();
         if (!VALID_STATUSES.contains(status)) {
             throw new RuntimeException("Trạng thái không hợp lệ!");

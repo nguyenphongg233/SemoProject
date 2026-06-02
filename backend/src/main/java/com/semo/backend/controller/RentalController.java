@@ -36,9 +36,9 @@ public class RentalController {
     }
 
     // 3. API Xem lịch sử chuyến đi cá nhân
-    @GetMapping("/my-history/status={status}")
-    public ResponseEntity<List<RentalResponseDTO>> getMyHistory(String status) {
-        List<RentalResponseDTO> history = rentalService.getMyRentalHistory(status);
+    @GetMapping("/history")
+    public ResponseEntity<List<RentalResponseDTO>> getHistory(String status) {
+        List<RentalResponseDTO> history = rentalService.getRentalHistory(status);
         return ResponseEntity.ok(history);
     }
 }
