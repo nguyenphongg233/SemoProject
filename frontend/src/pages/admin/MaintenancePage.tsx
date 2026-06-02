@@ -1,5 +1,7 @@
 // Admin maintenance page for creating logs, searching scooter history, and resolving service.
 import { useState } from 'react'
+// FIX 1: Import type-only cho các sự kiện React chống lỗi verbatimModuleSyntax
+import type { FormEvent, ChangeEvent } from 'react'
 
 import { SectionHeader } from '../../components/layout'
 import { Alert, Button, Card, Modal, Table, TextField } from '../../components/ui'
@@ -7,19 +9,37 @@ import { createMaintenanceLog, getMaintenanceLogsByScooterId, resolveMaintenance
 import { formatCurrency, formatDateTime } from '../../utils/formatters'
 import { getApiErrorMessage } from '../../utils/apiError'
 
-const initialCreate = { scooterId: '', description: '', cost: '' }
+// FIX 2: Định nghĩa cấu trúc dữ liệu cho một dòng Maintenance Log
+interface MaintenanceLog {
+  id: number
+  scooterId: number
+  description: string
+  cost: number
+  createdAt: string
+}
+
+// Định nghĩa cấu trúc cho Form tạo mới
+interface CreateFormState {
+  scooterId: string
+  description: string
+  cost: string
+}
+
+const initialCreate: CreateFormState = { scooterId: '', description: '', cost: '' }
 
 export default function MaintenancePage() {
-  const [createForm, setCreateForm] = useState(initialCreate)
-  const [searchScooterId, setSearchScooterId] = useState('')
-  const [logs, setLogs] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
-  const [isResolveOpen, setIsResolveOpen] = useState(false)
-  const [resolveScooterId, setResolveScooterId] = useState('')
+  const [createForm, setCreateForm] = useState<CreateFormState>(initialCreate)
+  const [searchScooterId, setSearchScooterId] = useState<string>('')
+  // FIX 3: Chỉ định rõ mảng chứa MaintenanceLog thay vì để mặc định thành never[]
+  const [logs, setLogs] = useState<MaintenanceLog[]>([])
+  const [loading, setLoading] = useState<boolean>(false)
+  const [error, setError] = useState<string>('')
+  const [success, setSuccess] = useState<string>('')
+  const [isResolveOpen, setIsResolveOpen] = useState<boolean>(false)
+  const [resolveScooterId, setResolveScooterId] = useState<string>('')
 
-  async function handleCreate(event) {
+  // FIX 4: Thêm kiểu dữ liệu FormEvent cho tham số event
+  async function handleCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setLoading(true)
     setError('')
@@ -40,7 +60,8 @@ export default function MaintenancePage() {
     }
   }
 
-  async function handleSearch(event) {
+  // FIX 4: Thêm kiểu dữ liệu FormEvent cho tham số event
+  async function handleSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setLoading(true)
     setError('')
@@ -57,7 +78,8 @@ export default function MaintenancePage() {
     }
   }
 
-  async function handleResolve(event) {
+  // FIX 4: Thêm kiểu dữ liệu FormEvent cho tham số event
+  async function handleResolve(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setLoading(true)
     setError('')
@@ -75,11 +97,12 @@ export default function MaintenancePage() {
     }
   }
 
+  // FIX 5: Định nghĩa kiểu dữ liệu rõ ràng cho `row: MaintenanceLog`
   const columns = [
     { key: 'id', label: 'ID' },
     { key: 'description', label: 'Description' },
-    { key: 'cost', label: 'Cost', render: (row) => formatCurrency(row.cost) },
-    { key: 'createdAt', label: 'Created', render: (row) => formatDateTime(row.createdAt) || '-' },
+    { key: 'cost', label: 'Cost', render: (row: MaintenanceLog) => formatCurrency(row.cost) },
+    { key: 'createdAt', label: 'Created', render: (row: MaintenanceLog) => formatDateTime(row.createdAt) || '-' },
   ]
 
   return (
@@ -107,14 +130,14 @@ export default function MaintenancePage() {
               type="number"
               name="scooterId"
               value={createForm.scooterId}
-              onChange={(event) => setCreateForm((current) => ({ ...current, scooterId: event.target.value }))}
+              onChange={(event: ChangeEvent<HTMLInputElement>) => setCreateForm((current) => ({ ...current, scooterId: event.target.value }))}
               required
             />
             <TextField
               label="Description"
               name="description"
               value={createForm.description}
-              onChange={(event) => setCreateForm((current) => ({ ...current, description: event.target.value }))}
+              onChange={(event: ChangeEvent<HTMLInputElement>) => setCreateForm((current) => ({ ...current, description: event.target.value }))}
               required
             />
             <TextField
@@ -124,7 +147,7 @@ export default function MaintenancePage() {
               min="0"
               step="0.01"
               value={createForm.cost}
-              onChange={(event) => setCreateForm((current) => ({ ...current, cost: event.target.value }))}
+              onChange={(event: ChangeEvent<HTMLInputElement>) => setCreateForm((current) => ({ ...current, cost: event.target.value }))}
               required
             />
             <Button type="submit" disabled={loading}>
@@ -145,7 +168,7 @@ export default function MaintenancePage() {
               type="number"
               name="searchScooterId"
               value={searchScooterId}
-              onChange={(event) => setSearchScooterId(event.target.value)}
+              onChange={(event: ChangeEvent<HTMLInputElement>) => setSearchScooterId(event.target.value)}
               required
             />
             <Button type="submit" disabled={loading}>
@@ -159,7 +182,7 @@ export default function MaintenancePage() {
         <Table
           columns={columns}
           rows={logs}
-          rowKey={(row) => row.id}
+          rowKey={(row: MaintenanceLog) => row.id.toString()}
           emptyMessage="No maintenance logs loaded yet."
         />
       </Card>
@@ -185,7 +208,7 @@ export default function MaintenancePage() {
             type="number"
             name="resolveScooterId"
             value={resolveScooterId}
-            onChange={(event) => setResolveScooterId(event.target.value)}
+            onChange={(event: ChangeEvent<HTMLInputElement>) => setResolveScooterId(event.target.value)}
             required
           />
         </form>

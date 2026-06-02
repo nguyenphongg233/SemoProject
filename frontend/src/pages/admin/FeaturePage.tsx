@@ -2,7 +2,15 @@
 import { Card } from '../../components/ui'
 import { SectionHeader } from '../../components/layout'
 
-export default function FeaturePage({ eyebrow, title, description }) {
+// 1. Định nghĩa cấu trúc (Type/Interface) cho các Props nhận vào
+interface FeaturePageProps {
+  eyebrow?: string      // Dấu ? nghĩa là không bắt buộc (optional)
+  title: string         // Bắt buộc
+  description: string   // Bắt buộc
+}
+
+// 2. Gán kiểu dữ liệu FeaturePageProps cho object chứa các thuộc tính được bóc tách
+export default function FeaturePage({ eyebrow, title, description }: FeaturePageProps) {
   return (
     <div className="page-stack">
       <SectionHeader eyebrow={eyebrow} title={title} description={description} />

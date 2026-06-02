@@ -4,6 +4,8 @@
 //   - changePassword  → PUT  /api/users/{id}/change-password
 // Số dư hiển thị bằng định dạng VNĐ (vi-VN) qua utils/formatters.formatCurrency.
 import { useState } from 'react'
+// FIX 1: Import type-only chống lỗi verbatimModuleSyntax
+import type { FormEvent, ChangeEvent } from 'react'
 import {
   Wallet, ShieldCheck, User, Mail, BadgeCheck, Sparkles, Plus, KeyRound, Lock, Eye, EyeOff,
 } from 'lucide-react'
@@ -35,7 +37,8 @@ export default function ProfilePage() {
   const balance = typeof user?.balance === 'number' ? user.balance : null
   const balanceDisplay = balance === null ? 'Chưa có dữ liệu' : formatCurrency(balance)
 
-  async function handleDeposit(event) {
+  // FIX 2: Khai báo FormEvent cho tham số event
+  async function handleDeposit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setLoadingDeposit(true)
     setError('')
@@ -69,7 +72,8 @@ export default function ProfilePage() {
     }
   }
 
-  async function handlePasswordChange(event) {
+  // FIX 2: Khai báo FormEvent cho tham số event
+  async function handlePasswordChange(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setLoadingPwd(true)
     setError('')
@@ -95,11 +99,17 @@ export default function ProfilePage() {
     }
   }
 
-  function pickQuickAmount(value) {
+  // FIX 3: Khai báo kiểu number cho tham số value
+  function pickQuickAmount(value: number) {
     setDepositAmount(String(value))
   }
 
-  const eyeBtn = (visible, setter, label) => (
+  // FIX 4: Định nghĩa cấu trúc kiểu dữ liệu cụ thể cho hàm render nút eyeBtn
+  const eyeBtn = (
+    visible: boolean,
+    setter: React.Dispatch<React.SetStateAction<boolean>>,
+    label: string
+  ) => (
     <button
       type="button"
       aria-label={label}
@@ -171,7 +181,7 @@ export default function ProfilePage() {
               step="1000"
               name="depositAmount"
               value={depositAmount}
-              onChange={(event) => setDepositAmount(event.target.value)}
+              onChange={(event: ChangeEvent<HTMLInputElement>) => setDepositAmount(event.target.value)}
               placeholder="Ví dụ: 100000"
               required
               leadingIcon={<Wallet size={18} strokeWidth={1.7} />}
@@ -207,7 +217,7 @@ export default function ProfilePage() {
               type={showCurrent ? 'text' : 'password'}
               name="currentPassword"
               value={currentPassword}
-              onChange={(event) => setCurrentPassword(event.target.value)}
+              onChange={(event: ChangeEvent<HTMLInputElement>) => setCurrentPassword(event.target.value)}
               required
               leadingIcon={<Lock size={18} strokeWidth={1.7} />}
               trailingAction={eyeBtn(showCurrent, setShowCurrent, 'Hiện/ẩn mật khẩu hiện tại')}
@@ -217,7 +227,7 @@ export default function ProfilePage() {
               type={showNew ? 'text' : 'password'}
               name="newPassword"
               value={newPassword}
-              onChange={(event) => setNewPassword(event.target.value)}
+              onChange={(event: ChangeEvent<HTMLInputElement>) => setNewPassword(event.target.value)}
               required
               leadingIcon={<KeyRound size={18} strokeWidth={1.7} />}
               trailingAction={eyeBtn(showNew, setShowNew, 'Hiện/ẩn mật khẩu mới')}

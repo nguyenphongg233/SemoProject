@@ -1,5 +1,7 @@
 // Admin scooters management page with create/update support.
 import { useEffect, useMemo, useState } from 'react'
+// FIX 1: Thêm type-only import cho các Event React
+import type { FormEvent, ChangeEvent } from 'react'
 
 import { SectionHeader } from '../../components/layout'
 import ScooterMap from '../../components/map/ScooterMap'
@@ -8,8 +10,20 @@ import { SCOOTER_STATUSES } from '../../constants/statuses'
 import { createScooter, getAllScooters, updateScooter } from '../../features/scooters'
 import { formatBatteryLevel, formatDateTime } from '../../utils/formatters'
 import { getApiErrorMessage } from '../../utils/apiError'
+// FIX 2: Re-use lại Type Scooter chính xác của hệ thống
+import type { Scooter } from '../../types/models'
 
-const initialForm = {
+// FIX 3: Định nghĩa Interface riêng cho Form State (Cho phép batteryLevel tạm thời nhận cả chuỗi khi đang gõ)
+interface ScooterFormState {
+  id: number | null
+  name: string
+  batteryLevel: number | string
+  status: string
+  currentLat: number | string
+  currentLng: number | string
+}
+
+const initialForm: ScooterFormState = {
   id: null,
   name: '',
   batteryLevel: 100,
@@ -18,8 +32,9 @@ const initialForm = {
   currentLng: '',
 }
 
-function getStatusLabel(status) {
-  const labels = {
+// FIX 4: Định nghĩa type cho tham số status
+function getStatusLabel(status: string): string {
+  const labels: Record<string, string> = {
     [SCOOTER_STATUSES.AVAILABLE]: 'Available',
     [SCOOTER_STATUSES.IN_USE]: 'In use',
     [SCOOTER_STATUSES.MAINTENANCE]: 'Maintenance',
@@ -29,12 +44,13 @@ function getStatusLabel(status) {
 }
 
 export default function ScootersPage() {
-  const [scooters, setScooters] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [form, setForm] = useState(initialForm)
+  // FIX 5: Ép kiểu mảng dữ liệu thành Scooter[] thay vì never[]
+  const [scooters, setScooters] = useState<Scooter[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
+  const [saving, setSaving] = useState<boolean>(false)
+  const [error, setError] = useState<string>('')
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
+  const [form, setForm] = useState<ScooterFormState>(initialForm)
 
   useEffect(() => {
     let mounted = true
@@ -78,21 +94,22 @@ export default function ScootersPage() {
     ]
   }, [scooters])
 
+  // FIX 6: Định nghĩa kiểu dữ liệu row cụ thể cho Table columns
   const columns = [
     { key: 'name', label: 'Scooter' },
-    { key: 'batteryLevel', label: 'Battery', render: (row) => formatBatteryLevel(row.batteryLevel) },
-    { key: 'status', label: 'Status', render: (row) => getStatusLabel(row.status) },
+    { key: 'batteryLevel', label: 'Battery', render: (row: Scooter) => formatBatteryLevel(row.batteryLevel) },
+    { key: 'status', label: 'Status', render: (row: Scooter) => getStatusLabel(row.status) },
     {
       key: 'location',
       label: 'Location',
-      render: (row) =>
+      render: (row: Scooter) =>
         row.currentLat && row.currentLng ? `${Number(row.currentLat).toFixed(5)}, ${Number(row.currentLng).toFixed(5)}` : '-',
     },
-    { key: 'updatedAt', label: 'Updated', render: (row) => formatDateTime(row.updatedAt || row.createdAt) || '-' },
+    { key: 'updatedAt', label: 'Updated', render: (row: Scooter) => formatDateTime(row.updatedAt || row.createdAt) || '-' },
     {
       key: 'actions',
       label: 'Actions',
-      render: (row) => (
+      render: (row: Scooter) => (
         <div className="table-actions">
           <Button variant="secondary" onClick={() => openEdit(row)}>
             Edit
@@ -107,7 +124,8 @@ export default function ScootersPage() {
     setIsModalOpen(true)
   }
 
-  function handleMapClick({ lat, lng }) {
+  // FIX 7: Định nghĩa type cho tham số callback từ Map click
+  function handleMapClick({ lat, lng }: { lat: number; lng: number }) {
     setForm({
       id: null,
       name: '',
@@ -119,9 +137,10 @@ export default function ScootersPage() {
     setIsModalOpen(true)
   }
 
-  function openEdit(row) {
+  // FIX 8: Định nghĩa kiểu dữ liệu row là Scooter khi click sửa
+  function openEdit(row: Scooter) {
     setForm({
-      id: row.id,
+      id: Number(row.id),
       name: row.name || '',
       batteryLevel: row.batteryLevel ?? 100,
       status: row.status || SCOOTER_STATUSES.AVAILABLE,
@@ -131,7 +150,8 @@ export default function ScootersPage() {
     setIsModalOpen(true)
   }
 
-  async function handleSubmit(event) {
+  // FIX 9: Khai báo FormEvent cho hàm submit
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setSaving(true)
     setError('')
@@ -194,7 +214,7 @@ export default function ScootersPage() {
         <Table
           columns={columns}
           rows={scooters}
-          rowKey={(row) => row.id}
+          rowKey={(row: Scooter) => row.id?.toString() ?? ''}
           emptyMessage={loading ? 'Loading scooters…' : 'No scooters available.'}
         />
       </Card>
@@ -219,7 +239,7 @@ export default function ScootersPage() {
             label="Scooter name"
             name="name"
             value={form.name}
-            onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
+            onChange={(event: ChangeEvent<HTMLInputElement>) => setForm((current) => ({ ...current, name: event.target.value }))}
             required
           />
 
@@ -230,7 +250,8 @@ export default function ScootersPage() {
             min="0"
             max="100"
             value={form.batteryLevel}
-            onChange={(event) => setForm((current) => ({ ...current, batteryLevel: event.target.value }))}
+            // Giải quyết triệt để lỗi ép sai kiểu (Dòng 233)
+            onChange={(event: ChangeEvent<HTMLInputElement>) => setForm((current) => ({ ...current, batteryLevel: event.target.value }))}
             required
           />
 
@@ -240,7 +261,7 @@ export default function ScootersPage() {
             name="currentLat"
             step="0.00001"
             value={form.currentLat}
-            onChange={(event) => setForm((current) => ({ ...current, currentLat: event.target.value }))}
+            onChange={(event: ChangeEvent<HTMLInputElement>) => setForm((current) => ({ ...current, currentLat: event.target.value }))}
             placeholder="21.00520"
           />
 
@@ -250,7 +271,7 @@ export default function ScootersPage() {
             name="currentLng"
             step="0.00001"
             value={form.currentLng}
-            onChange={(event) => setForm((current) => ({ ...current, currentLng: event.target.value }))}
+            onChange={(event: ChangeEvent<HTMLInputElement>) => setForm((current) => ({ ...current, currentLng: event.target.value }))}
             placeholder="105.84330"
           />
 
@@ -259,7 +280,7 @@ export default function ScootersPage() {
             <select
               className="ui-input"
               value={form.status}
-              onChange={(event) => setForm((current) => ({ ...current, status: event.target.value }))}
+              onChange={(event: ChangeEvent<HTMLSelectElement>) => setForm((current) => ({ ...current, status: event.target.value }))}
             >
               {Object.values(SCOOTER_STATUSES).map((status) => (
                 <option key={status} value={status}>

@@ -1,6 +1,8 @@
 // Trang Đăng nhập — Tech Blue Luxury (tiếng Việt).
 // Sử dụng `useAuth().login()` → gọi POST /api/auth/login qua features/auth.
 import { useState } from 'react'
+// FIX 1: Thêm type-only import cho FormEvent chống lỗi verbatimModuleSyntax
+import type { FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Mail, Lock, Eye, EyeOff, ArrowRight, LogIn } from 'lucide-react'
 
@@ -17,10 +19,12 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState(null)
+  // FIX 2: Định nghĩa rõ state error có thể là string hoặc null
+  const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  async function handleSubmit(e) {
+  // FIX 3: Thêm kiểu dữ liệu FormEvent cho tham số e
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
     setLoading(true)
@@ -56,6 +60,7 @@ export default function Login() {
             type="email"
             name="email"
             value={email}
+            // TypeScript có khả năng tự suy luận inline event (e) ở đây nên không cần gán type thủ công
             onChange={(e) => setEmail(e.target.value)}
             placeholder="ban@vidu.com"
             autoComplete="email"

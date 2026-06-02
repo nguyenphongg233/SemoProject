@@ -1,5 +1,7 @@
 // Admin users management page with create, update, delete, and reset-password actions.
 import { useEffect, useMemo, useState } from 'react'
+// FIX 1: Import type-only chống lỗi verbatimModuleSyntax
+import type { FormEvent, ChangeEvent } from 'react'
 
 import { SectionHeader } from '../../components/layout'
 import { Alert, Button, Card, Modal, Table, TextField } from '../../components/ui'
@@ -14,7 +16,26 @@ import {
 import { formatDateTime } from '../../utils/formatters'
 import { getApiErrorMessage } from '../../utils/apiError'
 
-const initialForm = {
+// FIX 2: Định nghĩa cấu trúc chuẩn của đối tượng User trong hệ thống
+interface User {
+  id: number | string | null
+  fullName: string
+  email: string
+  phoneNumber: string
+  role: string
+  createdAt?: string
+  updatedAt?: string
+}
+
+interface UserFormState {
+  id: number | string | null
+  fullName: string
+  email: string
+  phoneNumber: string
+  password: string
+}
+
+const initialForm: UserFormState = {
   id: null,
   fullName: '',
   email: '',
@@ -23,16 +44,18 @@ const initialForm = {
 }
 
 export default function UsersPage() {
-  const [users, setUsers] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
-  const [isFormOpen, setIsFormOpen] = useState(false)
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false)
-  const [isResetOpen, setIsResetOpen] = useState(false)
-  const [form, setForm] = useState(initialForm)
-  const [selectedUser, setSelectedUser] = useState(null)
-  const [newPassword, setNewPassword] = useState('')
+  // FIX 3: Ép kiểu state users thành User[] để hết lỗi 'never[]'
+  const [users, setUsers] = useState<User[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
+  const [saving, setSaving] = useState<boolean>(false)
+  const [error, setError] = useState<string>('')
+  const [isFormOpen, setIsFormOpen] = useState<boolean>(false)
+  const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false)
+  const [isResetOpen, setIsResetOpen] = useState<boolean>(false)
+  const [form, setForm] = useState<UserFormState>(initialForm)
+  // FIX 4: Định nghĩa state user đang chọn rõ ràng
+  const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [newPassword, setNewPassword] = useState<string>('')
 
   useEffect(() => {
     let mounted = true
@@ -72,16 +95,17 @@ export default function UsersPage() {
     ]
   }, [users])
 
+  // FIX 5: Định nghĩa kiểu dữ liệu row: User cho các cột hiển thị dữ liệu
   const columns = [
     { key: 'fullName', label: 'Name' },
     { key: 'email', label: 'Email' },
     { key: 'phoneNumber', label: 'Phone' },
     { key: 'role', label: 'Role' },
-    { key: 'updatedAt', label: 'Updated', render: (row) => formatDateTime(row.updatedAt || row.createdAt) || '-' },
+    { key: 'updatedAt', label: 'Updated', render: (row: User) => formatDateTime(row.updatedAt || row.createdAt) || '-' },
     {
       key: 'actions',
       label: 'Actions',
-      render: (row) => (
+      render: (row: User) => (
         <div className="table-actions table-actions--wrap">
           <Button variant="secondary" onClick={() => openEdit(row)}>
             Edit
@@ -102,7 +126,7 @@ export default function UsersPage() {
     setIsFormOpen(true)
   }
 
-  function openEdit(row) {
+  function openEdit(row: User) {
     setForm({
       id: row.id,
       fullName: row.fullName || '',
@@ -113,12 +137,12 @@ export default function UsersPage() {
     setIsFormOpen(true)
   }
 
-  function openDelete(row) {
+  function openDelete(row: User) {
     setSelectedUser(row)
     setIsDeleteOpen(true)
   }
 
-  function openReset(row) {
+  function openReset(row: User) {
     setSelectedUser(row)
     setNewPassword('')
     setIsResetOpen(true)
@@ -129,7 +153,8 @@ export default function UsersPage() {
     setUsers(Array.isArray(data) ? data : [])
   }
 
-  async function handleSubmit(event) {
+  // FIX 6: Thêm FormEvent cho các hàm xử lý submit form
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setSaving(true)
     setError('')
@@ -158,7 +183,7 @@ export default function UsersPage() {
   }
 
   async function handleDelete() {
-    if (!selectedUser) return
+    if (!selectedUser || selectedUser.id === null) return
     setSaving(true)
     setError('')
 
@@ -173,9 +198,10 @@ export default function UsersPage() {
     }
   }
 
-  async function handleResetPassword(event) {
+  // FIX 6: Thêm FormEvent cho các hàm xử lý submit form
+  async function handleResetPassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!selectedUser) return
+    if (!selectedUser || selectedUser.id === null) return
 
     setSaving(true)
     setError('')
@@ -214,7 +240,8 @@ export default function UsersPage() {
         <Table
           columns={columns}
           rows={users}
-          rowKey={(row) => row.id}
+          // FIX 7: Tránh lỗi check strictNull bằng optional chaining kết hợp fallback index phòng hờ
+          rowKey={(row: User, index: number) => row.id?.toString() ?? `user-idx-${index}`}
           emptyMessage={loading ? 'Loading users…' : 'No users found.'}
         />
       </Card>
@@ -239,7 +266,7 @@ export default function UsersPage() {
             label="Full name"
             name="fullName"
             value={form.fullName}
-            onChange={(event) => setForm((current) => ({ ...current, fullName: event.target.value }))}
+            onChange={(event: ChangeEvent<HTMLInputElement>) => setForm((current) => ({ ...current, fullName: event.target.value }))}
             required
           />
           <TextField
@@ -247,14 +274,14 @@ export default function UsersPage() {
             type="email"
             name="email"
             value={form.email}
-            onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
+            onChange={(event: ChangeEvent<HTMLInputElement>) => setForm((current) => ({ ...current, email: event.target.value }))}
             required
           />
           <TextField
             label="Phone number"
             name="phoneNumber"
             value={form.phoneNumber}
-            onChange={(event) => setForm((current) => ({ ...current, phoneNumber: event.target.value }))}
+            onChange={(event: ChangeEvent<HTMLInputElement>) => setForm((current) => ({ ...current, phoneNumber: event.target.value }))}
             required
           />
           <TextField
@@ -262,7 +289,7 @@ export default function UsersPage() {
             type="password"
             name="password"
             value={form.password}
-            onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
+            onChange={(event: ChangeEvent<HTMLInputElement>) => setForm((current) => ({ ...current, password: event.target.value }))}
             required
           />
         </form>
@@ -309,7 +336,7 @@ export default function UsersPage() {
             type="password"
             name="newPassword"
             value={newPassword}
-            onChange={(event) => setNewPassword(event.target.value)}
+            onChange={(event: ChangeEvent<HTMLInputElement>) => setNewPassword(event.target.value)}
             required
           />
         </form>

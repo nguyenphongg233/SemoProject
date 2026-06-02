@@ -1,6 +1,8 @@
 // Trang Đăng ký — Tech Blue Luxury (tiếng Việt).
 // Gọi POST /api/auth/register qua features/auth.
 import { useState } from 'react'
+// FIX 1: Import type-only chống lỗi verbatimModuleSyntax
+import type { FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Mail, Lock, User, Phone, Eye, EyeOff, UserPlus } from 'lucide-react'
 
@@ -21,10 +23,12 @@ export default function Register() {
   const [phoneNumber, setPhoneNumber] = useState('')
   const [showPwd, setShowPwd] = useState(false)
   const [showConfirmPwd, setShowConfirmPwd] = useState(false)
-  const [error, setError] = useState(null)
+  // FIX 2: Khai báo rõ ràng state error được phép nhận chuỗi string
+  const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
-  async function handleSubmit(e) {
+  // FIX 3: Định nghĩa FormEvent cho e
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
 
@@ -48,10 +52,16 @@ export default function Register() {
     }
   }
 
-  const togglePwdIcon = (visible) =>
+  // FIX 4: Định nghĩa boolean cho visible
+  const togglePwdIcon = (visible: boolean) =>
     visible ? <EyeOff size={18} strokeWidth={1.7} /> : <Eye size={18} strokeWidth={1.7} />
 
-  const eyeButton = (visible, setter, label) => (
+  // FIX 5: Định nghĩa chính xác kiểu dữ liệu cho hàm tạo eyeButton
+  const eyeButton = (
+    visible: boolean, 
+    setter: React.Dispatch<React.SetStateAction<boolean>>, 
+    label: string
+  ) => (
     <button
       type="button"
       aria-label={label}

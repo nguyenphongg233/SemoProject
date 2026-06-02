@@ -1,5 +1,7 @@
 // Admin rentals page for starting and ending rental sessions.
 import { useState } from 'react'
+// FIX 1: Import type-only chống lỗi verbatimModuleSyntax
+import type { FormEvent, ChangeEvent } from 'react'
 
 import { SectionHeader } from '../../components/layout'
 import { Alert, Button, Card, Modal, TextField } from '../../components/ui'
@@ -7,18 +9,34 @@ import { endRental, startRental } from '../../features/rentals'
 import { formatDateTime, formatCurrency } from '../../utils/formatters'
 import { getApiErrorMessage } from '../../utils/apiError'
 
-const startInitial = { userId: '', scooterId: '' }
+// FIX 2: Định nghĩa cấu trúc dữ liệu trả về của một Rental Session
+interface RentalResult {
+  id: number | string
+  status: string
+  startTime: string
+  endTime: string | null
+  totalPrice: number
+}
+
+interface StartFormState {
+  userId: string
+  scooterId: string
+}
+
+const startInitial: StartFormState = { userId: '', scooterId: '' }
 
 export default function RentalsPage() {
-  const [startForm, setStartForm] = useState(startInitial)
-  const [endRentalId, setEndRentalId] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
-  const [result, setResult] = useState(null)
-  const [isResultOpen, setIsResultOpen] = useState(false)
+  const [startForm, setStartForm] = useState<StartFormState>(startInitial)
+  const [endRentalId, setEndRentalId] = useState<string>('')
+  const [loading, setLoading] = useState<boolean>(false)
+  const [error, setError] = useState<string>('')
+  const [success, setSuccess] = useState<string>('')
+  // FIX 3: Định nghĩa rõ state có thể là RentalResult hoặc null thay vì tự suy luận thành never
+  const [result, setResult] = useState<RentalResult | null>(null)
+  const [isResultOpen, setIsResultOpen] = useState<boolean>(false)
 
-  async function handleStart(event) {
+  // FIX 4: Khai báo kiểu dữ liệu FormEvent cho tham số event
+  async function handleStart(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setLoading(true)
     setError('')
@@ -41,7 +59,8 @@ export default function RentalsPage() {
     }
   }
 
-  async function handleEnd(event) {
+  // FIX 4: Khai báo kiểu dữ liệu FormEvent cho tham số event
+  async function handleEnd(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setLoading(true)
     setError('')
@@ -84,7 +103,7 @@ export default function RentalsPage() {
               type="number"
               name="userId"
               value={startForm.userId}
-              onChange={(event) => setStartForm((current) => ({ ...current, userId: event.target.value }))}
+              onChange={(event: ChangeEvent<HTMLInputElement>) => setStartForm((current) => ({ ...current, userId: event.target.value }))}
               required
             />
             <TextField
@@ -92,7 +111,7 @@ export default function RentalsPage() {
               type="number"
               name="scooterId"
               value={startForm.scooterId}
-              onChange={(event) => setStartForm((current) => ({ ...current, scooterId: event.target.value }))}
+              onChange={(event: ChangeEvent<HTMLInputElement>) => setStartForm((current) => ({ ...current, scooterId: event.target.value }))}
               required
             />
             <Button type="submit" disabled={loading}>
@@ -113,7 +132,7 @@ export default function RentalsPage() {
               type="number"
               name="rentalId"
               value={endRentalId}
-              onChange={(event) => setEndRentalId(event.target.value)}
+              onChange={(event: ChangeEvent<HTMLInputElement>) => setEndRentalId(event.target.value)}
               required
             />
             <Button type="submit" disabled={loading}>

@@ -11,9 +11,10 @@
 //                                    báo cáo lên màn hình).
 //
 // Có dùng geolocation của trình duyệt + Haversine để hiện xe trong bán kính.
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import 'leaflet/dist/leaflet.css'
 import { CircleMarker, MapContainer, Popup, TileLayer, Tooltip, Circle, useMap } from 'react-leaflet'
+import type { LatLngTuple } from 'leaflet'
 import {
   Search, Filter, MapPin, RefreshCcw, Crosshair, Zap, Unlock, Play, Square,
   Battery, Gauge, Thermometer, AlertTriangle, ShieldAlert, Sparkles, Clock,
@@ -30,24 +31,74 @@ import { getApiErrorMessage } from '../../utils/apiError'
 
 import '../../styles/booking.css'
 
-const BACH_KHOA_CENTER = [21.0052, 105.8433]
+// ----- Interfaces & Types -----
+import type { Scooter } from '../../types/models'
+
+// Đối với EnrichedScooter, kế thừa trực tiếp từ core Scooter:
+interface EnrichedScooter extends Scooter {
+  _lat: number
+  _lng: number
+  _hasPos: boolean
+  _status: string
+  _reported: boolean
+  _distance: number | null
+}
+
+interface RideState {
+  state: 'idle' | 'selected' | 'reserved' | 'unlocked' | 'riding'
+  scooterId: number | string
+  scooterName: string
+  reservedAt?: number
+  unlockedAt?: number
+  startedAt?: number
+  rentalId?: number | string
+}
+
+interface CompletedInfo {
+  rentalId: number | string
+  scooterName: string
+  totalPrice: number
+  endTime?: string | number
+  startedAt?: number
+}
+
+interface ReportItem {
+  status: string
+  kind: string
+  reportedAt: number
+}
+
+interface ReportsMap {
+  [scooterId: string]: ReportItem
+}
+
+interface TimelineRowProps {
+  icon: React.ReactNode
+  label: string
+  value: string
+  done: boolean
+}
+
+const BACH_KHOA_CENTER: LatLngTuple = [21.0052, 105.8433]
 const ACTIVE_RIDE_KEY = 'semo_active_ride'
 const REPORTS_KEY = 'semo_scooter_reports'
 
-const statusStyles = {
+const statusStyles: Record<string, { color: string; fillColor: string }> = {
   [SCOOTER_STATUSES.AVAILABLE]:   { color: '#00D1FF', fillColor: '#00D1FF' },
   [SCOOTER_STATUSES.IN_USE]:      { color: '#0052FF', fillColor: '#0052FF' },
   [SCOOTER_STATUSES.MAINTENANCE]: { color: '#FF5C7A', fillColor: '#FF5C7A' },
 }
-const statusLabel = {
+
+const statusLabel: Record<string, string> = {
   [SCOOTER_STATUSES.AVAILABLE]:   'Sẵn sàng',
   [SCOOTER_STATUSES.IN_USE]:      'Đang đi',
   [SCOOTER_STATUSES.MAINTENANCE]: 'Bảo trì',
 }
 
 // ----- Helpers -----
-function toRad(deg) { return (deg * Math.PI) / 180 }
-function haversineKm(a, b) {
+function toRad(deg: number): number { return (deg * Math.PI) / 180 }
+
+function haversineKm(a: LatLngTuple, b: LatLngTuple): number | null {
   if (!a || !b) return null
   const R = 6371
   const dLat = toRad(b[0] - a[0])
@@ -56,8 +107,10 @@ function haversineKm(a, b) {
   const h = Math.sin(dLat / 2) ** 2 + Math.sin(dLng / 2) ** 2 * Math.cos(lat1) * Math.cos(lat2)
   return 2 * R * Math.asin(Math.sqrt(h))
 }
-function fmtKm(km) { return km == null ? '—' : km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(2)} km` }
-function fmtDuration(ms) {
+
+function fmtKm(km: number | null): string { return km == null ? '—' : km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(2)} km` }
+
+function fmtDuration(ms: number): string {
   if (!ms || ms < 0) return '00:00'
   const s = Math.floor(ms / 1000)
   const m = Math.floor(s / 60)
@@ -66,20 +119,24 @@ function fmtDuration(ms) {
   const hh = Math.floor(m / 60)
   return hh > 0 ? `${String(hh).padStart(2, '0')}:${mm}:${ss}` : `${mm}:${ss}`
 }
-function loadRide() {
+
+function loadRide(): RideState | null {
   try { const v = localStorage.getItem(ACTIVE_RIDE_KEY); return v ? JSON.parse(v) : null } catch { return null }
 }
-function saveRide(ride) {
+
+function saveRide(ride: RideState | null): void {
   if (!ride) localStorage.removeItem(ACTIVE_RIDE_KEY)
   else localStorage.setItem(ACTIVE_RIDE_KEY, JSON.stringify(ride))
 }
-function loadReports() {
+
+function loadReports(): ReportsMap {
   try { const v = localStorage.getItem(REPORTS_KEY); return v ? JSON.parse(v) : {} } catch { return {} }
 }
-function saveReports(map) { localStorage.setItem(REPORTS_KEY, JSON.stringify(map)) }
+
+function saveReports(map: ReportsMap): void { localStorage.setItem(REPORTS_KEY, JSON.stringify(map)) }
 
 // Component nhỏ để recenter map khi user location thay đổi
-function FlyTo({ center, zoom = 16 }) {
+function FlyTo({ center, zoom = 16 }: { center: LatLngTuple; zoom?: number }) {
   const map = useMap()
   useEffect(() => { if (center) map.flyTo(center, zoom, { duration: 0.8 }) }, [center, zoom, map])
   return null
@@ -89,37 +146,38 @@ export default function BookingPage() {
   const { user } = useAuth()
 
   // Dữ liệu xe
-  const [scooters, setScooters] = useState([])
-  const [scootersLoading, setScootersLoading] = useState(true)
-  const [scootersError, setScootersError] = useState(null)
-  const [refreshKey, setRefreshKey] = useState(0)
+  const [scooters, setScooters] = useState<Scooter[]>([])
+  const [scootersLoading, setScootersLoading] = useState<boolean>(true)
+  const [scootersError, setScootersError] = useState<string | null>(null)
+  const [refreshKey, setRefreshKey] = useState<number>(0)
 
   // Vị trí user
-  const [userPos, setUserPos] = useState(null) // [lat, lng]
-  const [geoError, setGeoError] = useState(null)
-  const [geoLoading, setGeoLoading] = useState(false)
+  const [userPos, setUserPos] = useState<LatLngTuple | null>(null)
+  const [geoError, setGeoError] = useState<string | null>(null)
+  const [geoLoading, setGeoLoading] = useState<boolean>(false)
 
   // Bộ lọc
-  const [query, setQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState('ALL')
-  const [useRadius, setUseRadius] = useState(true)
-  const [radiusKm, setRadiusKm] = useState(1.5)
+  const [query, setQuery] = useState<string>('')
+  const [statusFilter, setStatusFilter] = useState<string>('ALL')
+  const [useRadius, setUseRadius] = useState<boolean>(true)
+  const [radiusKm, setRadiusKm] = useState<number>(1.5)
 
   // Trạng thái flow (persist localStorage)
-  const [ride, setRide] = useState(() => loadRide())
-  const [selectedId, setSelectedId] = useState(() => loadRide()?.scooterId || null)
-  const [actionLoading, setActionLoading] = useState(false)
-  const [actionError, setActionError] = useState(null)
-  const [completedInfo, setCompletedInfo] = useState(null)
-  const [reports, setReports] = useState(() => loadReports())
+  const [ride, setRide] = useState<RideState | null>(() => loadRide())
+  const [selectedId, setSelectedId] = useState<number | string | null>(() => loadRide()?.scooterId || null)
+  const [actionLoading, setActionLoading] = useState<boolean>(false)
+  const [actionError, setActionError] = useState<string | null>(null)
+  const [completedInfo, setCompletedInfo] = useState<CompletedInfo | null>(null)
+  const [reports, setReports] = useState<ReportsMap>(() => loadReports())
 
   // Tick timer mỗi giây khi đang riding
-  const [now, setNow] = useState(Date.now())
-  const tickRef = useRef(null)
+  const [now, setNow] = useState<number>(Date.now())
+  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
   useEffect(() => {
     if (ride?.state === 'riding') {
       tickRef.current = setInterval(() => setNow(Date.now()), 1000)
-      return () => clearInterval(tickRef.current)
+      return () => { if (tickRef.current) clearInterval(tickRef.current) }
     }
   }, [ride?.state])
 
@@ -159,11 +217,11 @@ export default function BookingPage() {
   }
 
   // Map từng xe → có distance + report localStorage
-  const enrichedScooters = useMemo(() => {
+  const enrichedScooters = useMemo<EnrichedScooter[]>(() => {
     return (scooters || []).map((s) => {
       const lat = Number(s.currentLat), lng = Number(s.currentLng)
       const hasPos = Number.isFinite(lat) && Number.isFinite(lng)
-      const reportedStatus = reports[s.id]?.status
+      const reportedStatus = reports[String(s.id)]?.status
       const effectiveStatus = reportedStatus || s.status
       const distance = userPos && hasPos ? haversineKm(userPos, [lat, lng]) : null
       return {
@@ -176,7 +234,7 @@ export default function BookingPage() {
   }, [scooters, userPos, reports])
 
   // Bộ lọc áp dụng
-  const visibleScooters = useMemo(() => {
+  const visibleScooters = useMemo<EnrichedScooter[]>(() => {
     return enrichedScooters
       .filter((s) => s._hasPos)
       .filter((s) => {
@@ -190,7 +248,6 @@ export default function BookingPage() {
         return true
       })
       .sort((a, b) => {
-        // ưu tiên AVAILABLE, rồi theo khoảng cách
         const av = a._status === SCOOTER_STATUSES.AVAILABLE ? 0 : 1
         const bv = b._status === SCOOTER_STATUSES.AVAILABLE ? 0 : 1
         if (av !== bv) return av - bv
@@ -198,12 +255,12 @@ export default function BookingPage() {
       })
   }, [enrichedScooters, statusFilter, query, useRadius, userPos, radiusKm])
 
-  const selectedScooter = useMemo(
+  const selectedScooter = useMemo<EnrichedScooter | null>(
     () => enrichedScooters.find((s) => s.id === selectedId) || null,
     [enrichedScooters, selectedId],
   )
 
-  function handleSelect(s) {
+  function handleSelect(s: EnrichedScooter) {
     if (ride && ride.state !== 'idle' && ride.scooterId !== s.id) {
       setActionError('Bạn đang trong chuyến đi — kết thúc trước khi chọn xe khác.')
       return
@@ -212,30 +269,36 @@ export default function BookingPage() {
     setSelectedId(s.id)
     setActionError(null)
     if (!ride) {
-      setRide({ state: 'selected', scooterId: s.id, scooterName: s.name || `#${s.id}` })
-      saveRide({ state: 'selected', scooterId: s.id, scooterName: s.name || `#${s.id}` })
+      const initRide: RideState = { state: 'selected', scooterId: s.id, scooterName: s.name || `#${s.id}` }
+      setRide(initRide)
+      saveRide(initRide)
     }
   }
 
-  function setRideState(patch) {
-    const next = { ...(ride || {}), ...patch }
+  function setRideState(patch: Partial<RideState>) {
+    if (!ride) return
+    const next: RideState = { ...ride, ...patch }
     setRide(next)
     saveRide(next)
   }
 
   async function handleReserve() {
     if (!selectedScooter) return
-    setRideState({
+    const reservedRide: RideState = {
       state: 'reserved',
       reservedAt: Date.now(),
       scooterId: selectedScooter.id,
       scooterName: selectedScooter.name || `#${selectedScooter.id}`,
-    })
+    }
+    setRide(reservedRide)
+    saveRide(reservedRide)
   }
+
   async function handleUnlock() {
     if (!ride) return
     setRideState({ state: 'unlocked', unlockedAt: Date.now() })
   }
+
   async function handleStart() {
     if (!ride || !user?.id || !selectedScooter) return
     setActionLoading(true); setActionError(null)
@@ -251,6 +314,7 @@ export default function BookingPage() {
       setActionError(getApiErrorMessage(err, 'Không thể bắt đầu chuyến đi.'))
     } finally { setActionLoading(false) }
   }
+
   async function handleEnd() {
     if (!ride?.rentalId) return
     setActionLoading(true); setActionError(null)
@@ -271,12 +335,12 @@ export default function BookingPage() {
   }
 
   // Báo cáo giả lập
-  function reportIssue(kind) {
+  function reportIssue(kind: string) {
     const sid = ride?.scooterId || selectedScooter?.id
     if (!sid) return
-    const next = {
+    const next: ReportsMap = {
       ...reports,
-      [sid]: {
+      [String(sid)]: {
         status: SCOOTER_STATUSES.MAINTENANCE,
         kind,
         reportedAt: Date.now(),
@@ -286,7 +350,7 @@ export default function BookingPage() {
     // Tự động kết thúc rental nếu đang đi
     if (ride?.state === 'riding' && ride?.rentalId) {
       handleEnd()
-    } else if (ride && ride.state !== 'completed') {
+    } else if (ride && ride.state !== 'idle') {
       setRide(null); saveRide(null); setSelectedId(null)
     }
     setActionError(null)
@@ -298,7 +362,7 @@ export default function BookingPage() {
     setRide(null); saveRide(null); setSelectedId(null); setActionError(null); setCompletedInfo(null)
   }
 
-  const mapCenter = userPos || BACH_KHOA_CENTER
+  const mapCenter: LatLngTuple = userPos || BACH_KHOA_CENTER
   const ridingMs = ride?.state === 'riding' && ride.startedAt ? now - ride.startedAt : 0
 
   return (
@@ -307,7 +371,7 @@ export default function BookingPage() {
         <SectionHeader
           eyebrow="Đặt xe"
           title="Cổng đặt xe thông minh"
-          description="Tìm xe gần nhất, đặt – mở khóa – bắt đầu chuyến đi và theo dõi pin theo thời gian thực."
+          description="Tìm xe gần nhất, đặt - mở khóa - bắt đầu chuyến đi và theo dõi pin theo thời gian thực."
         />
         <div className="booking-header__chips">
           <span className={`booking-chip ${userPos ? 'is-on' : 'is-warn'}`}>
@@ -417,7 +481,7 @@ export default function BookingPage() {
                   <div className="scooter-item__top">
                     <div>
                       <p className="scooter-item__name">{s.name || s.codeName || `Xe #${s.id}`}</p>
-                      <p className="scooter-item__sub">{formatCoordinates(s._lat, s._lng)}</p>
+                      <p className="scooter-item__sub">{formatCoordinates(Number(s._lat), Number(s._lng))}</p>
                     </div>
                     <span className={`status-pill ${
                       s._status === SCOOTER_STATUSES.AVAILABLE ? 'is-available' :
@@ -682,7 +746,7 @@ export default function BookingPage() {
   )
 }
 
-function TimelineRow({ icon, label, value, done }) {
+function TimelineRow({ icon, label, value, done }: TimelineRowProps) {
   return (
     <div className={`timeline__row ${done ? 'is-done' : ''}`}>
       <span className="timeline__label">{icon} {label}</span>

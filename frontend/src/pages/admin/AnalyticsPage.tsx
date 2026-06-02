@@ -1,28 +1,37 @@
 // Admin analytics page using the optimal-stations API.
 import { useState } from 'react'
+// FIX 1: Dùng type-only import cho FormEvent và ChangeEvent
+import type { FormEvent, ChangeEvent } from 'react'
 
 import { SectionHeader } from '../../components/layout'
 import { Alert, Button, Card, Table, TextField } from '../../components/ui'
 import ScooterMap from '../../components/map/ScooterMap'
-import { SCOOTER_STATUSES } from '../../constants/statuses'
 import { getAllScooters } from '../../features/scooters'
 import { getOptimalStations } from '../../features/analytics'
 import { getApiErrorMessage } from '../../utils/apiError'
 
-export default function AnalyticsPage() {
-  const [k, setK] = useState(3)
-  const [points, setPoints] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [scooters, setScooters] = useState([])
+// FIX 2: Import đúng Type Scooter của dự án thay vì tự định nghĩa bừa
+import type { Scooter, LatLngPos } from '../../types/models'
 
-  async function handleSubmit(event) {
+
+export default function AnalyticsPage() {
+  const [k, setK] = useState<number>(3)
+  const [points, setPoints] = useState<LatLngPos[]>([])
+  const [loading, setLoading] = useState<boolean>(false)
+  const [error, setError] = useState<string>('')
+  // Hiện tại state này đã mang đúng cấu trúc mà <ScooterMap /> yêu cầu
+  const [scooters, setScooters] = useState<Scooter[]>([])
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setLoading(true)
     setError('')
 
     try {
-      const [data, scootersData] = await Promise.all([getOptimalStations(Number(k)), getAllScooters()])
+      const [data, scootersData] = await Promise.all([
+        getOptimalStations(k), 
+        getAllScooters()
+      ])
       setPoints(Array.isArray(data) ? data : [])
       setScooters(Array.isArray(scootersData) ? scootersData : [])
     } catch (err) {
@@ -32,6 +41,8 @@ export default function AnalyticsPage() {
       setLoading(false)
     }
   }
+
+  // ... Các phần còn lại của component giữ nguyên giống như file trước ...
 
   const columns = [
     { key: 'lat', label: 'Latitude' },
@@ -56,7 +67,8 @@ export default function AnalyticsPage() {
             min="1"
             name="k"
             value={k}
-            onChange={(event) => setK(event.target.value)}
+            // 4. Converted string value to number before saving to state
+            onChange={(event: ChangeEvent<HTMLInputElement>) => setK(Number(event.target.value))}
             required
           />
           <Button type="submit" disabled={loading}>
@@ -69,6 +81,7 @@ export default function AnalyticsPage() {
         <div style={{ height: 420 }}>
           <ScooterMap
             scooters={scooters}
+            // 5. TypeScript now safely reads .lat and .lng from points array
             stations={points.map((p, i) => ({ lat: p.lat, lng: p.lng, name: `Station ${i + 1}` }))}
           />
         </div>
@@ -81,7 +94,7 @@ export default function AnalyticsPage() {
         <Table
           columns={columns}
           rows={points}
-          rowKey={(row, index) => `${row.lat}-${row.lng}-${index}`}
+          rowKey={(row: LatLngPos, index: number) => `${row.lat}-${row.lng}-${index}`}
           emptyMessage="No stations calculated yet."
         />
       </Card>

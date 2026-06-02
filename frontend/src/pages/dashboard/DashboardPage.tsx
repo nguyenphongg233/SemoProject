@@ -21,27 +21,32 @@ import { SCOOTER_STATUSES } from '../../constants/statuses'
 import { useAuth } from '../../hooks/useAuth'
 import { ROUTES } from '../../constants/routes'
 import { formatBatteryLevel, formatDateTime } from '../../utils/formatters'
+import { getApiErrorMessage } from '../../utils/apiError'
+// FIX 1: Tái sử dụng Type Scooter chính xác của hệ thống
+import type { Scooter } from '../../types/models'
 
-const statusMeta = {
+const statusMeta: Record<string, { label: string; className: string }> = {
   [SCOOTER_STATUSES.AVAILABLE]:   { label: 'Sẵn sàng',     className: 'is-available' },
   [SCOOTER_STATUSES.IN_USE]:      { label: 'Đang đi',      className: 'is-in-use' },
   [SCOOTER_STATUSES.MAINTENANCE]: { label: 'Đang bảo trì', className: 'is-maintenance' },
 }
 
-function getStatusLabel(status) {
+// FIX 2: Thêm kiểu dữ liệu string cho tham số status
+function getStatusLabel(status: string): string {
   return statusMeta[status]?.label || status || 'Không xác định'
 }
-function getStatusClassName(status) {
+function getStatusClassName(status: string): string {
   return statusMeta[status]?.className || 'is-unknown'
 }
 
 export default function DashboardPage() {
   const { user } = useAuth()
 
-  const [scooters, setScooters] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [refreshKey, setRefreshKey] = useState(0)
+  // FIX 3: Ép kiểu dữ liệu mảng Scooter[] thay vì để mặc định thành never[]
+  const [scooters, setScooters] = useState<Scooter[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
+  const [error, setError] = useState<string | null>(null)
+  const [refreshKey, setRefreshKey] = useState<number>(0)
 
   useEffect(() => {
     let isActive = true
@@ -55,7 +60,8 @@ export default function DashboardPage() {
         setScooters(Array.isArray(data) ? data : [])
       } catch (err) {
         if (!isActive) return
-        setError(err?.response?.data?.message || err?.message || 'Không thể tải danh sách xe.')
+        // FIX 4: Thay thế cách chấm chuỗi không an toàn bằng utils getApiErrorMessage có sẵn trong dự án của bạn
+        setError(getApiErrorMessage(err, 'Không thể tải danh sách xe.'))
         setScooters([])
       } finally {
         if (isActive) setLoading(false)
@@ -119,11 +125,12 @@ export default function DashboardPage() {
       .slice(0, 6)
   }, [scooters])
 
+  // FIX 5: Chỉ định rõ kiểu dữ liệu row: Scooter cho các hàm render cột của bảng
   const scooterColumns = [
     {
       key: 'name',
       label: 'Xe điện',
-      render: (row) => (
+      render: (row: Scooter) => (
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }}>
           <Bike size={16} strokeWidth={1.8} style={{ color: 'var(--color-cyan-soft)' }} />
           {row.name || `#${row.id}`}
@@ -133,7 +140,7 @@ export default function DashboardPage() {
     {
       key: 'status',
       label: 'Trạng thái',
-      render: (row) => (
+      render: (row: Scooter) => (
         <span className={`status-pill ${getStatusClassName(row.status)}`}>
           {getStatusLabel(row.status)}
         </span>
@@ -142,7 +149,7 @@ export default function DashboardPage() {
     {
       key: 'batteryLevel',
       label: 'Pin',
-      render: (row) => {
+      render: (row: Scooter) => {
         const lvl = Number(row.batteryLevel)
         const tone =
           Number.isFinite(lvl) && lvl >= 50 ? 'var(--success)' :
@@ -158,7 +165,7 @@ export default function DashboardPage() {
     {
       key: 'updatedAt',
       label: 'Cập nhật gần nhất',
-      render: (row) => formatDateTime(row.updatedAt || row.createdAt) || '—',
+      render: (row: Scooter) => formatDateTime(row.updatedAt || row.createdAt) || '—',
     },
   ]
 
@@ -248,7 +255,8 @@ export default function DashboardPage() {
         <Table
           columns={scooterColumns}
           rows={scooterRows}
-          rowKey={(row) => row.id}
+          // FIX 6: Xử lý an toàn null-check cho row.id bằng optional chaining + fallback index
+          rowKey={(row: Scooter, idx: number) => row.id?.toString() ?? `dash-scooter-idx-${idx}`}
           emptyMessage={loading ? 'Đang tải danh sách xe…' : 'Chưa có xe nào.'}
         />
       </Card>
