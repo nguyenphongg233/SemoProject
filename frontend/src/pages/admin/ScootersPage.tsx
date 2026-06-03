@@ -269,7 +269,6 @@ export default function ScootersPage() {
             min="0"
             max="100"
             value={form.batteryLevel}
-            // Giải quyết triệt để lỗi ép sai kiểu (Dòng 233)
             onChange={(event: ChangeEvent<HTMLInputElement>) => setForm((current) => ({ ...current, batteryLevel: event.target.value }))}
             required
           />
@@ -294,10 +293,16 @@ export default function ScootersPage() {
             placeholder="105.84330"
           />
 
-          <label className="ui-field">
-            <span className="ui-field__label">Status</span>
+          <label className="grid gap-2">
+            <span className="text-4 font-semibold text-(--text)">Status</span>
             <select
-              className="ui-input"
+              className="w-full min-h-13 p-4 border border-(--border) rounded-[14px]
+                       bg-[rgba(11,17,32,0.65)] text-(--text-strong)
+                         transition-[border-color,box-shadow,background] duration-200 ease-out
+                         placeholder:text-(--text-faded)
+                         hover:border-(--border-strong)
+                         focus:outline-none focus:border-(--border-glow) focus:bg-[rgba(11,17,32,0.85)]
+                         focus:shadow-[0_0_0_4px_rgba(0,209,255,0.15),0_0_24px_rgba(0,82,255,0.18)]"
               value={form.status}
               onChange={(event: ChangeEvent<HTMLSelectElement>) => setForm((current) => ({ ...current, status: event.target.value }))}
             >

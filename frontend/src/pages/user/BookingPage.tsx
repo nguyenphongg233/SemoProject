@@ -400,7 +400,9 @@ export default function BookingPage() {
             Trip ended on <strong>{completedInfo.scooterName}</strong> · Total fare{' '}
             <strong>{formatCurrency(completedInfo.totalPrice)}</strong>
           </span>
-          <button className="ui-button ui-button--secondary" onClick={dismissCompleted}>Close</button>
+          <Button variant="secondary" onClick={dismissCompleted}>
+            Close
+          </Button>
         </div>
       )}
 
@@ -739,14 +741,14 @@ export default function BookingPage() {
                 </div>
 
                 {ride && ride.state !== 'riding' && ride.state !== 'idle' && (
-                  <button
+                  <Button
                     type="button"
-                    className="ui-button ui-button--ghost"
-                    style={{ marginTop: 8, width: '100%' }}
+                    variant="ghost"
+                    className="mt-2 w-full"
                     onClick={resetRide}
                   >
                     Cancel Scooter Selection
-                  </button>
+                  </Button>
                 )}
               </>
             )}

@@ -1,4 +1,8 @@
 import type { InputHTMLAttributes, ReactNode } from 'react'
+import { clsx } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+
+const cn = (...inputs: any[]) => twMerge(clsx(inputs))
 
 interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string
@@ -23,7 +27,22 @@ export default function TextField({
     .filter(Boolean)
     .join(' ')
 
-  const inputClass = `ui-input ${error ? 'ui-input--error' : ''}`.trim()
+  const inputClass = cn(
+    "w-full min-h-13 p-4 border border-(--border) rounded-[14px]",
+    "bg-[rgba(11,17,32,0.65)] text-(--text-strong)",
+    "transition-[border-color,box-shadow,background] duration-200 ease-out",
+    "placeholder:text-(--text-faded)",
+
+    "hover:border-(--border-strong)",
+    
+    "focus:outline-none focus:border-(--border-glow) focus:bg-[rgba(11,17,32,0.85)]",
+    "focus:shadow-[0_0_0_4px_rgba(0,209,255,0.15),0_0_24px_rgba(0,82,255,0.18)]",
+    
+    leadingIcon ? "pl-[2.75rem]" : "pl-[1.1rem]",
+    trailingAction ? "pr-[2.75rem]" : "pr-[1.1rem]",
+    
+    error && "border border-[rgba(255,92,122,0.6)] shadow-[0_0_0_4px_rgba(255,92,122,0.12)]"
+  )
 
   const inputElement = (
     <input
@@ -36,18 +55,21 @@ export default function TextField({
   )
 
   return (
-    <label className={`ui-field ${className}`.trim()} htmlFor={fieldId}>
-      {label && <span className="ui-field__label">{label}</span>}
+    <label className={cn("grid gap-2", className)} htmlFor={fieldId}>
+      {label && <span className="text-4 font-semibold text-(--text)">{label}</span>}
 
       {leadingIcon || trailingAction ? (
-        <div className="input-icon-wrap" style={trailingAction ? { position: 'relative' } : undefined}>
-          {leadingIcon && <span className="input-icon-wrap__icon">{leadingIcon}</span>}
+        <div className="relative flex items-center">
+          {leadingIcon && (
+            <span className="absolute left-3 flex items-center justify-center pointer-events-none text-(--text-muted)">
+              {leadingIcon}
+            </span>
+          )}
+          
           {inputElement}
+          
           {trailingAction && (
-            <span
-              className="input-icon-wrap__icon"
-              style={{ left: 'auto', right: '0.85rem', pointerEvents: 'auto' }}
-            >
+            <span className="absolute right-3 flex items-center justify-center pointer-events-auto">
               {trailingAction}
             </span>
           )}
@@ -57,12 +79,13 @@ export default function TextField({
       )}
 
       {helpText && !error && (
-        <span id={`${fieldId}-help`} className="ui-field__help">
+        <span id={`${fieldId}-help`} className="text-3 text-(--text-muted)">
           {helpText}
         </span>
       )}
+      
       {error && (
-        <span id={`${fieldId}-error`} className="ui-field__error">
+        <span id={`${fieldId}-error`} className="text-3 text-(--danger)">
           {error}
         </span>
       )}

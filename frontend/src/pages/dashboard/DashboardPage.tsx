@@ -219,11 +219,8 @@ export default function DashboardPage() {
           title="Scooters around HUST campus"
           description="Scooter locations are plotted in real-time on OpenStreetMap based on current coordinates."
           actions={(
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-              color: 'var(--color-cyan-soft)', fontSize: '0.85rem', fontWeight: 600,
-            }}>
-              <Navigation size={16} strokeWidth={1.8} /> Live
+            <span className="inline-flex items-center gap-[0.4rem] text-(--color-cyan-soft) text-[0.85rem] font-semibold">
+              <Navigation size={20} strokeWidth={1.8} /> Live
             </span>
           )}
         />
@@ -238,10 +235,7 @@ export default function DashboardPage() {
           title="Latest Updates"
           description="Scooters updated most recently, sorted by time."
           actions={(
-            <span style={{
-              display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-              color: 'var(--text-muted)', fontSize: '0.85rem',
-            }}>
+            <span className="inline-flex items-center gap-1.5 text-(--text-muted) text-3">
               <MapPin size={16} strokeWidth={1.8} /> Total {summary.total} scooters
             </span>
           )}
