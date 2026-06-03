@@ -90,7 +90,7 @@ public class UserController {
     @PutMapping("/{id}")
     public ResponseEntity<UserResponseDTO> updateUser(
             @PathVariable Integer id,
-            @Valid @RequestBody UserRequestDTO requestDTO) {
+            @Valid @RequestBody UserUpdateRequestDTO requestDTO) {
         UserResponseDTO responseDTO = userService.updateUser(id, requestDTO);
         return ResponseEntity.ok(responseDTO);
     }
@@ -175,5 +175,12 @@ public class UserController {
     public ResponseEntity<DepositResponseDTO> depositWallet(@Valid @RequestBody DepositRequestDTO requestDTO) {
         DepositResponseDTO response = userService.deposit(requestDTO);
         return ResponseEntity.ok(response);
+    }
+
+    // API Khóa/Mở khóa tài khoản (Chỉ ADMIN)
+    @PutMapping("/{id}/toggle-status")
+    public ResponseEntity<UserResponseDTO> toggleUserStatus(@PathVariable Integer id) {
+        UserResponseDTO updatedUser = userService.toggleUserStatus(id);
+        return ResponseEntity.ok(updatedUser);
     }
 }

@@ -48,7 +48,9 @@ public class User {
     @Column(name = "balance", nullable = false)
     private Double balance = 0.0;
 
-    // --- Constructors ---
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive = true;
+
     public User() {
     }
 
@@ -61,7 +63,6 @@ public class User {
         this.balance = balance;
     }
 
-    // --- Getters & Setters ---
     public Integer getId() {
         return id;
     }
@@ -144,5 +145,13 @@ public class User {
         if (amount != null && amount > 0) {
             this.balance -= amount;
         }
+    }
+
+    public Boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
     }
 }

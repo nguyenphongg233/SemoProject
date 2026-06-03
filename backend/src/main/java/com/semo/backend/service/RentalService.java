@@ -39,13 +39,7 @@ public class RentalService {
 
     @Transactional
     public RentalResponseDTO startRental(RentalRequestDTO requestDTO) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
-            throw new RuntimeException("Truy cập bị từ chối: Vui lòng đăng nhập lại!");
-        }
-        
-        User user = userRepository.findByEmail(auth.getName())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy Khách hàng"));
+        User user = requireActiveAuthenticatedUser();
 
         Scooter scooter = scooterRepository.findById(requestDTO.getScooterId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Xe"));
@@ -79,13 +73,7 @@ public class RentalService {
 
     @Transactional
     public RentalResponseDTO endRental(Integer rentalId) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
-            throw new RuntimeException("Truy cập bị từ chối: Vui lòng đăng nhập lại!");
-        }
-
-        User loggedInUser = userRepository.findByEmail(auth.getName())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng hệ thống"));
+        User loggedInUser = requireActiveAuthenticatedUser();
 
         Rental rental = rentalRepository.findById(rentalId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy chuyến đi"));
@@ -143,13 +131,7 @@ public class RentalService {
         if (!VALID_STATUSES.contains(status)) {
             throw new RuntimeException("Trạng thái không hợp lệ!");
         }
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
-            throw new RuntimeException("Truy cập bị từ chối: Vui lòng đăng nhập lại!");
-        }
-
-        User user = userRepository.findByEmail(auth.getName())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng hệ thống"));
+        User user = requireActiveAuthenticatedUser();
 
         boolean isAdmin = "ADMIN".equals(user.getRole()),
                 isAllStatus = "ALL".equals(status);
@@ -180,5 +162,21 @@ public class RentalService {
         dto.setTotalPrice(rental.getTotalPrice());
         dto.setStatus(rental.getStatus());
         return dto;
+    }
+
+    private User requireActiveAuthenticatedUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            throw new RuntimeException("Truy cập bị từ chối: Vui lòng đăng nhập lại!");
+        }
+
+        User user = userRepository.findByEmail(auth.getName())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng hệ thống"));
+
+        if (Boolean.FALSE.equals(user.getIsActive())) {
+            throw new RuntimeException("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên!");
+        }
+
+        return user;
     }
 }

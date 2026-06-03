@@ -12,8 +12,8 @@ public class UserResponseDTO {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Double balance;
+    private Boolean isActive;
 
-    // Constructors
     public UserResponseDTO() {
     }
 
@@ -25,7 +25,6 @@ public class UserResponseDTO {
         this.role = role;
     }
 
-    // Getters and Setters
     public Integer getId() {
         return id;
     }
@@ -88,5 +87,13 @@ public class UserResponseDTO {
 
     public void setBalance(Double balance) {
         this.balance = balance;
+    }
+
+    public Boolean getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(Boolean isActive) {
+        this.isActive = isActive;
     }
 }
