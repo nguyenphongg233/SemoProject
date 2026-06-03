@@ -62,7 +62,7 @@ public class ScooterSimulationService {
                 );
                 maintenanceLogRepository.save(log);
 
-                messagingTemplate.convertAndSend("/topic/alerts", "CẢNH BÁO: Xe " + scooter.getCodeName() + " đã bị khóa tự động!");
+                messagingTemplate.convertAndSend("/topic/alerts", "CẢNH BÁO: Xe " + scooter.getName() + " đã bị khóa tự động!");
             }
         }
 

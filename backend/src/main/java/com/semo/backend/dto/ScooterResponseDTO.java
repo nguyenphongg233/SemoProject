@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 public class ScooterResponseDTO {
 
-    private Long id;
+    private Integer id;
     private String name;
     private Integer batteryLevel;
     private Integer cycleCount;
@@ -19,11 +19,11 @@ public class ScooterResponseDTO {
     public ScooterResponseDTO() {
     }
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

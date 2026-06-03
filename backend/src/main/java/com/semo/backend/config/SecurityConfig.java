@@ -39,7 +39,7 @@ public class SecurityConfig {
                         // Admin-only reset password endpoint
                         .requestMatchers(HttpMethod.POST, "/api/users/*/reset-password").hasRole("ADMIN")
                         // Authenticated users can change their own password via this endpoint
-                        .requestMatchers(HttpMethod.PUT, "/api/users/*/change-password").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/users/change-password").authenticated()
                         .requestMatchers("/api/users").hasRole("ADMIN")
                         .requestMatchers("/api/upload/avatar").authenticated()
                         .requestMatchers("/api/upload/scooter/**").hasRole("ADMIN")

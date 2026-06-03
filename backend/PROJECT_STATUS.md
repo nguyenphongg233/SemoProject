@@ -47,29 +47,27 @@
 * **Admin Dashboard:** Thống kê tổng doanh thu, tổng số chuyến đi, số xe đang chạy, tỷ lệ xe theo trạng thái.
 * **Quản lý lịch sử:** Admin xem toàn bộ lịch sử thuê xe (hỗ trợ bộ lọc filter).
 * **Kiểm duyệt User:** Khóa (Ban) và Mở khóa (Unban) tài khoản vi phạm.
+* **Khôi phục xe (Maintenance):** API chuyển trạng thái xe từ `MAINTENANCE` về `AVAILABLE` sau khi bảo trì/sửa chữa xong, tự động đưa các chỉ số pin và nhiệt độ về mức an toàn tối ưu.
 
 **🚀 Chưa làm:**
 * [ ] **Phân tích dữ liệu lớn (K-Means Clustering):** 🚨 *Tính năng đột phá:* Thu thập dữ liệu lịch sử các chuyến đi (tọa độ trả xe), chạy thuật toán K-Means phân cụm để tự động "chấm" không gian và đề xuất các vị trí tối ưu xây dựng trạm sạc mới.
-* [ ] **Khôi phục xe (Maintenance):** API chuyển trạng thái xe từ `MAINTENANCE` về `AVAILABLE` sau khi bảo trì xong.
 
 ---
 
 ## V. Nhóm Giám Sát Sức Khỏe Pin & Giả Lập IoT (Smart Battery & IoT Simulation)
 **✅ Đã hoàn thành:**
-* (Chưa bắt đầu)
+* **Nâng cấp Entity Scooter (Smart Battery):** Bổ sung thành công các chỉ số chuyên sâu theo cam kết: Chu kỳ sạc (`cycleCount`), Mức độ chai pin (`stateOfHealth`), và Nhiệt độ pin (`temperature`).
+* **Giả lập IoT (Digital Twin):** Triển khai Scheduled Tasks (CRON jobs) chạy ngầm mỗi 5 giây để giả lập luồng dữ liệu động từ xa: Tự động di chuyển tọa độ GPS, tiêu hao pin và thay đổi nhiệt độ thực tế khi xe ở trạng thái `IN_USE`.
+* **Auto-Maintenance Thông Minh:** 🚨 *Tính năng đột phá:* Thuật toán tự động quét hệ thống, cô lập và khóa xe chuyển sang trạng thái `MAINTENANCE` nếu phát hiện pin yếu (< 10%) hoặc pin quá nhiệt (> 60°C) nguy hiểm, đồng thời lưu vết vào hệ thống `MaintenanceLog`.
 
 **🚀 Chưa làm:**
-* [ ] **Nâng cấp Entity Scooter (Smart Battery):** Bổ sung các chỉ số chuyên sâu: Chu kỳ sạc (`cycleCount`), Mức độ chai pin (`soh` - State of Health), và Nhiệt độ pin (`temperature`).
-* [ ] **Giả lập IoT (Digital Twin):** Xây dựng Scheduled Tasks (CRON jobs) giả lập dữ liệu tĩnh thành luồng dữ liệu động: Xe tự động di chuyển tọa độ GPS, tiêu hao năng lượng và thay đổi nhiệt độ theo thời gian thực.
-* [ ] **Auto-Maintenance Thông Minh:** 🚨 *Tính năng đột phá:* Tự động loại biên (chuyển sang `MAINTENANCE`) đối với các xe có nhiệt độ Pin vượt ngưỡng an toàn, sụt pin nhanh bất thường, hoặc dung lượng pin < 15%.
 * [ ] **Xếp lịch sạc tự động:** Tự động hóa xếp lịch sạc pin dựa trên mức năng lượng còn lại của từng xe.
 
 ---
 
 ## VI. Nhóm Tương Tác Thời Gian Thực & Bản Đồ (Real-time GIS)
 **✅ Đã hoàn thành:**
-* (Chưa bắt đầu)
+* **WebSocket Tracking:** Tích hợp thành công cấu hình mạng STOMP/WebSocket công khai (`/ws`), tự động truyền tải và cập nhật luồng dữ liệu di chuyển động của dàn xe lên Admin Dashboard theo thời gian thực mà không cần reload trang.
 
 **🚀 Chưa làm:**
-* [ ] **WebSocket Tracking:** Tích hợp giao thức WebSocket để bắn tọa độ xe liên tục lên Admin Dashboard, giúp xe hiển thị di chuyển mượt mà trên bản đồ mà không cần tải lại trang.
 * [ ] **Geofencing (Hàng rào địa lý):** Thuật toán cảnh báo thời gian thực nếu hệ thống phát hiện tọa độ xe di chuyển vượt quá ranh giới khu vực quy định (ví dụ: ra khỏi khuôn viên trường Đại học Bách Khoa Hà Nội).

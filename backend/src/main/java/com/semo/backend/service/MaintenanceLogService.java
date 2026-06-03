@@ -25,21 +25,21 @@ public class MaintenanceLogService {
         this.scooterRepository = scooterRepository;
     }
 
+    @Transactional
     public MaintenanceLogResponseDTO createMaintenanceLog(MaintenanceLogRequestDTO requestDTO) {
         Scooter scooter = scooterRepository.findById(requestDTO.getScooterId())
                 .orElseThrow(() -> new RuntimeException("ID xe không tồn tại"));
 
         scooter.setStatus("MAINTENANCE");
-        scooterRepository.save(scooter);
 
         MaintenanceLog maintenanceLog = new MaintenanceLog();
         maintenanceLog.setDescription(requestDTO.getDescription());
         maintenanceLog.setCost(requestDTO.getCost());
         maintenanceLog.setScooter(scooter);
 
-        MaintenanceLog savedLog = maintenanceLogRepository.save(maintenanceLog);
+        maintenanceLog = maintenanceLogRepository.save(maintenanceLog);
 
-        return mapToResponseDTO(savedLog);
+        return mapToResponseDTO(maintenanceLog);
     }
 
     public List<MaintenanceLogResponseDTO> getMaintenanceLogsByScooterId(Integer scooterId) {
@@ -58,7 +58,7 @@ public class MaintenanceLogService {
 
     private MaintenanceLogResponseDTO mapToResponseDTO(MaintenanceLog maintenanceLog) {
         MaintenanceLogResponseDTO responseDTO = new MaintenanceLogResponseDTO();
-        responseDTO.setId(maintenanceLog.getId().longValue());
+        responseDTO.setId(maintenanceLog.getId().intValue());
         responseDTO.setScooterId(maintenanceLog.getScooter().getId());
         responseDTO.setDescription(maintenanceLog.getDescription());
         responseDTO.setCost(maintenanceLog.getCost());
