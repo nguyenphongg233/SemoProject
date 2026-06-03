@@ -1,2 +1,2 @@
 // Barrel exports for rental feature API helpers.
-export { endRental, startRental } from './api'
+export { endRental, startRental, getActiveRental } from './api'

@@ -7,6 +7,9 @@ public class ScooterResponseDTO {
     private Long id;
     private String name;
     private Integer batteryLevel;
+    private Integer cycleCount;
+    private Double stateOfHealth;
+    private Double temperature;
     private String status;
     private Double currentLat;
     private Double currentLng;
@@ -34,6 +37,30 @@ public class ScooterResponseDTO {
 
     public Integer getBatteryLevel() {
         return batteryLevel;
+    }
+
+    public Integer getCycleCount() {
+        return cycleCount;
+    }
+
+    public void setCycleCount(Integer cycleCount) {
+        this.cycleCount = cycleCount;
+    }
+
+    public Double getStateOfHealth() {
+        return stateOfHealth;
+    }
+
+    public void setStateOfHealth(Double stateOfHealth) {
+        this.stateOfHealth = stateOfHealth;
+    }
+
+    public Double getTemperature() {
+        return temperature;
+    }
+
+    public void setTemperature(Double temperature) {
+        this.temperature = temperature;
     }
 
     public void setBatteryLevel(Integer batteryLevel) {

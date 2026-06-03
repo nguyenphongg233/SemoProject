@@ -10,5 +10,5 @@ import org.springframework.stereotype.Repository;
 public interface ScooterRepository extends JpaRepository<Scooter, Integer> {
     List<Scooter> findByStatus(String status);
     List<Scooter> findByBatteryLevelLessThan(Double batteryLevel);
-    
+    long countByStatus(String status);
 }

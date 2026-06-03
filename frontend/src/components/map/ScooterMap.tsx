@@ -34,6 +34,7 @@ interface MapClickHandlerProps {
 }
 
 function MapClickHandler({ onClick }: MapClickHandlerProps) {
+  if (!onClick) return null
   useMapEvents({
     click(e: LeafletMouseEvent) {
       const { lat, lng } = e.latlng
@@ -78,14 +79,16 @@ export default function ScooterMap({ scooters = [], stations = [], onMapClick }:
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        <MapClickHandler
-          onClick={(pos) => {
-            setPreview(pos)
-            onMapClick?.(pos)
-          }}
-        />
+        {onMapClick && (
+          <MapClickHandler
+            onClick={(pos) => {
+              setPreview(pos)
+              onMapClick?.(pos)
+            }}
+          />
+        )}
 
-        {preview && (
+        {preview && onMapClick && (
           <CircleMarker
             center={[preview.lat, preview.lng]}
             radius={8}
@@ -150,7 +153,7 @@ export default function ScooterMap({ scooters = [], stations = [], onMapClick }:
               }}
             >
               <Tooltip direction="top" offset={[0, -8]} opacity={1} permanent>
-                {scooter.name || `#${scooter.id}`}
+                {scooter.name ? `${scooter.name} — ID:${scooter.id}` : `ID:${scooter.id}`}
               </Tooltip>
               <Popup>
                 <div className="scooter-map__popup">

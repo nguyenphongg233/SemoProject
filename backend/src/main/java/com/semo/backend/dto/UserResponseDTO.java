@@ -11,6 +11,7 @@ public class UserResponseDTO {
     private String role;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Double balance;
 
     // Constructors
     public UserResponseDTO() {
@@ -79,5 +80,13 @@ public class UserResponseDTO {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Double getBalance() {
+        return balance;
+    }
+
+    public void setBalance(Double balance) {
+        this.balance = balance;
     }
 }

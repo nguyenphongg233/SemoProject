@@ -96,15 +96,34 @@ export default function ScootersPage() {
 
   // FIX 6: Định nghĩa kiểu dữ liệu row cụ thể cho Table columns
   const columns = [
+    { key: 'id', label: 'ID' },
     { key: 'name', label: 'Scooter' },
     { key: 'batteryLevel', label: 'Battery', render: (row: Scooter) => formatBatteryLevel(row.batteryLevel) },
     { key: 'status', label: 'Status', render: (row: Scooter) => getStatusLabel(row.status) },
+    { key: 'cycleCount', label: 'Cycles' },
+    {
+      key: 'stateOfHealth',
+      label: 'SOH',
+      render: (row: Scooter) => {
+        const soh = (row as Scooter & { stateOfHealth?: number }).stateOfHealth
+        return soh != null ? `${soh.toFixed(2)}` : '-'
+      },
+    },
+    {
+      key: 'temperature',
+      label: 'Temp (°C)',
+      render: (row: Scooter) => {
+        const temperature = Number(row.temperature)
+        return Number.isFinite(temperature) ? `${temperature.toFixed(1)}` : '-'
+      },
+    },
     {
       key: 'location',
       label: 'Location',
       render: (row: Scooter) =>
         row.currentLat && row.currentLng ? `${Number(row.currentLat).toFixed(5)}, ${Number(row.currentLng).toFixed(5)}` : '-',
     },
+    { key: 'createdAt', label: 'Created', render: (row: Scooter) => formatDateTime(row.createdAt) || '-' },
     { key: 'updatedAt', label: 'Updated', render: (row: Scooter) => formatDateTime(row.updatedAt || row.createdAt) || '-' },
     {
       key: 'actions',

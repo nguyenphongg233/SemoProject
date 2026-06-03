@@ -3,10 +3,13 @@ package com.semo.backend.controller;
 import com.semo.backend.dto.RentalRequestDTO;
 import com.semo.backend.dto.RentalResponseDTO;
 import com.semo.backend.service.RentalService;
+
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/rentals")
@@ -30,5 +33,12 @@ public class RentalController {
     public ResponseEntity<RentalResponseDTO> endRental(@PathVariable Integer id) {
         RentalResponseDTO responseDTO = rentalService.endRental(id);
         return ResponseEntity.ok(responseDTO);
+    }
+
+    // 3. API Xem lịch sử chuyến đi cá nhân
+    @GetMapping("/history")
+    public ResponseEntity<List<RentalResponseDTO>> getHistory(String status) {
+        List<RentalResponseDTO> history = rentalService.getRentalHistory(status);
+        return ResponseEntity.ok(history);
     }
 }

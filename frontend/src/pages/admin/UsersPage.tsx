@@ -23,6 +23,7 @@ interface User {
   email: string
   phoneNumber: string
   role: string
+  balance?: number
   createdAt?: string
   updatedAt?: string
 }
@@ -97,10 +98,13 @@ export default function UsersPage() {
 
   // FIX 5: Định nghĩa kiểu dữ liệu row: User cho các cột hiển thị dữ liệu
   const columns = [
+    { key: 'id', label: 'ID' },
     { key: 'fullName', label: 'Name' },
     { key: 'email', label: 'Email' },
     { key: 'phoneNumber', label: 'Phone' },
+    { key: 'balance', label: 'Balance', render: (row: User) => (row.balance == null ? '-' : `${row.balance.toFixed(0)} VND`) },
     { key: 'role', label: 'Role' },
+    { key: 'createdAt', label: 'Created', render: (row: User) => formatDateTime(row.createdAt) || '-' },
     { key: 'updatedAt', label: 'Updated', render: (row: User) => formatDateTime(row.updatedAt || row.createdAt) || '-' },
     {
       key: 'actions',

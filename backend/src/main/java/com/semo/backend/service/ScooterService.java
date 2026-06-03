@@ -5,34 +5,70 @@ import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.semo.backend.dto.ScooterRequestDTO;
 import com.semo.backend.dto.ScooterResponseDTO;
 import com.semo.backend.entity.Scooter;
 import com.semo.backend.repository.ScooterRepository;
+import com.semo.backend.entity.User;
+import com.semo.backend.repository.UserRepository;
 
 @Service
 public class ScooterService {
-
     private final ScooterRepository scooterRepository;
+    private final UserRepository userRepository;
 
-    public ScooterService(ScooterRepository scooterRepository) {
+    private static final List<String> VALID_STATUSES = List.of("AVAILABLE", "MAINTENANCE", "IN_USE");
+
+    public ScooterService(ScooterRepository scooterRepository, UserRepository userRepository) {
         this.scooterRepository = scooterRepository;
+        this.userRepository = userRepository;
     }
 
+    private void checkAdminAccess() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            throw new RuntimeException("Truy cập bị từ chối: Vui lòng đăng nhập lại!");
+        }
+
+        User user = userRepository.findByEmail(auth.getName())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng hệ thống"));
+
+        if (!"ADMIN".equals(user.getRole())) {
+            throw new RuntimeException("Lỗi phân quyền: Chỉ Quản trị viên mới được phép thực hiện hành động này!");
+        }
+    }
+
+    private String validateAndNormalizeStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return "AVAILABLE";
+        }
+        status = status.trim().toUpperCase();
+        if (!VALID_STATUSES.contains(status)) {
+            throw new RuntimeException("Trạng thái xe không hợp lệ! Vui lòng chọn: AVAILABLE, IN_USE, hoặc MAINTENANCE.");
+        }
+        return status;
+    }
+
+    @Transactional
     public ScooterResponseDTO createScooter(ScooterRequestDTO requestDTO) {
+        checkAdminAccess();
         Scooter scooter = new Scooter();
         scooter.setCodeName(requestDTO.getName());
         scooter.setBatteryLevel(requestDTO.getBatteryLevel());
-        scooter.setStatus(requestDTO.getStatus());
+        scooter.setStatus(validateAndNormalizeStatus(requestDTO.getStatus()));
         scooter.setCurrentLat(requestDTO.getCurrentLat());
         scooter.setCurrentLng(requestDTO.getCurrentLng());
 
-        Scooter savedScooter = scooterRepository.save(scooter);
-        return mapToResponseDTO(savedScooter);
+        scooter = scooterRepository.save(scooter);
+        return mapToResponseDTO(scooter);
     }
 
+    @Transactional(readOnly = true)
     public List<ScooterResponseDTO> getAllScooters() {
         return scooterRepository.findAll()
                 .stream()
@@ -40,31 +76,38 @@ public class ScooterService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public Page<ScooterResponseDTO> getAllScootersPaged(int page, int size) {
         Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
         return scooterRepository.findAll(pageable).map(this::mapToResponseDTO);
     }
 
+    @Transactional(readOnly = true)
     public List<ScooterResponseDTO> getScootersByStatus(String status) {
+        status = validateAndNormalizeStatus(status);
         return scooterRepository.findByStatus(status)
                 .stream()
                 .map(this::mapToResponseDTO)
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public ScooterResponseDTO getScooterById(Integer id) {
         Scooter scooter = scooterRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy xe với ID: " + id));
         return mapToResponseDTO(scooter);
     }
 
+    @Transactional
     public ScooterResponseDTO updateScooter(Integer id, ScooterRequestDTO requestDTO) {
+        checkAdminAccess();
+
         Scooter scooter = scooterRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy xe với ID: " + id));
 
         scooter.setCodeName(requestDTO.getName());
         scooter.setBatteryLevel(requestDTO.getBatteryLevel());
-        scooter.setStatus(requestDTO.getStatus());
+        scooter.setStatus(validateAndNormalizeStatus(requestDTO.getStatus()));
         if (requestDTO.getCurrentLat() != null) {
             scooter.setCurrentLat(requestDTO.getCurrentLat());
         }
@@ -83,6 +126,9 @@ public class ScooterService {
         }
         dto.setName(scooter.getCodeName());
         dto.setBatteryLevel(scooter.getBatteryLevel());
+        dto.setCycleCount(scooter.getCycleCount());
+        dto.setStateOfHealth(scooter.getStateOfHealth());
+        dto.setTemperature(scooter.getTemperature());
         dto.setStatus(scooter.getStatus());
         dto.setCurrentLat(scooter.getCurrentLat());
         dto.setCurrentLng(scooter.getCurrentLng());
