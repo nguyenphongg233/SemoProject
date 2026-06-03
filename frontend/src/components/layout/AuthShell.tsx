@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Zap, ShieldCheck, Activity } from 'lucide-react'
+import SemoIcon from '../../assets/semo-icon.svg?react';
 
 // 1. Định nghĩa kiểu dữ liệu cho Props
 interface AuthShellProps {
@@ -15,7 +16,7 @@ export default function AuthShell({ eyebrow, title, description, children }: Aut
     <div className="auth-shell">
       <aside className="auth-shell__panel">
         <div className="auth-shell__brand">
-          <span className="auth-shell__logo">S</span>
+          <SemoIcon className="w-20 h-20" />
           <div>
             <p className="auth-shell__eyebrow">{eyebrow || 'Semo • Tech Mobility'}</p>
             <h1 className="auth-shell__brand-title">SemoProject</h1>

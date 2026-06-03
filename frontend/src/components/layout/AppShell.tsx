@@ -11,6 +11,7 @@ import {
   LogOut,
   MapPinned,
 } from 'lucide-react'
+import SemoIcon from '../../assets/semo-icon.svg?react';
 
 import { ROUTES } from '../../constants/routes'
 import { ROLES } from '../../constants/roles'
@@ -102,8 +103,10 @@ export default function AppShell({ mode = 'user', children }: AppShellProps) {
       <aside className="app-shell__sidebar">
         <div className="app-shell__brand-row">
           <Link to={ROUTES.DASHBOARD} className="app-shell__brand">
-            <span className="app-shell__brand-mark">S</span>
-            <span>Semo</span>
+            <span className="inline-flex items-center gap-2">
+              <SemoIcon className="w-10 h-10" />
+              SEMO
+            </span>
           </Link>
           <span className="app-shell__role-pill">{roleLabel}</span>
         </div>
