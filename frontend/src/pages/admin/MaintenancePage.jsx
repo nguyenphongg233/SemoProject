@@ -1,4 +1,3 @@
-// Admin maintenance page for creating logs, searching scooter history, and resolving service.
 import { useState } from 'react'
 
 import { SectionHeader } from '../../components/layout'
@@ -32,9 +31,9 @@ export default function MaintenancePage() {
         cost: Number(createForm.cost),
       })
       setCreateForm(initialCreate)
-      setSuccess('Maintenance log created successfully.')
+      setSuccess('Đã tạo phiếu bảo trì thành công.')
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Unable to create maintenance log'))
+      setError(getApiErrorMessage(err, 'Lỗi: Không thể tạo phiếu.'))
     } finally {
       setLoading(false)
     }
@@ -50,7 +49,7 @@ export default function MaintenancePage() {
       const data = await getMaintenanceLogsByScooterId(Number(searchScooterId))
       setLogs(Array.isArray(data) ? data : [])
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Unable to load maintenance logs'))
+      setError(getApiErrorMessage(err, 'Lỗi: Không tải được lịch sử.'))
       setLogs([])
     } finally {
       setLoading(false)
@@ -65,30 +64,30 @@ export default function MaintenancePage() {
 
     try {
       const message = await resolveMaintenance(Number(resolveScooterId))
-      setSuccess(typeof message === 'string' ? message : 'Maintenance resolved successfully.')
+      setSuccess(typeof message === 'string' ? message : 'Đã cập nhật trạng thái xe thành công.')
       setIsResolveOpen(false)
       setResolveScooterId('')
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Unable to resolve maintenance'))
+      setError(getApiErrorMessage(err, 'Lỗi: Không thể hoàn tất sửa xe.'))
     } finally {
       setLoading(false)
     }
   }
 
   const columns = [
-    { key: 'id', label: 'ID' },
-    { key: 'description', label: 'Description' },
-    { key: 'cost', label: 'Cost', render: (row) => formatCurrency(row.cost) },
-    { key: 'createdAt', label: 'Created', render: (row) => formatDateTime(row.createdAt) || '-' },
+    { key: 'id', label: 'ID Phiếu' },
+    { key: 'description', label: 'Mô tả' },
+    { key: 'cost', label: 'Chi phí', render: (row) => formatCurrency(row.cost) },
+    { key: 'createdAt', label: 'Ngày tạo', render: (row) => formatDateTime(row.createdAt) || '-' },
   ]
 
   return (
     <div className="page-stack">
       <SectionHeader
-        eyebrow="Admin"
-        title="Maintenance"
-        description="Create logs, search scooter history, and mark a scooter as resolved."
-        actions={<Button onClick={() => setIsResolveOpen(true)}>Resolve scooter</Button>}
+        eyebrow="Quản trị"
+        title="Bảo trì"
+        description="Quản lý phiếu sửa chữa, tra cứu lịch sử và xác nhận tình trạng xe."
+        actions={<Button onClick={() => setIsResolveOpen(true)}>Hoàn tất sửa xe</Button>}
       />
 
       {error && <Alert>{error}</Alert>}
@@ -97,9 +96,9 @@ export default function MaintenancePage() {
       <div className="two-column-grid">
         <Card>
           <SectionHeader
-            eyebrow="Create"
-            title="New maintenance log"
-            description="Record an issue, cost, and scooter ID when service is needed."
+            eyebrow="Thao tác"
+            title="Lập phiếu bảo trì"
+            description="Ghi nhận lỗi, chi phí và ID xe cần thực hiện bảo dưỡng."
           />
           <form className="form-grid" onSubmit={handleCreate}>
             <TextField
@@ -111,14 +110,14 @@ export default function MaintenancePage() {
               required
             />
             <TextField
-              label="Description"
+              label="Mô tả"
               name="description"
               value={createForm.description}
               onChange={(event) => setCreateForm((current) => ({ ...current, description: event.target.value }))}
               required
             />
             <TextField
-              label="Cost"
+              label="Chi phí"
               type="number"
               name="cost"
               min="0"
@@ -128,16 +127,16 @@ export default function MaintenancePage() {
               required
             />
             <Button type="submit" disabled={loading}>
-              {loading ? 'Saving…' : 'Create log'}
+              {loading ? 'Đang lưu...' : 'Tạo phiếu'}
             </Button>
           </form>
         </Card>
 
         <Card>
           <SectionHeader
-            eyebrow="Search"
-            title="Scooter history"
-            description="Load the maintenance logs for one scooter using its ID."
+            eyebrow="Tra cứu"
+            title="Lịch sử xe"
+            description="Nhập Scooter ID để xem toàn bộ nhật ký sửa chữa của xe."
           />
           <form className="form-grid" onSubmit={handleSearch}>
             <TextField
@@ -149,7 +148,7 @@ export default function MaintenancePage() {
               required
             />
             <Button type="submit" disabled={loading}>
-              {loading ? 'Loading…' : 'Load logs'}
+              {loading ? 'Đang tải...' : 'Tìm kiếm'}
             </Button>
           </form>
         </Card>
@@ -160,21 +159,21 @@ export default function MaintenancePage() {
           columns={columns}
           rows={logs}
           rowKey={(row) => row.id}
-          emptyMessage="No maintenance logs loaded yet."
+          emptyMessage="Chưa có dữ liệu nào."
         />
       </Card>
 
       <Modal
         open={isResolveOpen}
-        title="Resolve scooter"
+        title="Hoàn tất sửa chữa"
         onClose={() => setIsResolveOpen(false)}
         footer={
           <div className="modal-actions">
             <Button variant="secondary" onClick={() => setIsResolveOpen(false)}>
-              Cancel
+              Hủy
             </Button>
             <Button type="submit" form="resolve-form" disabled={loading}>
-              {loading ? 'Resolving…' : 'Resolve'}
+              {loading ? 'Đang xử lý...' : 'Xác nhận'}
             </Button>
           </div>
         }

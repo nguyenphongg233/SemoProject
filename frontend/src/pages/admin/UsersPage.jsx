@@ -1,4 +1,3 @@
-// Admin users management page with create, update, delete, and reset-password actions.
 import { useEffect, useMemo, useState } from 'react'
 
 import { SectionHeader } from '../../components/layout'
@@ -47,7 +46,7 @@ export default function UsersPage() {
         }
       } catch (err) {
         if (mounted) {
-          setError(getApiErrorMessage(err, 'Unable to load users'))
+          setError(getApiErrorMessage(err, 'Lỗi: Không thể tải dữ liệu người dùng.'))
         }
       } finally {
         if (mounted) {
@@ -66,31 +65,31 @@ export default function UsersPage() {
     const admins = users.filter((user) => user.role === ROLES.ADMIN).length
     const customers = users.filter((user) => user.role === ROLES.CUSTOMER).length
     return [
-      { label: 'Total', value: users.length },
-      { label: 'Admins', value: admins },
-      { label: 'Customers', value: customers },
+      { label: 'Tổng số tài khoản', value: users.length },
+      { label: 'Admin', value: admins },
+      { label: 'Khách hàng', value: customers },
     ]
   }, [users])
 
   const columns = [
-    { key: 'fullName', label: 'Name' },
+    { key: 'fullName', label: 'Họ và tên' },
     { key: 'email', label: 'Email' },
-    { key: 'phoneNumber', label: 'Phone' },
-    { key: 'role', label: 'Role' },
-    { key: 'updatedAt', label: 'Updated', render: (row) => formatDateTime(row.updatedAt || row.createdAt) || '-' },
+    { key: 'phoneNumber', label: 'Số điện thoại' },
+    { key: 'role', label: 'Vai trò', render: (row) => row.role === ROLES.ADMIN ? 'Admin' : 'Khách hàng' },
+    { key: 'updatedAt', label: 'Cập nhật', render: (row) => formatDateTime(row.updatedAt || row.createdAt) || '-' },
     {
       key: 'actions',
-      label: 'Actions',
+      label: 'Thao tác',
       render: (row) => (
         <div className="table-actions table-actions--wrap">
           <Button variant="secondary" onClick={() => openEdit(row)}>
-            Edit
+            Sửa
           </Button>
           <Button variant="secondary" onClick={() => openReset(row)}>
-            Reset password
+            Cấp lại Mật khẩu
           </Button>
           <Button variant="destructive" onClick={() => openDelete(row)}>
-            Delete
+            Xóa
           </Button>
         </div>
       ),
@@ -151,7 +150,7 @@ export default function UsersPage() {
       await reloadUsers()
       setIsFormOpen(false)
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Unable to save user'))
+      setError(getApiErrorMessage(err, 'Lỗi: Không thể lưu thông tin.'))
     } finally {
       setSaving(false)
     }
@@ -167,7 +166,7 @@ export default function UsersPage() {
       await reloadUsers()
       setIsDeleteOpen(false)
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Unable to delete user'))
+      setError(getApiErrorMessage(err, 'Lỗi: Không thể xóa người dùng này.'))
     } finally {
       setSaving(false)
     }
@@ -184,7 +183,7 @@ export default function UsersPage() {
       await adminResetPassword(selectedUser.id, { newPassword })
       setIsResetOpen(false)
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Unable to reset password'))
+      setError(getApiErrorMessage(err, 'Lỗi: Không thể cấp lại mật khẩu.'))
     } finally {
       setSaving(false)
     }
@@ -194,9 +193,9 @@ export default function UsersPage() {
     <div className="page-stack">
       <SectionHeader
         eyebrow="Admin"
-        title="Users"
-        description="Create users, edit contact details, delete accounts, and reset passwords."
-        actions={<Button onClick={openCreate}>New user</Button>}
+        title="Quản lý Người dùng"
+        description="Thêm mới tài khoản, cập nhật thông tin liên hệ, xóa người dùng hoặc cấp lại mật khẩu khi cần."
+        actions={<Button onClick={openCreate}>+ Thêm người dùng</Button>}
       />
 
       <div className="stats-grid stats-grid--compact">
@@ -215,35 +214,35 @@ export default function UsersPage() {
           columns={columns}
           rows={users}
           rowKey={(row) => row.id}
-          emptyMessage={loading ? 'Loading users…' : 'No users found.'}
+          emptyMessage={loading ? 'Đang tải danh sách...' : 'Chưa có người dùng nào.'}
         />
       </Card>
 
       <Modal
         open={isFormOpen}
-        title={form.id ? 'Edit user' : 'New user'}
+        title={form.id ? 'Cập nhật thông tin' : 'Thêm người dùng mới'}
         onClose={() => setIsFormOpen(false)}
         footer={
           <div className="modal-actions">
             <Button variant="secondary" onClick={() => setIsFormOpen(false)}>
-              Cancel
+              Hủy bỏ
             </Button>
             <Button type="submit" form="user-form" disabled={saving}>
-              {saving ? 'Saving…' : 'Save'}
+              {saving ? 'Đang lưu...' : 'Lưu lại'}
             </Button>
           </div>
         }
       >
         <form id="user-form" className="form-grid" onSubmit={handleSubmit}>
           <TextField
-            label="Full name"
+            label="Họ và tên"
             name="fullName"
             value={form.fullName}
             onChange={(event) => setForm((current) => ({ ...current, fullName: event.target.value }))}
             required
           />
           <TextField
-            label="Email"
+            label="Địa chỉ Email"
             type="email"
             name="email"
             value={form.email}
@@ -251,61 +250,64 @@ export default function UsersPage() {
             required
           />
           <TextField
-            label="Phone number"
+            label="Số điện thoại"
             name="phoneNumber"
             value={form.phoneNumber}
             onChange={(event) => setForm((current) => ({ ...current, phoneNumber: event.target.value }))}
             required
           />
           <TextField
-            label={form.id ? 'New password' : 'Password'}
+            label={form.id ? 'Mật khẩu mới (Tùy chọn)' : 'Mật khẩu đăng nhập'}
             type="password"
             name="password"
             value={form.password}
             onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
-            required
+            required={!form.id}
           />
         </form>
       </Modal>
 
       <Modal
         open={isDeleteOpen}
-        title="Delete user"
+        title="Xóa người dùng"
         onClose={() => setIsDeleteOpen(false)}
         footer={
           <div className="modal-actions">
             <Button variant="secondary" onClick={() => setIsDeleteOpen(false)}>
-              Cancel
+              Hủy bỏ
             </Button>
             <Button variant="destructive" onClick={handleDelete} disabled={saving}>
-              {saving ? 'Deleting…' : 'Delete'}
+              {saving ? 'Đang xóa...' : 'Xác nhận xóa'}
             </Button>
           </div>
         }
       >
         <p className="modal-copy">
-          Are you sure you want to delete {selectedUser?.fullName || 'this user'}?
+          Bạn có chắc chắn muốn xóa tài khoản của <strong>{selectedUser?.fullName || 'người dùng này'}</strong> không? Hành động này không thể hoàn tác.
         </p>
       </Modal>
 
       <Modal
         open={isResetOpen}
-        title="Reset password"
+        title="Cấp lại Mật khẩu"
         onClose={() => setIsResetOpen(false)}
         footer={
           <div className="modal-actions">
             <Button variant="secondary" onClick={() => setIsResetOpen(false)}>
-              Cancel
+              Hủy bỏ
             </Button>
             <Button type="submit" form="reset-password-form" disabled={saving}>
-              {saving ? 'Resetting…' : 'Reset password'}
+              {saving ? 'Đang xử lý...' : 'Xác nhận đổi'}
             </Button>
           </div>
         }
       >
         <form id="reset-password-form" className="form-grid" onSubmit={handleResetPassword}>
+          <p className="modal-copy" style={{ gridColumn: '1 / -1', marginBottom: '8px' }}>
+            Đặt một mật khẩu tạm thời cho <strong>{selectedUser?.fullName}</strong>. Yêu cầu khách hàng đổi lại mật khẩu sau khi đăng nhập thành công.
+          </p>
           <TextField
-            label="Temporary password"
+            label="Mật khẩu tạm thời"
             type="password"
             name="newPassword"
             value={newPassword}

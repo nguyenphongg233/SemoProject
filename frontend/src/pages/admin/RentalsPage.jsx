@@ -1,4 +1,3 @@
-// Admin rentals page for starting and ending rental sessions.
 import { useState } from 'react'
 
 import { SectionHeader } from '../../components/layout'
@@ -31,11 +30,11 @@ export default function RentalsPage() {
       })
 
       setResult(response)
-      setSuccess('Rental started successfully.')
+      setSuccess('Đã khởi tạo chuyến đi thành công.')
       setIsResultOpen(true)
       setStartForm(startInitial)
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Unable to start rental'))
+      setError(getApiErrorMessage(err, 'Lỗi: Không thể khởi tạo chuyến đi.'))
     } finally {
       setLoading(false)
     }
@@ -50,11 +49,11 @@ export default function RentalsPage() {
     try {
       const response = await endRental(Number(endRentalId))
       setResult(response)
-      setSuccess('Rental ended successfully.')
+      setSuccess('Đã kết thúc chuyến đi và tính phí thành công.')
       setIsResultOpen(true)
       setEndRentalId('')
     } catch (err) {
-      setError(getApiErrorMessage(err, 'Unable to end rental'))
+      setError(getApiErrorMessage(err, 'Lỗi: Không thể kết thúc chuyến đi.'))
     } finally {
       setLoading(false)
     }
@@ -63,9 +62,9 @@ export default function RentalsPage() {
   return (
     <div className="page-stack">
       <SectionHeader
-        eyebrow="Admin"
-        title="Rentals"
-        description="Start a rental or end it by rental ID using the backend rental endpoints."
+        eyebrow="Quản trị"
+        title="Quản lý Chuyến đi"
+        description="Khởi tạo chuyến đi mới hoặc kết thúc phiên thuê để thanh toán."
       />
 
       {error && <Alert>{error}</Alert>}
@@ -74,9 +73,9 @@ export default function RentalsPage() {
       <div className="two-column-grid">
         <Card>
           <SectionHeader
-            eyebrow="Start"
-            title="New rental"
-            description="Select the user and scooter that should be connected for a new rental session."
+            eyebrow="Thao tác"
+            title="Tạo chuyến đi mới"
+            description="Nhập User ID và Scooter ID để bắt đầu tính giờ thuê."
           />
           <form className="form-grid" onSubmit={handleStart}>
             <TextField
@@ -96,16 +95,16 @@ export default function RentalsPage() {
               required
             />
             <Button type="submit" disabled={loading}>
-              {loading ? 'Starting…' : 'Start rental'}
+              {loading ? 'Đang xử lý...' : 'Bắt đầu thuê'}
             </Button>
           </form>
         </Card>
 
         <Card>
           <SectionHeader
-            eyebrow="End"
-            title="Close rental"
-            description="Enter the rental ID to complete the trip and receive the final total price."
+            eyebrow="Thao tác"
+            title="Kết thúc chuyến đi"
+            description="Nhập Rental ID để dừng tính giờ và chốt tổng tiền."
           />
           <form className="form-grid" onSubmit={handleEnd}>
             <TextField
@@ -117,7 +116,7 @@ export default function RentalsPage() {
               required
             />
             <Button type="submit" disabled={loading}>
-              {loading ? 'Ending…' : 'End rental'}
+              {loading ? 'Đang xử lý...' : 'Kết thúc thuê'}
             </Button>
           </form>
         </Card>
@@ -125,11 +124,11 @@ export default function RentalsPage() {
 
       <Modal
         open={isResultOpen}
-        title="Rental result"
+        title="Thông tin Chuyến đi"
         onClose={() => setIsResultOpen(false)}
         footer={
           <div className="modal-actions">
-            <Button onClick={() => setIsResultOpen(false)}>Close</Button>
+            <Button onClick={() => setIsResultOpen(false)}>Đóng</Button>
           </div>
         }
       >
@@ -139,16 +138,16 @@ export default function RentalsPage() {
               <strong>Rental ID:</strong> {result.id}
             </div>
             <div>
-              <strong>Status:</strong> {result.status}
+              <strong>Trạng thái:</strong> {result.status === 'COMPLETED' ? 'Đã hoàn thành' : result.status}
             </div>
             <div>
-              <strong>Start:</strong> {formatDateTime(result.startTime) || '-'}
+              <strong>Giờ bắt đầu:</strong> {formatDateTime(result.startTime) || '-'}
             </div>
             <div>
-              <strong>End:</strong> {formatDateTime(result.endTime) || '-'}
+              <strong>Giờ kết thúc:</strong> {formatDateTime(result.endTime) || '-'}
             </div>
             <div>
-              <strong>Total price:</strong> {formatCurrency(result.totalPrice)}
+              <strong>Tổng thanh toán:</strong> {formatCurrency(result.totalPrice)}
             </div>
           </div>
         )}

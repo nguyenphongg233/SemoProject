@@ -1,6 +1,3 @@
-// Khung ứng dụng cho người dùng đã đăng nhập (sidebar + topbar).
-// Giữ nguyên cấu trúc và hành vi để các trang Admin tiếp tục hoạt động;
-// chỉ thay đổi màu sắc, icon, và nhãn (Vietnamese cho user mode).
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard,
@@ -28,11 +25,11 @@ const userNavItems = [
 ]
 
 const adminNavItems = [
-  { label: 'Users',       to: ROUTES.USERS,       icon: <Users    {...ICON_PROPS} /> },
-  { label: 'Scooters',    to: ROUTES.SCOOTERS,    icon: <Bike     {...ICON_PROPS} /> },
-  { label: 'Rentals',     to: ROUTES.RENTALS,     icon: <Receipt  {...ICON_PROPS} /> },
-  { label: 'Maintenance', to: ROUTES.MAINTENANCE, icon: <Wrench   {...ICON_PROPS} /> },
-  { label: 'Analytics',   to: ROUTES.ANALYTICS,   icon: <BarChart3 {...ICON_PROPS} /> },
+  { label: 'Người dùng',   to: ROUTES.USERS,       icon: <Users    {...ICON_PROPS} /> },
+  { label: 'Xe điện',      to: ROUTES.SCOOTERS,    icon: <Bike     {...ICON_PROPS} /> },
+  { label: 'Chuyến đi',    to: ROUTES.RENTALS,     icon: <Receipt  {...ICON_PROPS} /> },
+  { label: 'Bảo trì',      to: ROUTES.MAINTENANCE, icon: <Wrench   {...ICON_PROPS} /> },
+  { label: 'Phân tích',    to: ROUTES.ANALYTICS,   icon: <BarChart3 {...ICON_PROPS} /> },
 ]
 
 function NavList({ items, sectionLabel, onNavigate }) {
@@ -68,16 +65,16 @@ export default function AppShell({ mode = 'user', children }) {
 
   const isAdminMode = mode === 'admin'
   const navItems = isAdminMode ? adminNavItems : userNavItems
-  const sectionLabel = isAdminMode ? 'Admin' : 'Khám phá'
+  const sectionLabel = isAdminMode ? 'Quản trị viên' : 'Khám phá'
 
   function handleLogout() {
     logout()
     navigate(ROUTES.LOGIN, { replace: true })
   }
 
-  const roleLabel = user?.role === ROLES.ADMIN ? 'Administrator' : 'Khách hàng'
-  const topbarEyebrow = isAdminMode ? 'Fleet operations' : 'Trải nghiệm xe điện'
-  const topbarTitle = isAdminMode ? 'Admin console' : 'Không gian của bạn'
+  const roleLabel = user?.role === ROLES.ADMIN ? 'Admin' : 'Khách hàng'
+  const topbarEyebrow = isAdminMode ? 'Vận hành hệ thống' : 'Trải nghiệm xe điện'
+  const topbarTitle = isAdminMode ? 'TRANG QUẢN TRỊ' : 'Không gian của bạn'
 
   return (
     <div className="app-shell">
@@ -109,7 +106,7 @@ export default function AppShell({ mode = 'user', children }) {
             onClick={handleLogout}
             leadingIcon={<LogOut size={16} strokeWidth={1.8} />}
           >
-            {isAdminMode ? 'Sign out' : 'Đăng xuất'}
+            Đăng xuất
           </Button>
         </div>
       </aside>
