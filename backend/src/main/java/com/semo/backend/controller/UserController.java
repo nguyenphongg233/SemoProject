@@ -90,7 +90,7 @@ public class UserController {
     @PutMapping("/{id}")
     public ResponseEntity<UserResponseDTO> updateUser(
             @PathVariable Integer id,
-            @Valid @RequestBody UserRequestDTO requestDTO) {
+            @Valid @RequestBody UserUpdateRequestDTO requestDTO) {
         UserResponseDTO responseDTO = userService.updateUser(id, requestDTO);
         return ResponseEntity.ok(responseDTO);
     }
@@ -116,58 +116,27 @@ public class UserController {
     }
 
     /**
-     * Admin reset password for a user. Returns the new temporary password in
-     * response.
+     * Admin reset password for a user.
      * POST /api/users/{id}/reset-password
      */
     @PostMapping("/{id}/reset-password")
     public ResponseEntity<Map<String, String>> resetPassword(
             @PathVariable Integer id,
-            @RequestBody AdminResetPasswordRequestDTO requestDTO) {
-        // security: only admin should be allowed — SecurityConfig should enforce, but
-        // double-check here
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        boolean isAdmin = auth.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .anyMatch(a -> a.equals("ROLE_ADMIN"));
-
-        if (!isAdmin) {
-            throw new RuntimeException("Access denied. Admin role required.");
-        }
+            @Valid @RequestBody AdminResetPasswordRequestDTO requestDTO) {
 
         String newPassword = userService.adminResetPassword(id, requestDTO.getNewPassword());
         return ResponseEntity.ok(Map.of("newPassword", newPassword));
     }
 
     /**
-     * Change password for a user (self) or admin can change without current
-     * password by using admin reset endpoint.
-     * PUT /api/users/{id}/change-password
+     * Change password for a user (Self only).
+     * PUT /api/users/change-password
      */
-    @PutMapping("/{id}/change-password")
+    @PutMapping("/change-password")
     public ResponseEntity<Void> changePassword(
-            @PathVariable Integer id,
-            @RequestBody PasswordChangeRequestDTO requestDTO) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String principal = (String) auth.getPrincipal(); // principal is email as set by JwtAuthenticationFilter
-        boolean isAdmin = auth.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .anyMatch(a -> a.equals("ROLE_ADMIN"));
+            @Valid @RequestBody PasswordChangeRequestDTO requestDTO) {
 
-        // allow if admin or the authenticated user's email matches the target user's
-        // email
-        String targetEmail = userService.getUserEntityById(id).getEmail();
-        if (!isAdmin && !principal.equals(targetEmail)) {
-            throw new RuntimeException("Access denied.");
-        }
-
-        // For non-admin, require currentPassword; admin should use reset-password
-        // endpoint instead
-        if (!isAdmin && (requestDTO.getCurrentPassword() == null || requestDTO.getCurrentPassword().isEmpty())) {
-            throw new RuntimeException("Mật khẩu hiện tại là bắt buộc.");
-        }
-
-        userService.changePassword(id, requestDTO.getCurrentPassword(), requestDTO.getNewPassword());
+        userService.changePassword(requestDTO.getCurrentPassword(), requestDTO.getNewPassword());
         return ResponseEntity.noContent().build();
     }
 
@@ -175,5 +144,12 @@ public class UserController {
     public ResponseEntity<DepositResponseDTO> depositWallet(@Valid @RequestBody DepositRequestDTO requestDTO) {
         DepositResponseDTO response = userService.deposit(requestDTO);
         return ResponseEntity.ok(response);
+    }
+
+    // API Khóa/Mở khóa tài khoản (Chỉ ADMIN)
+    @PutMapping("/{id}/toggle-status")
+    public ResponseEntity<UserResponseDTO> toggleUserStatus(@PathVariable Integer id) {
+        UserResponseDTO updatedUser = userService.toggleUserStatus(id);
+        return ResponseEntity.ok(updatedUser);
     }
 }

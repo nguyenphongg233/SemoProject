@@ -4,20 +4,20 @@ import com.semo.backend.dto.RentalRequestDTO;
 import com.semo.backend.dto.RentalResponseDTO;
 import com.semo.backend.entity.Rental;
 import com.semo.backend.entity.Scooter;
+import com.semo.backend.entity.Transaction;
 import com.semo.backend.entity.User;
 import com.semo.backend.repository.RentalRepository;
 import com.semo.backend.repository.ScooterRepository;
 import com.semo.backend.repository.UserRepository;
+import com.semo.backend.repository.TransactionRepository;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Array;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -26,29 +26,32 @@ public class RentalService {
     private final RentalRepository rentalRepository;
     private final ScooterRepository scooterRepository;
     private final UserRepository userRepository;
+    private final TransactionRepository transactionRepository;
     private static final List<String> VALID_STATUSES = List.of("ALL", "ACTIVE", "COMPLETED");
 
-    public RentalService(RentalRepository rentalRepository, ScooterRepository scooterRepository, UserRepository userRepository) {
+    public RentalService(RentalRepository rentalRepository, ScooterRepository scooterRepository,
+                         UserRepository userRepository, TransactionRepository transactionRepository) {
         this.rentalRepository = rentalRepository;
         this.scooterRepository = scooterRepository;
         this.userRepository = userRepository;
+        this.transactionRepository = transactionRepository;
     }
 
     @Transactional
     public RentalResponseDTO startRental(RentalRequestDTO requestDTO) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
-            throw new RuntimeException("Truy cập bị từ chối: Vui lòng đăng nhập lại!");
-        }
-        
-        User user = userRepository.findByEmail(auth.getName())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy Khách hàng"));
+        User user = requireActiveAuthenticatedUser();
 
         Scooter scooter = scooterRepository.findById(requestDTO.getScooterId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Xe"));
 
-        if (!"ADMIN".equals(user.getRole()) && user.getBalance() < 50000.0) {
-            throw new RuntimeException("Số dư tài khoản không đủ để bắt đầu chuyến đi. Vui lòng đảm bảo trong ví có ít nhất 50.000 VNĐ.");
+        if (!"ADMIN".equals(user.getRole())) {
+            if (user.getBalance() < 0) {
+                throw new RuntimeException("Tài khoản của bạn đang có dư nợ (" + user.getBalance() + " VNĐ). Vui lòng nạp tiền để thanh toán nợ trước khi thuê chuyến mới!");
+            }
+
+            if (user.getBalance() < 50000.0) {
+                throw new RuntimeException("Số dư tài khoản không đủ. Vui lòng đảm bảo trong ví có ít nhất 50.000 VNĐ để đặt cọc.");
+            }
         }
 
         if (!"AVAILABLE".equals(scooter.getStatus())) {
@@ -57,24 +60,29 @@ public class RentalService {
 
         scooter.setStatus("IN_USE");
 
-        if (!"ADMIN".equals(user.getRole()))
+        Rental rental = new Rental(user, scooter);
+        rental.setStartLat(scooter.getCurrentLat());
+        rental.setStartLng(scooter.getCurrentLng());
+
+        rental = rentalRepository.save(rental);
+
+        if (!"ADMIN".equals(user.getRole())) {
             user.subtractBalance(50000.0);
 
-        Rental rental = new Rental(user, scooter);
-        rental = rentalRepository.save(rental);
+            Transaction tx = new Transaction();
+            tx.setUser(user);
+            tx.setAmount(-50000.0);
+            tx.setType("RENTAL_DEPOSIT");
+            tx.setDescription("Trừ tiền cọc bắt đầu chuyến đi #" + rental.getId());
+            transactionRepository.save(tx);
+        }
 
         return mapToDTO(rental);
     }
 
     @Transactional
     public RentalResponseDTO endRental(Integer rentalId) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
-            throw new RuntimeException("Truy cập bị từ chối: Vui lòng đăng nhập lại!");
-        }
-
-        User loggedInUser = userRepository.findByEmail(auth.getName())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng hệ thống"));
+        User loggedInUser = requireActiveAuthenticatedUser();
 
         Rental rental = rentalRepository.findById(rentalId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy chuyến đi"));
@@ -88,9 +96,11 @@ public class RentalService {
         if ("COMPLETED".equals(rental.getStatus()))
             throw new RuntimeException("Chuyến đi này đã được thanh toán rồi!");
 
-        rental.setEndTime(LocalDateTime.now());
-
         Scooter scooter = rental.getScooter();
+
+        rental.setEndTime(LocalDateTime.now());
+        rental.setEndLat(scooter.getCurrentLat());
+        rental.setEndLng(scooter.getCurrentLng());
 
         long minutes = Duration.between(rental.getStartTime(), rental.getEndTime()).toMinutes();
         if (minutes < 1)
@@ -105,8 +115,23 @@ public class RentalService {
 
         scooter.setStatus("AVAILABLE");
 
-        if (!"ADMIN".equals(rentalOwner.getRole()))
+        if (!"ADMIN".equals(rentalOwner.getRole())) {
             rentalOwner.subtractBalance(amount - 50000.0);
+
+            Transaction refundTx = new Transaction();
+            refundTx.setUser(rentalOwner);
+            refundTx.setAmount(50000.0);
+            refundTx.setType("RENTAL_REFUND");
+            refundTx.setDescription("Hoàn tiền cọc chuyến đi #" + rental.getId());
+            transactionRepository.save(refundTx);
+
+            Transaction paymentTx = new Transaction();
+            paymentTx.setUser(rentalOwner);
+            paymentTx.setAmount(-amount);
+            paymentTx.setType("RENTAL_PAYMENT");
+            paymentTx.setDescription("Thanh toán phí thuê xe cho chuyến đi #" + rental.getId());
+            transactionRepository.save(paymentTx);
+        }
 
         return mapToDTO(rental);
     }
@@ -117,13 +142,7 @@ public class RentalService {
         if (!VALID_STATUSES.contains(status)) {
             throw new RuntimeException("Trạng thái không hợp lệ!");
         }
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
-            throw new RuntimeException("Truy cập bị từ chối: Vui lòng đăng nhập lại!");
-        }
-
-        User user = userRepository.findByEmail(auth.getName())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng hệ thống"));
+        User user = requireActiveAuthenticatedUser();
 
         boolean isAdmin = "ADMIN".equals(user.getRole()),
                 isAllStatus = "ALL".equals(status);
@@ -153,6 +172,26 @@ public class RentalService {
         dto.setEndTime(rental.getEndTime());
         dto.setTotalPrice(rental.getTotalPrice());
         dto.setStatus(rental.getStatus());
+        dto.setStartLat(rental.getStartLat());
+        dto.setStartLng(rental.getStartLng());
+        dto.setEndLat(rental.getEndLat());
+        dto.setEndLng(rental.getEndLng());
         return dto;
+    }
+
+    private User requireActiveAuthenticatedUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            throw new RuntimeException("Truy cập bị từ chối: Vui lòng đăng nhập lại!");
+        }
+
+        User user = userRepository.findByEmail(auth.getName())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng hệ thống"));
+
+        if (Boolean.FALSE.equals(user.getIsActive())) {
+            throw new RuntimeException("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên!");
+        }
+
+        return user;
     }
 }

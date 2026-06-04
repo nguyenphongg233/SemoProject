@@ -1,8 +1,8 @@
 package com.semo.backend.service;
 
 import com.semo.backend.dto.PointDTO;
-import com.semo.backend.entity.Scooter;
-import com.semo.backend.repository.ScooterRepository;
+import com.semo.backend.entity.Rental;
+import com.semo.backend.repository.RentalRepository;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -15,36 +15,35 @@ import java.util.List;
 @Service
 public class AnalyticsService {
 
-    private final ScooterRepository scooterRepository;
+    private final RentalRepository rentalRepository;
 
-    public AnalyticsService(ScooterRepository scooterRepository) {
-        this.scooterRepository = scooterRepository;
+    public AnalyticsService(RentalRepository rentalRepository) {
+        this.rentalRepository = rentalRepository;
     }
 
     public List<PointDTO> calculateOptimalChargingStations(int k) {
         if (k <= 0)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Số lượng trạm sạc (K) phải lớn hơn 0.");
         
-        List<Scooter> scooters = scooterRepository.findAll().stream()
-                .filter(s -> s.getCurrentLat() != null && s.getCurrentLng() != null
-                        && "AVAILABLE".equals(s.getStatus()))
+        List <Rental> rentals = rentalRepository.findByStatusOrderByStartTimeDesc("COMPLETED").stream()
+                .filter(r -> r.getEndLat() != null && r.getEndLng() != null)
                 .toList();
 
-        if (scooters.isEmpty())
+        if (rentals.isEmpty())
             return new ArrayList<>();
-        if (k > scooters.size())
+        if (k > rentals.size())
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Số lượng trạm sạc (K=" + k + ") không được lớn hơn tổng số xe hiện có ("
-                    + scooters.size() + " xe)."
+                    + rentals.size() + " xe)."
             );
 
         List<PointDTO> centroids = new ArrayList<>();
-        List<Scooter> shuffledScooters = new ArrayList<>(scooters);
-        Collections.shuffle(shuffledScooters);
+        List<Rental> shuffledRentals = new ArrayList<>(rentals);
+        Collections.shuffle(shuffledRentals);
         for (int i = 0; i < k; i++) {
-            Scooter selectedScooter = shuffledScooters.get(i);
-            centroids.add(new PointDTO(selectedScooter.getCurrentLat(), selectedScooter.getCurrentLng()));
+            Rental selectedRental = shuffledRentals.get(i);
+            centroids.add(new PointDTO(selectedRental.getEndLat(), selectedRental.getEndLng()));
         }
 
         boolean isChanged = true;
@@ -58,10 +57,10 @@ public class AnalyticsService {
             double[] sumLng = new double[k];
             int[] counts = new int[k];
 
-            for (Scooter scooter : scooters) {
-                int nearestCentroidIndex = findNearestCentroid(scooter, centroids);
-                sumLat[nearestCentroidIndex] += scooter.getCurrentLat();
-                sumLng[nearestCentroidIndex] += scooter.getCurrentLng();
+            for (Rental rental : rentals) {
+                int nearestCentroidIndex = findNearestCentroid(rental, centroids);
+                sumLat[nearestCentroidIndex] += rental.getEndLat();
+                sumLng[nearestCentroidIndex] += rental.getEndLng();
                 counts[nearestCentroidIndex]++;
             }
 
@@ -83,14 +82,14 @@ public class AnalyticsService {
         return centroids;
     }
 
-    private int findNearestCentroid(Scooter scooter, List<PointDTO> centroids) {
+    private int findNearestCentroid(Rental rental, List<PointDTO> centroids) {
         int minIndex = 0;
         double minDistance = Double.MAX_VALUE;
 
         for (int i = 0; i < centroids.size(); i++) {
             PointDTO centroid = centroids.get(i);
-            double distance = Math.pow(scooter.getCurrentLat() - centroid.getLat(), 2)
-                    + Math.pow(scooter.getCurrentLng() - centroid.getLng(), 2);
+            double distance = Math.pow(rental.getEndLat() - centroid.getLat(), 2)
+                    + Math.pow(rental.getEndLng() - centroid.getLng(), 2);
             if (distance < minDistance) {
                 minDistance = distance;
                 minIndex = i;

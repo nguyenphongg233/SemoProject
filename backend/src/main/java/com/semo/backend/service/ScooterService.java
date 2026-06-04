@@ -58,7 +58,7 @@ public class ScooterService {
     public ScooterResponseDTO createScooter(ScooterRequestDTO requestDTO) {
         checkAdminAccess();
         Scooter scooter = new Scooter();
-        scooter.setCodeName(requestDTO.getName());
+        scooter.setName(requestDTO.getName());
         scooter.setBatteryLevel(requestDTO.getBatteryLevel());
         scooter.setStatus(validateAndNormalizeStatus(requestDTO.getStatus()));
         scooter.setCurrentLat(requestDTO.getCurrentLat());
@@ -105,7 +105,7 @@ public class ScooterService {
         Scooter scooter = scooterRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy xe với ID: " + id));
 
-        scooter.setCodeName(requestDTO.getName());
+        scooter.setName(requestDTO.getName());
         scooter.setBatteryLevel(requestDTO.getBatteryLevel());
         scooter.setStatus(validateAndNormalizeStatus(requestDTO.getStatus()));
         if (requestDTO.getCurrentLat() != null) {
@@ -122,9 +122,9 @@ public class ScooterService {
     private ScooterResponseDTO mapToResponseDTO(Scooter scooter) {
         ScooterResponseDTO dto = new ScooterResponseDTO();
         if (scooter.getId() != null) {
-            dto.setId(scooter.getId().longValue());
+            dto.setId(scooter.getId().intValue());
         }
-        dto.setName(scooter.getCodeName());
+        dto.setName(scooter.getName());
         dto.setBatteryLevel(scooter.getBatteryLevel());
         dto.setCycleCount(scooter.getCycleCount());
         dto.setStateOfHealth(scooter.getStateOfHealth());

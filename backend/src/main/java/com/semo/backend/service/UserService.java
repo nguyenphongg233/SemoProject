@@ -11,8 +11,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.semo.backend.dto.*;
 import com.semo.backend.entity.User;
+import com.semo.backend.entity.Transaction;
 import com.semo.backend.repository.RentalRepository;
 import com.semo.backend.repository.UserRepository;
+import com.semo.backend.repository.TransactionRepository;
 
 @Service
 public class UserService {
@@ -20,11 +22,14 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final RentalRepository rentalRepository;
+    private final TransactionRepository transactionRepository;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, RentalRepository rentalRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder,
+                       RentalRepository rentalRepository, TransactionRepository transactionRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.rentalRepository = rentalRepository;
+        this.transactionRepository = transactionRepository;
     }
 
     /**
@@ -59,6 +64,7 @@ public class UserService {
      * @return UserResponseDTO
      */
     public UserResponseDTO getUserById(Integer id) {
+        checkAdminOrSelfAccess(id);
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy User với ID: " + id));
         return mapToResponseDTO(user);
@@ -71,6 +77,7 @@ public class UserService {
      * @return UserResponseDTO
      */
     public UserResponseDTO getUserByEmail(String email) {
+        checkAdminAccess();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy User với email: " + email));
         return mapToResponseDTO(user);
@@ -82,6 +89,7 @@ public class UserService {
      * @return List UserResponseDTO
      */
     public List<UserResponseDTO> getAllUsers() {
+        checkAdminAccess();
         return userRepository.findAll()
                 .stream()
                 .map(this::mapToResponseDTO)
@@ -95,6 +103,7 @@ public class UserService {
      * @return List UserResponseDTO
      */
     public List<UserResponseDTO> getUsersByRole(String role) {
+        checkAdminAccess();
         return userRepository.findByRole(role)
                 .stream()
                 .map(this::mapToResponseDTO)
@@ -109,27 +118,25 @@ public class UserService {
      * @return UserResponseDTO
      */
     @Transactional
-    public UserResponseDTO updateUser(Integer id, UserRequestDTO requestDTO) {
+    public UserResponseDTO updateUser(Integer id, UserUpdateRequestDTO requestDTO) {
+        checkAdminOrSelfAccess(id);
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy User với ID: " + id));
 
-        // Nếu đổi email, kiểm tra email mới chưa được dùng
-        if (!existingUser.getEmail().equals(requestDTO.getEmail()) &&
-                userRepository.existsByEmail(requestDTO.getEmail())) {
-            throw new RuntimeException("Email đã được sử dụng");
-        }
-
-        if (requestDTO.getEmail() != null) {
+        if (requestDTO.getEmail() != null && !requestDTO.getEmail().isBlank()) {
+            if (!existingUser.getEmail().equals(requestDTO.getEmail()) &&
+                    userRepository.existsByEmail(requestDTO.getEmail())) {
+                throw new RuntimeException("Email đã được sử dụng");
+            }
             existingUser.setEmail(requestDTO.getEmail());
         }
+
         if (requestDTO.getFullName() != null) {
             existingUser.setFullName(requestDTO.getFullName());
         }
+
         if (requestDTO.getPhoneNumber() != null) {
             existingUser.setPhoneNumber(requestDTO.getPhoneNumber());
-        }
-        if (requestDTO.getPassword() != null && !requestDTO.getPassword().isEmpty()) {
-            existingUser.setPassword(passwordEncoder.encode(requestDTO.getPassword())); // Hash new password
         }
 
         User updatedUser = userRepository.save(existingUser);
@@ -143,6 +150,7 @@ public class UserService {
      */
     @Transactional
     public void deleteUser(Integer id) {
+        checkAdminAccess();
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy User với ID: " + id));
         // Remove rentals associated with this user first to avoid foreign key
@@ -169,6 +177,7 @@ public class UserService {
      */
     @Transactional
     public String adminResetPassword(Integer id, String newPassword) {
+        checkAdminAccess();
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy User với ID: " + id));
 
@@ -186,9 +195,8 @@ public class UserService {
      * Change password for a user. Verifies current password before updating.
      */
     @Transactional
-    public void changePassword(Integer id, String currentPassword, String newPassword) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy User với ID: " + id));
+    public void changePassword(String currentPassword, String newPassword) {
+        User user = requireActiveAuthenticatedUser();
 
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
             throw new RuntimeException("Mật khẩu hiện tại không đúng.");
@@ -249,25 +257,82 @@ public class UserService {
         dto.setCreatedAt(user.getCreatedAt());
         dto.setUpdatedAt(user.getUpdatedAt());
         dto.setBalance(user.getBalance());
+        dto.setIsActive(user.getIsActive());
         return dto;
     }
 
-    @Transactional
-    public DepositResponseDTO deposit(DepositRequestDTO requestDTO) {
+    private User checkAdminAccess() {
+        User user = requireActiveAuthenticatedUser();
+
+        if (!"ADMIN".equals(user.getRole())) {
+            throw new RuntimeException("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
+        }
+
+        return user;
+    }
+
+    private void checkAdminOrSelfAccess(Integer targetUserId) {
+        User currentUser = requireActiveAuthenticatedUser();
+
+        if ("ADMIN".equals(currentUser.getRole()) || currentUser.getId().equals(targetUserId)) {
+            return;
+        }
+
+        throw new RuntimeException("Lỗi phân quyền: Bạn không có quyền xem thông tin user này!");
+    }
+
+    private User requireActiveAuthenticatedUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
             throw new RuntimeException("Truy cập bị từ chối: Vui lòng đăng nhập lại!");
         }
 
         String email = auth.getName();
-
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản người dùng"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy User"));
+
+        if (Boolean.FALSE.equals(user.getIsActive())) {
+            throw new RuntimeException("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên!");
+        }
+
+        return user;
+    }
+
+    @Transactional
+    public DepositResponseDTO deposit(DepositRequestDTO requestDTO) {
+        User user = requireActiveAuthenticatedUser();
 
         user.addBalance(requestDTO.getAmount());
 
         userRepository.save(user);
 
+        Transaction transaction = new Transaction();
+        transaction.setUser(user);
+        transaction.setAmount(requestDTO.getAmount());
+        transaction.setType("DEPOSIT");
+        transaction.setDescription("Nạp tiền vào ví điện tử SEMO");
+
+        transactionRepository.save(transaction);
+
         return new DepositResponseDTO("Nạp tiền thành công!", user.getBalance());
+    }
+
+    @Transactional
+    public UserResponseDTO toggleUserStatus(Integer targetUserId) {
+        User admin = checkAdminAccess();
+
+
+        if (admin.getId().equals(targetUserId)) {
+            throw new RuntimeException("Thao tác không hợp lệ: Bạn không thể tự khóa chính mình!");
+        }
+
+        User targetUser = userRepository.findById(targetUserId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng cần thao tác"));
+
+        targetUser.setIsActive(!targetUser.getIsActive());
+
+        userRepository.save(targetUser);
+
+        return mapToResponseDTO(targetUser);
     }
 }

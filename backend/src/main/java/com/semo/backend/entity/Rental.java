@@ -39,6 +39,18 @@ public class Rental {
     @Column(nullable = false)
     private String status = "ACTIVE";
 
+    @Column(name = "start_lat", nullable = false)
+    private Double startLat;
+
+    @Column(name = "start_lng", nullable = false)
+    private Double startLng;
+
+    @Column(name = "end_lat", nullable = true)
+    private Double endLat;
+
+    @Column(name = "end_lng", nullable = true)
+    private Double endLng;
+
     // Các hàm Constructor
     public Rental() {
     }
@@ -105,5 +117,37 @@ public class Rental {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Double getStartLat() {
+        return startLat;
+    }
+
+    public void setStartLat(Double startLat) {
+        this.startLat = startLat;
+    }
+
+    public Double getStartLng() {
+        return startLng;
+    }
+
+    public void setStartLng(Double startLng) {
+        this.startLng = startLng;
+    }
+
+    public Double getEndLat() {
+        return endLat;
+    }
+
+    public void setEndLat(Double endLat) {
+        this.endLat = endLat;
+    }
+
+    public Double getEndLng() {
+        return endLng;
+    }
+
+    public void setEndLng(Double endLng) {
+        this.endLng = endLng;
     }
 }

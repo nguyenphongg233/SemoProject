@@ -10,25 +10,96 @@ public class RentalResponseDTO {
     private LocalDateTime endTime;
     private Double totalPrice;
     private String status;
+    private Double startLat;
+    private Double startLng;
+    private Double endLat;
+    private Double endLng;
 
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
+    public Integer getId() {
+        return id;
+    }
 
-    public Integer getUserId() { return userId; }
-    public void setUserId(Integer userId) { this.userId = userId; }
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
-    public Integer getScooterId() { return scooterId; }
-    public void setScooterId(Integer scooterId) { this.scooterId = scooterId; }
+    public Integer getUserId() {
+        return userId;
+    }
 
-    public LocalDateTime getStartTime() { return startTime; }
-    public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
+    public void setUserId(Integer userId) {
+        this.userId = userId;
+    }
 
-    public LocalDateTime getEndTime() { return endTime; }
-    public void setEndTime(LocalDateTime endTime) { this.endTime = endTime; }
+    public Integer getScooterId() {
+        return scooterId;
+    }
 
-    public Double getTotalPrice() { return totalPrice; }
-    public void setTotalPrice(Double totalPrice) { this.totalPrice = totalPrice; }
+    public void setScooterId(Integer scooterId) {
+        this.scooterId = scooterId;
+    }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
+
+    public Double getTotalPrice() {
+        return totalPrice;
+    }
+
+    public void setTotalPrice(Double totalPrice) {
+        this.totalPrice = totalPrice;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Double getStartLat() {
+        return startLat;
+    }
+
+    public void setStartLat(Double startLat) {
+        this.startLat = startLat;
+    }
+
+    public Double getStartLng() {
+        return startLng;
+    }
+
+    public void setStartLng(Double startLng) {
+        this.startLng = startLng;
+    }
+
+    public Double getEndLat() {
+        return endLat;
+    }
+
+    public void setEndLat(Double endLat) {
+        this.endLat = endLat;
+    }
+
+    public Double getEndLng() {
+        return endLng;
+    }
+
+    public void setEndLng(Double endLng) {
+        this.endLng = endLng;
+    }
 }
