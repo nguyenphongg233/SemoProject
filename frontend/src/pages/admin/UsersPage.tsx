@@ -15,8 +15,9 @@ import {
   updateUser,
   toggleUserStatus,
   depositToWallet,
+  getUserTransactions,
 } from '@/features/users'
-import { formatDateTime, getApiErrorMessage } from '@/utils'
+import { formatCurrency, formatDateTime, getApiErrorMessage } from '@/utils'
 
 // FIX 2: Định nghĩa cấu trúc chuẩn của đối tượng User trong hệ thống
 interface User {
@@ -65,6 +66,16 @@ export default function UsersPage() {
   const [isDepositOpen, setIsDepositOpen] = useState(false)
   const [depositAmount, setDepositAmount] = useState<string>('')
 
+  // Search, Filter, Sort state
+  const [searchTerm, setSearchTerm] = useState('')
+  const [roleFilter, setRoleFilter] = useState<string>('ALL')
+  const [sortByBalance, setSortByBalance] = useState<'none' | 'desc' | 'asc'>('none')
+
+  // History state
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false)
+  const [transactions, setTransactions] = useState<any[]>([])
+  const [historyLoading, setHistoryLoading] = useState(false)
+
   useEffect(() => {
     let mounted = true
 
@@ -109,7 +120,7 @@ export default function UsersPage() {
     { key: 'fullName', label: 'Name' },
     { key: 'email', label: 'Email' },
     { key: 'phoneNumber', label: 'Phone' },
-    { key: 'balance', label: 'Balance', render: (row: User) => (row.balance == null ? '-' : `VND ${row.balance.toFixed(0)}`) },
+    { key: 'balance', label: 'Balance', render: (row: User) => (row.balance == null ? '-' : formatCurrency(row.balance)) },
     { key: 'role', label: 'Role' },
     {
       key: 'status',
@@ -136,6 +147,9 @@ export default function UsersPage() {
           </Button>
           <Button variant="secondary" onClick={() => openDeposit(row)}>
             Top Up
+          </Button>
+          <Button variant="ghost" onClick={() => openHistory(row)}>
+            History
           </Button>
           {row.role !== ROLES.ADMIN && (
             <Button 
@@ -190,6 +204,23 @@ export default function UsersPage() {
     setSelectedUser(row)
     setDepositAmount('')
     setIsDepositOpen(true)
+  }
+
+  async function openHistory(row: User) {
+    setSelectedUser(row)
+    setIsHistoryOpen(true)
+    setHistoryLoading(true)
+    setTransactions([])
+    try {
+      if (row.id) {
+        const data = await getUserTransactions(row.id).catch(() => []) // Fallback in case API is not implemented yet
+        setTransactions(Array.isArray(data) ? data : [])
+      }
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setHistoryLoading(false)
+    }
   }
 
   async function reloadUsers() {
@@ -293,6 +324,30 @@ export default function UsersPage() {
     }
   }
 
+  const filteredUsers = useMemo(() => {
+    let result = users
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase()
+      result = result.filter(
+        (u) =>
+          u.fullName?.toLowerCase().includes(term) ||
+          u.email?.toLowerCase().includes(term) ||
+          u.phoneNumber?.toLowerCase().includes(term)
+      )
+    }
+    if (roleFilter !== 'ALL') {
+      result = result.filter((u) => u.role === roleFilter)
+    }
+    if (sortByBalance !== 'none') {
+      result = [...result].sort((a, b) => {
+        const balA = a.balance || 0
+        const balB = b.balance || 0
+        return sortByBalance === 'asc' ? balA - balB : balB - balA
+      })
+    }
+    return result
+  }, [users, searchTerm, roleFilter, sortByBalance])
+
   return (
     <div className="grid gap-6">
       <SectionHeader
@@ -317,10 +372,42 @@ export default function UsersPage() {
 
       {error && <Alert tone="error">{error}</Alert>}
 
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="w-64">
+            <TextField
+              name="search"
+              placeholder="Search by name, email or phone..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <select
+            className="h-10 px-3 border border-border rounded-md bg-surface text-text-strong text-sm focus:outline-none focus:border-brand"
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+          >
+            <option value="ALL">All Roles</option>
+            <option value={ROLES.ADMIN}>Admin</option>
+            <option value={ROLES.CUSTOMER}>Customer</option>
+          </select>
+        </div>
+        <Button 
+          variant={sortByBalance === 'none' ? 'secondary' : 'primary'}
+          onClick={() => {
+            if (sortByBalance === 'none') setSortByBalance('desc')
+            else if (sortByBalance === 'desc') setSortByBalance('asc')
+            else setSortByBalance('none')
+          }}
+        >
+          Sort by Balance {sortByBalance === 'desc' ? '↓' : sortByBalance === 'asc' ? '↑' : ''}
+        </Button>
+      </div>
+
       <Card>
         <Table
           columns={columns}
-          rows={users}
+          rows={filteredUsers}
           rowKey={(row: User, index: number) => row.id?.toString() ?? `user-idx-${index}`}
           emptyMessage={loading ? 'Loading users...' : 'No users found.'}
         />
@@ -453,6 +540,38 @@ export default function UsersPage() {
             autoFocus
           />
         </form>
+      </Modal>
+
+      <Modal
+        open={isHistoryOpen}
+        title="Wallet History"
+        onClose={() => setIsHistoryOpen(false)}
+        footer={
+          <Button variant="secondary" onClick={() => setIsHistoryOpen(false)}>
+            Close
+          </Button>
+        }
+      >
+        <div className="max-h-[60vh] overflow-y-auto">
+          {historyLoading ? (
+            <p className="text-center text-text-muted">Loading history...</p>
+          ) : transactions.length > 0 ? (
+            <Table
+              columns={[
+                { key: 'type', label: 'Type' },
+                { key: 'amount', label: 'Amount', render: (row: any) => formatCurrency(row.amount) },
+                { key: 'createdAt', label: 'Date', render: (row: any) => formatDateTime(row.createdAt) }
+              ]}
+              rows={transactions}
+              rowKey={(row: any, i: number) => row.id || i}
+            />
+          ) : (
+            <div className="text-center py-6 text-text-muted">
+              <p>No transaction history found.</p>
+              <p className="text-sm">(If this is a demo, the API might not be implemented yet)</p>
+            </div>
+          )}
+        </div>
       </Modal>
     </div>
   )
