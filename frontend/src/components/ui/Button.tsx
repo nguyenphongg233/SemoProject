@@ -16,11 +16,11 @@ const buttonVariants = cva(
           'active:not-disabled:translate-y-0',
           'hover:not-disabled:shadow-[0_0_28px_rgba(0,82,255,0.6),0_0_72px_rgba(0,209,255,0.3)]'
         ].join(' '),
-        secondary: 
+        secondary:
           'text-text-strong bg-surface-elevated border border-border-strong backdrop-blur-[12px] hover:not-disabled:-translate-y-[1px] hover:not-disabled:brightness-[1.08] active:not-disabled:translate-y-0 disabled:opacity-55 disabled:cursor-not-allowed hover:not-disabled:bg-electric/12 hover:not-disabled:border-border-glow',
-        destructive: 
+        destructive:
           'text-white bg-gradient-to-br from-[#ff3d6e] to-[#c11d3f] shadow-[0_0_24px_rgba(255,92,122,0.45)] hover:not-disabled:-translate-y-[1px] hover:not-disabled:brightness-[1.08] active:not-disabled:translate-y-0 disabled:opacity-55 disabled:cursor-not-allowed',
-        ghost: 
+        ghost:
           'text-text-muted bg-transparent border border-transparent hover:not-disabled:-translate-y-[1px] hover:not-disabled:brightness-[1.08] active:not-disabled:translate-y-0 disabled:opacity-55 disabled:cursor-not-allowed hover:not-disabled:text-text-strong hover:not-disabled:bg-surface-muted',
       },
     },
@@ -31,9 +31,9 @@ const buttonVariants = cva(
 );
 
 
-interface ButtonProps 
-  extends ButtonHTMLAttributes<HTMLButtonElement>, 
-    VariantProps<typeof buttonVariants> {
+interface ButtonProps
+  extends ButtonHTMLAttributes<HTMLButtonElement>,
+  VariantProps<typeof buttonVariants> {
   children: ReactNode
   leadingIcon?: ReactNode
   trailingIcon?: ReactNode
