@@ -34,24 +34,53 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authz -> authz
+                        // Public / unauthenticated
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/users/check-email").permitAll()
-                        // Admin-only reset password endpoint
-                        .requestMatchers(HttpMethod.POST, "/api/users/*/reset-password").hasRole("ADMIN")
-                        // Authenticated users can change their own password via this endpoint
-                        .requestMatchers(HttpMethod.PUT, "/api/users/change-password").authenticated()
-                        .requestMatchers("/api/users").hasRole("ADMIN")
-                        .requestMatchers("/api/upload/avatar").authenticated()
-                        .requestMatchers("/api/upload/scooter/**").hasRole("ADMIN")
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/v3/api-docs/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/scooters").permitAll()
-                        .requestMatchers("/api/scooters/**").hasRole("ADMIN")
-                        .requestMatchers("/api/maintenance/**").hasRole("ADMIN")
-                        .requestMatchers("/api/rentals/**").hasAnyRole("CUSTOMER", "ADMIN")
-                        .requestMatchers("/api/analytics/**").hasRole("ADMIN")
 
+                        // Users
+                        // Admin-only endpoints for user management
+                        .requestMatchers(HttpMethod.POST, "/api/users/*/reset-password").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/users/*/toggle-status").hasRole("ADMIN")
+                        .requestMatchers("/api/users").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/users/*").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/users/*").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/users/by-role").hasRole("ADMIN")
+
+                        // Authenticated user endpoints
+                        .requestMatchers(HttpMethod.PUT, "/api/users/change-password").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/users/wallet/deposit").hasAnyRole("CUSTOMER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/users/by-email").authenticated()
+
+                        // Uploads
+                        .requestMatchers("/api/upload/avatar").authenticated()
+                        .requestMatchers("/api/upload/scooter/**").hasRole("ADMIN")
+
+                        // Scooters: allow public GETs, admin for create/update
+                        .requestMatchers(HttpMethod.GET, "/api/scooters/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/scooters").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/scooters/**").hasRole("ADMIN")
+
+                        // Maintenance (admin)
+                        .requestMatchers("/api/maintenance/**").hasRole("ADMIN")
+
+                        // Rentals (customer or admin)
+                        .requestMatchers("/api/rentals/**").hasAnyRole("CUSTOMER", "ADMIN")
+
+                        // Transactions (customer or admin)
+                        .requestMatchers("/api/transactions/**").hasAnyRole("CUSTOMER", "ADMIN")
+
+                        // Feedback (authenticated users)
+                        .requestMatchers(HttpMethod.POST, "/api/feedbacks").hasAnyRole("CUSTOMER", "ADMIN")
+
+                        // Analytics & statistics (admin)
+                        .requestMatchers("/api/analytics/**").hasRole("ADMIN")
+                        .requestMatchers("/api/statistics/**").hasRole("ADMIN")
+
+                        // Fallback: any other request must be authenticated
                         .anyRequest().authenticated())
                 .addFilterBefore(
                         new JwtAuthenticationFilter(jwtTokenProvider),

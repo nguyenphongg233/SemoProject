@@ -1,6 +1,6 @@
 # 🛵 SEMO (Smart E-Scooter Fleet Management & Battery Optimization) - Backend Project Status
 
-**Tech Stack:** Java, Spring Boot, Spring Data JPA, Spring Security (JWT), MySQL, WebSocket.
+**Tech Stack:** Java, Spring Boot, Spring Data JPA, Spring Security (JWT), MySQL, WebSocket, Spring Cache.
 
 ---
 
@@ -10,6 +10,7 @@
 * Phân chia 2 Role: `ADMIN` và `CUSTOMER`.
 * Xử lý lỗi truy cập (403 Forbidden, 401 Unauthorized).
 * Chống IDOR tuyệt đối cho các API tài khoản và nghiệp vụ thuê xe (chuẩn `/me`).
+* **Global Exception Handling:** Xử lý lỗi tập trung chuẩn Clean Code, bắt mọi ngoại lệ (như `RuntimeException`) trả về chuẩn JSON không cần try-catch thủ công.
 
 **🚀 Chưa làm:**
 * (Hiện tại hạ tầng bảo mật đã hoàn chỉnh).
@@ -36,9 +37,10 @@
 * **Lịch sử giao dịch:** Ghi vết tự động minh bạch (`DEPOSIT`, `RENTAL_DEPOSIT`, `RENTAL_REFUND`, `RENTAL_PAYMENT`).
 * **Tài khoản nâng cao:** Khách hàng tự đổi mật khẩu, Admin cấp lại mật khẩu.
 * **Quản lý Nợ (Debt Management):** Ghi nhận số dư âm, chặn khách hàng đang nợ thuê chuyến mới.
+* **Cấu hình hệ thống động (System Config):** Triển khai bảng Key-Value linh hoạt kết hợp Spring Cache và chuẩn hóa DTO để quản lý các tham số tài chính (Giá thuê, Giá cọc) hiệu năng cao mà không cần can thiệp mã nguồn.
 
 **🚀 Chưa làm:**
-* [ ] **Cấu hình hệ thống (System Config):** Tạo bảng cấu hình để lưu các tham số động như Giá cọc, Giá thuê thay vì fix cứng trong code.
+* (Nhóm nghiệp vụ tài chính Giai đoạn 1 đã hoàn chỉnh).
 
 ---
 
