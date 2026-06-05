@@ -13,6 +13,8 @@ import {
   deleteUser,
   getAllUsers,
   updateUser,
+  toggleUserStatus,
+  depositToWallet,
 } from '@/features/users'
 import { formatDateTime, getApiErrorMessage } from '@/utils'
 
@@ -23,6 +25,7 @@ interface User {
   email: string
   phoneNumber: string
   role: string
+  status?: string
   balance?: number
   createdAt?: string
   updatedAt?: string
@@ -57,6 +60,10 @@ export default function UsersPage() {
   // FIX 4: Định nghĩa state user đang chọn rõ ràng
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [newPassword, setNewPassword] = useState<string>('')
+  
+  // Deposit state
+  const [isDepositOpen, setIsDepositOpen] = useState(false)
+  const [depositAmount, setDepositAmount] = useState<string>('')
 
   useEffect(() => {
     let mounted = true
@@ -104,22 +111,49 @@ export default function UsersPage() {
     { key: 'phoneNumber', label: 'Phone' },
     { key: 'balance', label: 'Balance', render: (row: User) => (row.balance == null ? '-' : `VND ${row.balance.toFixed(0)}`) },
     { key: 'role', label: 'Role' },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (row: User) => (
+        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium tracking-wider ${
+          row.status === 'BANNED' 
+            ? 'bg-[rgba(218,12,12,0.1)] text-[var(--warning)] border border-[rgba(218,12,12,0.3)]'
+            : 'bg-[rgba(0,224,164,0.1)] text-success border border-[rgba(0,224,164,0.3)]'
+        }`}>
+          {row.status === 'BANNED' ? 'BANNED' : 'ACTIVE'}
+        </span>
+      ),
+    },
     { key: 'createdAt', label: 'Created', render: (row: User) => formatDateTime(row.createdAt) || '-' },
     { key: 'updatedAt', label: 'Updated', render: (row: User) => formatDateTime(row.updatedAt || row.createdAt) || '-' },
     {
       key: 'actions',
       label: 'Actions',
       render: (row: User) => (
-        <div className="flex items-center gap-3 flex-wrap">
-          <Button className="w-45" onClick={() => openEdit(row)}>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button variant="secondary" onClick={() => openEdit(row)}>
             Edit
           </Button>
-          <Button className="w-45" variant="secondary" onClick={() => openReset(row)}>
-            Reset password
+          <Button variant="secondary" onClick={() => openDeposit(row)}>
+            Top Up
           </Button>
-          <Button className="w-45" variant="destructive" onClick={() => openDelete(row)}>
-            Delete
+          {row.role !== ROLES.ADMIN && (
+            <Button 
+              variant={row.status === 'BANNED' ? 'primary' : 'secondary'} 
+              onClick={() => handleToggleStatus(row)}
+              disabled={saving}
+            >
+              {row.status === 'BANNED' ? 'Unban' : 'Ban'}
+            </Button>
+          )}
+          <Button variant="ghost" onClick={() => openReset(row)}>
+            Reset PW
           </Button>
+          {row.role !== ROLES.ADMIN && (
+            <Button variant="destructive" onClick={() => openDelete(row)}>
+              Delete
+            </Button>
+          )}
         </div>
       ),
     },
@@ -150,6 +184,12 @@ export default function UsersPage() {
     setSelectedUser(row)
     setNewPassword('')
     setIsResetOpen(true)
+  }
+
+  function openDeposit(row: User) {
+    setSelectedUser(row)
+    setDepositAmount('')
+    setIsDepositOpen(true)
   }
 
   async function reloadUsers() {
@@ -215,6 +255,39 @@ export default function UsersPage() {
       setIsResetOpen(false)
     } catch (err) {
       setError(getApiErrorMessage(err, 'Unable to reset password'))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleToggleStatus(row: User) {
+    if (!row.id) return
+    setSaving(true)
+    setError('')
+    try {
+      await toggleUserStatus(row.id)
+      await reloadUsers()
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Unable to toggle user status'))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleDeposit(event: SyntheticEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!selectedUser || !selectedUser.id) return
+    setSaving(true)
+    setError('')
+    try {
+      await depositToWallet({
+        userId: Number(selectedUser.id),
+        amount: Number(depositAmount)
+      })
+      await reloadUsers()
+      setIsDepositOpen(false)
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Unable to process deposit'))
     } finally {
       setSaving(false)
     }
@@ -345,6 +418,39 @@ export default function UsersPage() {
             value={newPassword}
             onChange={(event: ChangeEvent<HTMLInputElement>) => setNewPassword(event.target.value)}
             required
+          />
+        </form>
+      </Modal>
+
+      <Modal
+        open={isDepositOpen}
+        title="Top Up Wallet"
+        onClose={() => setIsDepositOpen(false)}
+        footer={
+          <div className="flex items-center justify-end gap-3">
+            <Button variant="secondary" onClick={() => setIsDepositOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" form="deposit-form" disabled={saving}>
+              {saving ? 'Processing...' : 'Deposit'}
+            </Button>
+          </div>
+        }
+      >
+        <form id="deposit-form" className="grid gap-5" onSubmit={handleDeposit}>
+          <p className="text-text-muted text-sm m-0">
+            Add funds to <strong>{selectedUser?.fullName}</strong>'s wallet. Current balance: VND {selectedUser?.balance?.toFixed(0) || 0}
+          </p>
+          <TextField
+            label="Amount to Deposit (VND)"
+            type="number"
+            min="1000"
+            step="1000"
+            name="depositAmount"
+            value={depositAmount}
+            onChange={(event: ChangeEvent<HTMLInputElement>) => setDepositAmount(event.target.value)}
+            required
+            autoFocus
           />
         </form>
       </Modal>

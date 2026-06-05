@@ -55,28 +55,31 @@ export default function ScootersPage() {
   useEffect(() => {
     let mounted = true
 
-    async function loadScooters() {
+    async function loadScooters(showLoading = true) {
       try {
-        setLoading(true)
+        if (showLoading) setLoading(true)
         setError('')
         const data = await getAllScooters()
         if (mounted) {
           setScooters(Array.isArray(data) ? data : [])
         }
       } catch (err) {
-        if (mounted) {
+        if (mounted && showLoading) {
           setError(getApiErrorMessage(err, 'Unable to load scooters'))
         }
       } finally {
-        if (mounted) {
+        if (mounted && showLoading) {
           setLoading(false)
         }
       }
     }
 
-    loadScooters()
+    loadScooters(true)
+    const interval = setInterval(() => loadScooters(false), 5000)
+
     return () => {
       mounted = false
+      clearInterval(interval)
     }
   }, [])
 
