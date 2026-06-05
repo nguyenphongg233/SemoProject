@@ -87,10 +87,12 @@ export default function Register() {
         description="Sign up to access the smart e-scooter network, manage your wallet, and rent history — all in one place."
       >
       <Card variant="glow">
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <div className="auth-form__header">
-            <h2 className="auth-form__title">Create Account</h2>
-            <p className="auth-form__subtitle">
+        <form className="grid gap-[1.1rem]" onSubmit={handleSubmit}>
+          <div className="grid gap-2 mb-2">
+            <h2 className="m-0 text-[2.1rem] tracking-[-0.03em] bg-linear-to-br from-white to-cyan-soft bg-clip-text text-transparent">
+              Create Account
+            </h2>
+            <p className="m-0 text-(--text-muted) leading-[1.6]">
               Fill in your information to create a new customer account.
             </p>
           </div>
@@ -158,7 +160,7 @@ export default function Register() {
             trailingAction={eyeButton(showConfirmPwd, setShowConfirmPwd, 'Show/Hide confirm password')}
           />
 
-          <div className="auth-form__actions">
+          <div className="flex flex-col gap-[0.8rem]">
             <Button
               type="submit"
               disabled={loading}
@@ -166,9 +168,9 @@ export default function Register() {
             >
               {loading ? 'Creating account...' : 'Create Account'}
             </Button>
-            <p className="auth-form__hint">
+            <p className="m-0 text-(--text-muted) text-[0.92rem] leading-[1.6] text-center">
               Already have an account?{' '}
-              <Link className="auth-form__link" to={ROUTES.LOGIN}>
+              <Link className="text-cyan-soft font-bold relative transition-colors duration-200 ease-in-out hover:text-white hover:[text-shadow:0_0_12px_var(--color-cyan)]" to={ROUTES.LOGIN}>
                 Sign in
               </Link>
             </p>

@@ -294,7 +294,7 @@ export default function ScootersPage() {
           />
 
           <label className="grid gap-2">
-            <span className="text-4 font-semibold text-(--text)">Status</span>
+            <span className="text-sm font-semibold text-(--text)">Status</span>
             <select
               className="w-full min-h-13 p-4 border border-(--border) rounded-[14px]
                        bg-[rgba(11,17,32,0.65)] text-(--text-strong)

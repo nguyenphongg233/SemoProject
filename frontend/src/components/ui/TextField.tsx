@@ -28,20 +28,20 @@ export default function TextField({
     .join(' ')
 
   const inputClass = cn(
-    "w-full min-h-13 p-4 border border-(--border) rounded-[14px]",
-    "bg-[rgba(11,17,32,0.65)] text-(--text-strong)",
+    "w-full min-h-13 p-4 border border-border rounded-[14px]",
+    "bg-[rgba(11,17,32,0.65)] text-text-strong",
     "transition-[border-color,box-shadow,background] duration-200 ease-out",
-    "placeholder:text-(--text-faded)",
+    "placeholder:text-text-faded",
 
-    "hover:border-(--border-strong)",
+    "hover:border-border-strong",
     
-    "focus:outline-none focus:border-(--border-glow) focus:bg-[rgba(11,17,32,0.85)]",
+    "focus:outline-none focus:border-border-glow focus:bg-[rgba(11,17,32,0.85)]",
     "focus:shadow-[0_0_0_4px_rgba(0,209,255,0.15),0_0_24px_rgba(0,82,255,0.18)]",
     
     leadingIcon ? "pl-[2.75rem]" : "pl-[1.1rem]",
     trailingAction ? "pr-[2.75rem]" : "pr-[1.1rem]",
     
-    error && "border border-[rgba(255,92,122,0.6)] shadow-[0_0_0_4px_rgba(255,92,122,0.12)]"
+    error && "border-color-danger/60 focus:border-color-danger/80 shadow-[0_0_0_4px_rgba(255,92,122,0.12)]"
   )
 
   const inputElement = (
@@ -56,7 +56,7 @@ export default function TextField({
 
   return (
     <label className={cn("grid gap-2", className)} htmlFor={fieldId}>
-      {label && <span className="text-4 font-semibold text-(--text)">{label}</span>}
+      {label && <span className="text-sm font-semibold text-(--text)">{label}</span>}
 
       {leadingIcon || trailingAction ? (
         <div className="relative flex items-center">
@@ -79,13 +79,13 @@ export default function TextField({
       )}
 
       {helpText && !error && (
-        <span id={`${fieldId}-help`} className="text-3 text-(--text-muted)">
+        <span id={`${fieldId}-help`} className="text-xs text-(--text-muted)">
           {helpText}
         </span>
       )}
       
       {error && (
-        <span id={`${fieldId}-error`} className="text-3 text-(--danger)">
+        <span id={`${fieldId}-error`} className="text-xs text-(--danger)">
           {error}
         </span>
       )}

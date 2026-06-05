@@ -32,7 +32,7 @@ export default function Login() {
       await login({ email, password })
       navigate(ROUTES.HOME, { replace: true })
     } catch (err) {
-setError(getApiErrorMessage(err, 'Login failed. Please check your email and password.'))
+      setError(getApiErrorMessage(err, 'Login failed. Please check your email and password.'))
     } finally {
       setLoading(false)
     }
@@ -45,10 +45,12 @@ setError(getApiErrorMessage(err, 'Login failed. Please check your email and pass
       description="Log in to manage your electric scooter, trips, and wallet on a smart, safe, and luxurious interface."
     >
       <Card variant="glow">
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <div className="auth-form__header">
-            <h2 className="auth-form__title">Log in</h2>
-            <p className="auth-form__subtitle">
+        <form className="grid gap-4" onSubmit={handleSubmit}>
+          <div className="grid gap-2 mb-2">
+            <h2 className="text-3xl tracking-[-0.03em] bg-linear-to-br from-white to-cyan-soft bg-clip-text text-transparent">
+              Log in
+            </h2>
+            <p className="text-text-muted leading-[1.6]">
               Use your registered email and password to continue.
             </p>
           </div>
@@ -82,22 +84,14 @@ setError(getApiErrorMessage(err, 'Login failed. Please check your email and pass
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
-                style={{
-                  background: 'transparent',
-                  border: 0,
-                  color: 'var(--text-muted)',
-                  cursor: 'pointer',
-                  display: 'grid',
-                  placeItems: 'center',
-                  padding: 0,
-                }}
+                className="bg-transparent border-0 text-(--text-muted) cursor-pointer grid place-items-center p-0"
               >
                 {showPassword ? <EyeOff size={18} strokeWidth={1.7} /> : <Eye size={18} strokeWidth={1.7} />}
               </button>
             }
           />
 
-          <div className="auth-form__actions">
+          <div className="flex flex-col gap-[0.8rem]">
             <Button
               type="submit"
               disabled={loading}
@@ -106,9 +100,9 @@ setError(getApiErrorMessage(err, 'Login failed. Please check your email and pass
             >
               {loading ? 'Logging in...' : 'Log in'}
             </Button>
-            <p className="auth-form__hint">
+            <p className="text-(--text-muted) text-[0.92rem] leading-[1.6] text-center">
               Don't have an account?{' '}
-              <Link className="auth-form__link" to={ROUTES.REGISTER}>
+              <Link className="text-cyan-soft font-bold relative transition-colors duration-200 ease-in-out hover:text-white hover:[text-shadow:0_0_12px_var(--color-cyan)]" to={ROUTES.REGISTER}>
                 Create a new account
               </Link>
             </p>

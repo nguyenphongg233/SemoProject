@@ -13,16 +13,17 @@ import {
   Gauge,
 } from 'lucide-react'
 
-import { SectionHeader } from '../../components/layout'
-import { Alert, Button, Card, Table } from '../../components/ui'
-import ScooterMap from '../../components/map/ScooterMap'
-import { getAllScooters } from '../../features/scooters'
-import { SCOOTER_STATUSES } from '../../constants/statuses'
-import { useAuth } from '../../hooks/useAuth'
-import { ROUTES } from '../../constants/routes'
-import { formatBatteryLevel, formatDateTime } from '../../utils/formatters'
-import { getApiErrorMessage } from '../../utils/apiError'
-import type { Scooter } from '../../types/models'
+import { SectionHeader } from '@/components/layout'
+import { Alert, Button, Card, Table } from '@/components/ui'
+import ScooterMap from '@/components/map/ScooterMap'
+import { getAllScooters } from '@/features/scooters'
+import { SCOOTER_STATUSES } from '@/constants/statuses'
+import { useAuth } from '@/hooks/useAuth'
+import { ROUTES } from '@/constants/routes'
+import { formatBatteryLevel, formatDateTime } from '@/utils/formatters'
+import { getApiErrorMessage } from '@/utils/apiError'
+import type { Scooter } from '@/types/models'
+import { cn } from '@/utils/cn';
 
 const statusMeta: Record<string, { label: string; className: string }> = {
   [SCOOTER_STATUSES.AVAILABLE]:   { label: 'Available',     className: 'is-available' },
@@ -145,12 +146,13 @@ export default function DashboardPage() {
       key: 'batteryLevel',
       label: 'Battery',
       render: (row: Scooter) => {
-        const lvl = Number(row.batteryLevel)
-        const tone =
-          Number.isFinite(lvl) && lvl >= 50 ? 'var(--success)' :
-          Number.isFinite(lvl) && lvl >= 25 ? 'var(--warning)' : 'var(--danger)'
+        const lvl = Number(row.batteryLevel);
+        const colorClass = 
+          Number.isFinite(lvl) && lvl >= 50 ? 'text-success' :
+          Number.isFinite(lvl) && lvl >= 25 ? 'text-warning' : 'text-danger';
+
         return (
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', color: tone, fontWeight: 600 }}>
+          <span className={cn("inline-flex items-center gap-[0.45rem] font-semibold", colorClass)}>
             <BatteryFull size={16} strokeWidth={1.8} />
             {formatBatteryLevel(row.batteryLevel) || '—'}
           </span>
@@ -165,8 +167,6 @@ export default function DashboardPage() {
   ]
 
   const greetingName = user?.fullName || 'User'
-  console.log(user)
-  console.log(greetingName)
 
   return (
     <div className="page-stack">
@@ -219,7 +219,7 @@ export default function DashboardPage() {
           title="Scooters around HUST campus"
           description="Scooter locations are plotted in real-time on OpenStreetMap based on current coordinates."
           actions={(
-            <span className="inline-flex items-center gap-[0.4rem] text-(--color-cyan-soft) text-[0.85rem] font-semibold">
+            <span className="inline-flex items-center gap-1.5 text-cyan-soft text-sm font-semibold">
               <Navigation size={20} strokeWidth={1.8} /> Live
             </span>
           )}
@@ -235,7 +235,7 @@ export default function DashboardPage() {
           title="Latest Updates"
           description="Scooters updated most recently, sorted by time."
           actions={(
-            <span className="inline-flex items-center gap-1.5 text-(--text-muted) text-3">
+            <span className="inline-flex items-center gap-1.5 text-text-muted text-xs">
               <MapPin size={16} strokeWidth={1.8} /> Total {summary.total} scooters
             </span>
           )}

@@ -28,6 +28,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { SCOOTER_STATUSES, SCOOTER_STATUS_OPTIONS } from '@/constants/statuses'
 import { formatBatteryLevel, formatCoordinates, formatCurrency, formatDateTime } from '@/utils/formatters'
 import { getApiErrorMessage } from '@/utils/apiError'
+import { cn } from '@/utils/cn';
 
 
 // ----- Interfaces & Types -----
@@ -376,7 +377,7 @@ export default function BookingPage() {
           <span
             className={`inline-flex items-center gap-2 p-2 rounded-full border font-semibold transition-colors
               ${userPos 
-                ? 'text-(--color-cyan-soft) border-(--border-glow) bg-[rgba(0,209,255,0.08)]' 
+                ? 'text-cyan-soft border-(--border-glow) bg-[rgba(0,209,255,0.08)]' 
                 : 'text-(--warning) border-[rgba(218,12,12,0.4)] bg-[rgba(255,179,71,0.08)]'
               }`}
           >
@@ -384,7 +385,7 @@ export default function BookingPage() {
             {userPos ? 'Location available' : geoError ? 'Location error' : 'Location unavailable'}
           </span>
 
-          <span className="inline-flex items-center gap-1.5 p-2 rounded-full font-semibold text-(--color-cyan-soft) border border-(--border-glow) bg-[rgba(0,209,255,0.08)]">
+          <span className="inline-flex items-center gap-1.5 p-2 rounded-full font-semibold text-cyan-soft border border-(--border-glow) bg-[rgba(0,209,255,0.08)]">
             <Zap size={14} strokeWidth={1.9} />
             {visibleScooters.length} suitable scooters
           </span>
@@ -396,8 +397,8 @@ export default function BookingPage() {
       {completedInfo && (
         <div className="flex items-center justify-between gap-2.5 p-[0.8rem_1rem] rounded-[14px] bg-linear-to-br from-[rgba(0,224,164,0.18)] to-[rgba(0,82,255,0.18)] border border-[rgba(0,224,164,0.4)] mb-[0.7rem] text-(--text-strong) [&_strong]:text-white">
           <span>
-            <Sparkles size={18} strokeWidth={1.8} />{' '}
-            Trip ended on <strong>{completedInfo.scooterName}</strong> · Total fare{' '}
+            <Sparkles size={18} strokeWidth={1.8} />
+            Trip ended on <strong>{completedInfo.scooterName}</strong> · Total fare: {' '}
             <strong>{formatCurrency(completedInfo.totalPrice)}</strong>
           </span>
           <Button variant="secondary" onClick={dismissCompleted}>
@@ -434,7 +435,7 @@ export default function BookingPage() {
               </select>
             </div>
 
-            <label className="flex items-center gap-[0.6rem] text-[0.92rem] text-(--text) cursor-pointer select-none">
+            <label className="flex items-center gap-[0.6rem] text-base text-(--text) cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={useRadius}
@@ -484,53 +485,69 @@ export default function BookingPage() {
             {visibleScooters.map((s) => {
               const isSelected = s.id === selectedId
               const isLocked = s._status !== SCOOTER_STATUSES.AVAILABLE
+              
               return (
                 <div
                   key={s.id}
-                  className={`
-                    relative grid gap-2 p-[0.95rem_1rem] rounded-[14px] border border-(--border) bg-(--surface-elevated) cursor-pointer
-                    transition-[border-color,transform,box-shadow,background] duration-200 ease-out
-                    hover:border-(--border-strong) hover:-translate-y-px hover:bg-[rgba(0,82,255,0.06)]
-                    ${isSelected ? 'border-(--border-glow) bg-linear-to-br from-[rgba(0,82,255,0.18)] to-[rgba(0,209,255,0.06)] shadow-[0_0_0_1px_var(--border-glow),0_12px_28px_rgba(0,82,255,0.2)]' : ''}
-                    ${isLocked && !isSelected ? 'opacity-55' : ''}
-                  `}
+                  className={cn(
+                    // Base Layout & Định dạng thẻ bao ngoài (Card)
+                    "relative grid gap-2 p-[0.95rem_1rem] rounded-[14px] border border-border bg-surface-elevated cursor-pointer",
+                    "transition-[border-color,transform,box-shadow,background] duration-200 ease-out",
+                    "hover:border-border-strong hover:-translate-y-px hover:bg-electric/6",
+                    
+                    // Trạng thái khi xe ĐƯỢC CHỌN (isSelected)
+                    isSelected && [
+                      "border-border-glow bg-linear-to-br from-electric/18 to-cyan/6",
+                      "shadow-[0_0_0_1px_var(--color-border-glow),0_12px_28px_rgba(0,82,255,0.2)]"
+                    ],
+                    
+                    // Trạng thái khi xe BỊ KHÓA (isLocked) và không được chọn
+                    (isLocked && !isSelected) && "opacity-55"
+                  )}
                   onClick={() => handleSelect(s)}
                 >
+                  {/* Hàng trên cùng: Tên xe và Trạng thái Pill */}
                   <div className="flex items-start justify-between gap-2.5">
                     <div>
-                      <p className="font-bold text-(--text-strong) leading-tight">
+                      <p className="font-bold text-text-strong leading-tight">
                         {s.name || s.codeName || `Scooter #${s.id}`}
                       </p>
-                      <p className="text-(--text-muted) text-[0.82rem]">
+                      <p className="text-text-muted text-sm">
                         {formatCoordinates(Number(s._lat), Number(s._lng))}
                       </p>
                     </div>
-                    <span className={`status-pill ${
-                      s._status === SCOOTER_STATUSES.AVAILABLE ? 'is-available' :
-                      s._status === SCOOTER_STATUSES.IN_USE ? 'is-in-use' : 'is-maintenance'
-                    }`}>
+                    <span className={cn(
+                      "status-pill",
+                      s._status === SCOOTER_STATUSES.AVAILABLE && "is-available",
+                      s._status === SCOOTER_STATUSES.IN_USE && "is-in-use",
+                      s._status !== SCOOTER_STATUSES.AVAILABLE && s._status !== SCOOTER_STATUSES.IN_USE && "is-maintenance"
+                    )}>
                       {statusLabel[s._status] || s._status}
                     </span>
                   </div>
-                  <div className="flex gap-1.5 flex-wrap text-[0.78rem] text-(--text-muted)">
-                    <span className="inline-flex items-center gap-1 p-[0.22rem_0.55rem] rounded-full bg-[rgba(255,255,255,0.04)] border border-(--border)">
+
+                  {/* Hàng giữa: Các thông số (Pin, Nhiệt độ, Khoảng cách) */}
+                  <div className="flex gap-1.5 flex-wrap text-xs text-text-muted">
+                    <span className="inline-flex items-center gap-1 p-[0.22rem_0.55rem] rounded-full bg-surface-muted border border-border">
                       <Battery size={12} strokeWidth={2} /> {formatBatteryLevel(s.batteryLevel) || '—'}
                     </span>
                     
                     {Number.isFinite(Number(s.temperature)) && (
-                      <span className="inline-flex items-center gap-1 p-[0.22rem_0.55rem] rounded-full bg-[rgba(255,255,255,0.04)] border border-(--border)">
+                      <span className="inline-flex items-center gap-1 p-[0.22rem_0.55rem] rounded-full bg-surface-muted border border-border">
                         <Thermometer size={12} strokeWidth={2} /> {Math.round(Number(s.temperature))}°C
                       </span>
                     )}
                     
                     {s._distance != null && (
-                      <span className="inline-flex items-center gap-1 p-[0.22rem_0.55rem] rounded-full bg-[rgba(255,255,255,0.04)] border border-(--border)">
+                      <span className="inline-flex items-center gap-1 p-[0.22rem_0.55rem] rounded-full bg-surface-muted border border-border">
                         <MapPin size={12} strokeWidth={2} /> {fmtKm(s._distance)}
                       </span>
                     )}
                   </div>
+
+                  {/* Hàng dưới cùng: Dòng nhắc nhở trạng thái và Nút bấm */}
                   <div className="flex items-center justify-between mt-1">
-                    <span className="text-(--text-muted) text-sm">
+                    <span className="text-text-muted text-sm">
                       {isSelected
                         ? (ride?.state && ride.state !== 'idle' ? 'Selected' : 'Ready to book')
                         : (isLocked ? 'Cannot book at the moment' : 'Click to select')}
@@ -539,13 +556,12 @@ export default function BookingPage() {
                     {!isLocked && (
                       <button
                         type="button"
-                        className={`
-                          p-1 rounded-full border border-(--border-glow) text-(--color-cyan-soft) cursor-pointer
-                          transition-all duration-200 ease-out
-                          bg-[rgba(0,82,255,0.16)]
-                          hover:text-white hover:bg-[rgba(0,82,255,0.32)]
-                          ${isSelected ? 'bg-[linear-gradient(135deg,#0052FF_0%,#00D1FF_100%)] text-white' : ''}
-                        `}
+                        className={cn(
+                          "p-1 px-3 rounded-full border border-border-glow text-cyan-soft cursor-pointer", // Mẹo: Thêm px-3 để text nút không bị dính
+                          "transition-all duration-200 ease-out bg-brand-soft",
+                          "hover:text-white hover:bg-electric/32",
+                          isSelected && "bg-gradient-brand text-white"
+                        )}
                         onClick={(e) => { e.stopPropagation(); handleSelect(s) }}
                       >
                         <span className="font-bold text-sm">
@@ -570,24 +586,24 @@ export default function BookingPage() {
 
           <div className="flex items-center justify-between gap-2.5 mb-4">
             <div className="flex flex-col items-start gap-2 mt-5 mb-5">
-              <span className="inline-flex items-center gap-2"><i className="scooter-map__swatch scooter-map__swatch--available" /> Available</span>
-              <span className="inline-flex items-center gap-2"><i className="scooter-map__swatch scooter-map__swatch--in-use" /> In Use</span>
-              <span className="inline-flex items-center gap-2"><i className="scooter-map__swatch scooter-map__swatch--maintenance" /> Maintenance</span>
+              <span className="inline-flex items-center gap-2"><i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-[#00D1FF] text-[rgba(0,209,255,0.5)]" /> Available</span>
+              <span className="inline-flex items-center gap-2"><i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-[#0052FF] text-[rgba(0,82,255,0.5)]" /> In Use</span>
+              <span className="inline-flex items-center gap-2"><i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-danger text-[rgba(255,92,122,0.5)]" /> Maintenance</span>
             </div>
-            <span className="inline-flex items-center gap-1.5 p-2 rounded-full text-3 font-semibold text-(--color-cyan-soft) border border-(--border-glow) bg-[rgba(0,209,255,0.08)]">
-              <Filter size={24} strokeWidth={1.9} />
+            <span className="inline-flex items-center gap-1.5 p-2 rounded-full text-xs font-semibold text-cyan-soft border border-(--border-glow) bg-[rgba(0,209,255,0.08)]">
+              <Filter size={20} strokeWidth={1.9} />
               Radius: {radiusKm.toFixed(1)} km
             </span>
           </div>
 
-          <div className="scooter-map" style={{ marginTop: 12 }}>
+          <div className="mt-3">
             <MapContainer
               center={mapCenter}
               zoom={16}
               minZoom={11}
               maxZoom={18}
               scrollWheelZoom
-              className="scooter-map__canvas"
+              className="w-full h-150 rounded-2xl overflow-hidden border border-(--border-strong) shadow-(--shadow-soft)"
             >
               <TileLayer
                 attribution='&copy; OpenStreetMap'
@@ -634,7 +650,7 @@ export default function BookingPage() {
                       {s.name || `#${s.id}`}
                     </Tooltip>
                     <Popup>
-                      <div className="scooter-map__popup">
+                      <div className="grid gap-1.5 min-w-50 text-(--text)">
                         <strong>{s.name || `Scooter #${s.id}`}</strong>
                         <p>Status: {statusLabel[s._status]}</p>
                         <p>Battery: {formatBatteryLevel(s.batteryLevel) || '—'}</p>
@@ -654,7 +670,7 @@ export default function BookingPage() {
             <div className="flex items-center justify-between gap-[0.6rem] mb-[0.6rem]">
               <SectionHeader eyebrow="Ride Status" title="" />
               {ride?.state === 'riding' && (
-                <span className="inline-flex items-center p-2 rounded-full font-semibold tracking-[0.02em] text-(--color-cyan-soft) border-(--border-glow) bg-[rgba(0,209,255,0.08)]">
+                <span className="inline-flex items-center p-2 rounded-full font-semibold tracking-[0.02em] text-cyan-soft border-(--border-glow) bg-[rgba(0,209,255,0.08)]">
                   <Clock size={14} strokeWidth={1.9} /> {fmtDuration(ridingMs)}
                 </span>
               )}
@@ -674,7 +690,7 @@ export default function BookingPage() {
                 </p>
 
                 {ride?.state === 'riding' && (
-                  <div className="[font-variant-numeric:tabular-nums] font-extrabold tracking-[-0.02em] text-[2rem] bg-linear-to-br from-white to-(--color-cyan-soft) bg-clip-text text-transparent bg-size-[auto_120%]">
+                  <div className="[font-variant-numeric:tabular-nums] font-extrabold tracking-[-0.02em] text-3xl bg-linear-to-br from-white to-cyan-soft bg-clip-text text-transparent bg-size-[auto_120%]">
                     {fmtDuration(ridingMs)}
                   </div>
                 )}
@@ -801,8 +817,8 @@ export default function BookingPage() {
 
 function TimelineRow({ icon, label, value, done }: TimelineRowProps) {
   return (
-    <div className={`flex items-center justify-between gap-2.5 text-3 group ${done ? 'is-done' : ''}`}>
-      <span className="inline-flex items-center gap-2 text-(--text-muted) group-[.is-done]:text-(--text) [&>svg]:text-(--text-faded) group-[.is-done]:[&>svg]:text-(--color-cyan-soft)">
+    <div className={`flex items-center justify-between gap-2.5 text-xs group ${done ? 'is-done' : ''}`}>
+      <span className="inline-flex items-center gap-2 text-(--text-muted) group-[.is-done]:text-(--text) [&>svg]:text-(--text-faded) group-[.is-done]:[&>svg]:text-cyan-soft">
         {icon} 
         {label}
       </span>

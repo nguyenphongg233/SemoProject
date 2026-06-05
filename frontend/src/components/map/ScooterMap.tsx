@@ -14,14 +14,14 @@ const NORTHERN_VIETNAM_BOUNDS: [[number, number], [number, number]] = [
 ]
 
 const statusStyles: Record<string, { color: string; fillColor: string }> = {
-  [SCOOTER_STATUSES.AVAILABLE]:   { color: '#00D1FF', fillColor: '#00D1FF' },
-  [SCOOTER_STATUSES.IN_USE]:      { color: '#0052FF', fillColor: '#0052FF' },
+  [SCOOTER_STATUSES.AVAILABLE]: { color: '#00D1FF', fillColor: '#00D1FF' },
+  [SCOOTER_STATUSES.IN_USE]: { color: '#0052FF', fillColor: '#0052FF' },
   [SCOOTER_STATUSES.MAINTENANCE]: { color: '#FF5C7A', fillColor: '#FF5C7A' },
 }
 
 const statusLabels: Record<string, string> = {
-  [SCOOTER_STATUSES.AVAILABLE]:   'Available',
-  [SCOOTER_STATUSES.IN_USE]:      'In Use',
+  [SCOOTER_STATUSES.AVAILABLE]: 'Available',
+  [SCOOTER_STATUSES.IN_USE]: 'In Use',
   [SCOOTER_STATUSES.MAINTENANCE]: 'Maintenance',
 }
 
@@ -44,7 +44,6 @@ function MapClickHandler({ onClick }: MapClickHandlerProps) {
   return null
 }
 
-// Định nghĩa Props cho ScooterMap
 interface ScooterMapProps {
   scooters?: Scooter[];
   stations?: Station[];
@@ -63,7 +62,7 @@ export default function ScooterMap({ scooters = [], stations = [], onMapClick }:
   )
 
   return (
-    <div className="scooter-map">
+    <div className="relative grid gap-3">
       <MapContainer
         center={BACH_KHOA_CENTER}
         zoom={16}
@@ -72,7 +71,7 @@ export default function ScooterMap({ scooters = [], stations = [], onMapClick }:
         maxBounds={NORTHERN_VIETNAM_BOUNDS}
         maxBoundsViscosity={1}
         scrollWheelZoom
-        className="scooter-map__canvas"
+        className="w-full h-130 rounded-[22px] overflow-hidden border border-(--border-strong) shadow-(--shadow-soft)"
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -100,8 +99,8 @@ export default function ScooterMap({ scooters = [], stations = [], onMapClick }:
             }}
           >
             <Popup>
-              <div className="scooter-map__popup">
-                <strong>Selected Point</strong>
+              <div className="grid gap-1.5 min-w-50 text-(--text)">
+                <strong className="text-(--color-cyan-soft)">Selected Point</strong>
                 <div>{formatCoordinates(preview.lat, preview.lng)}</div>
               </div>
             </Popup>
@@ -127,8 +126,8 @@ export default function ScooterMap({ scooters = [], stations = [], onMapClick }:
                   {station.name || `Station #${idx + 1}`}
                 </Tooltip>
                 <Popup>
-                  <div className="scooter-map__popup">
-                    <strong>{station.name || `Station #${idx + 1}`}</strong>
+                  <div className="grid gap-1.5 min-w-50 text-(--text)">
+                    <strong className="text-(--color-cyan-soft)">{station.name || `Station #${idx + 1}`}</strong>
                     <p>Location: {formatCoordinates(station.lat, station.lng)}</p>
                   </div>
                 </Popup>
@@ -156,8 +155,8 @@ export default function ScooterMap({ scooters = [], stations = [], onMapClick }:
                 {scooter.name ? `${scooter.name} — ID:${scooter.id}` : `ID:${scooter.id}`}
               </Tooltip>
               <Popup>
-                <div className="scooter-map__popup">
-                  <strong>{scooter.name || `Scooter #${scooter.id}`}</strong>
+                <div className="grid gap-1.5 min-w-50 text-(--text)">
+                  <strong className="text-(--color-cyan-soft)">{scooter.name || `Scooter #${scooter.id}`}</strong>
                   <p>Status: {statusLabels[scooter.status] || scooter.status || '—'}</p>
                   <p>Battery: {formatBatteryLevel(scooter.batteryLevel) || '—'}</p>
                   <p>Location: {formatCoordinates(scooter.currentLat, scooter.currentLng) || '—'}</p>
@@ -168,14 +167,20 @@ export default function ScooterMap({ scooters = [], stations = [], onMapClick }:
         })}
       </MapContainer>
 
-      <div className="scooter-map__legend">
-        <span><i className="scooter-map__swatch scooter-map__swatch--available" /> Available</span>
-        <span><i className="scooter-map__swatch scooter-map__swatch--in-use" /> In Use</span>
-        <span><i className="scooter-map__swatch scooter-map__swatch--maintenance" /> Maintenance</span>
+      <div className="flex flex-wrap gap-10 text-xs text-(--text-muted)">
+        <span className="inline-flex items-center gap-2">
+          <i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-[#00D1FF] text-[rgba(0,209,255,0.5)]" /> Available
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-[#0052FF] text-[rgba(0,82,255,0.5)]" /> In Use
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-[#FF5C7A] text-[rgba(255,92,122,0.5)]" /> Maintenance
+        </span>
       </div>
 
       {mappedScooters.length === 0 && (
-        <div className="scooter-map__empty">
+        <div className="p-1 rounded-[14px] bg-[rgba(0,82,255,0.08)] border border-[rgba(0,82,255,0.22)] text-(--text-muted)">
           No scooters with coordinates available. Please add lat/lng in the scooter form to display them on the map.
         </div>
       )}
