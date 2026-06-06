@@ -30,16 +30,16 @@ const ICON_PROPS = { size: 18, strokeWidth: 1.7 }
 
 const userNavItems: NavItem[] = [
   { label: 'Dashboard', to: ROUTES.DASHBOARD, icon: <LayoutDashboard {...ICON_PROPS} /> },
-  { label: 'Ride booking',          to: ROUTES.BOOKING,   icon: <MapPinned      {...ICON_PROPS} /> },
-  { label: 'Account & Wallet',  to: ROUTES.PROFILE,   icon: <UserCircle     {...ICON_PROPS} /> },
+  { label: 'Ride booking', to: ROUTES.BOOKING, icon: <MapPinned      {...ICON_PROPS} /> },
+  { label: 'Account & Wallet', to: ROUTES.PROFILE, icon: <UserCircle     {...ICON_PROPS} /> },
 ]
 
 const adminNavItems: NavItem[] = [
-  { label: 'Users',       to: ROUTES.USERS,       icon: <Users    {...ICON_PROPS} /> },
-  { label: 'Scooters',    to: ROUTES.SCOOTERS,    icon: <Bike     {...ICON_PROPS} /> },
-  { label: 'Rentals',     to: ROUTES.RENTALS,     icon: <Receipt  {...ICON_PROPS} /> },
+  { label: 'Users', to: ROUTES.USERS, icon: <Users    {...ICON_PROPS} /> },
+  { label: 'Scooters', to: ROUTES.SCOOTERS, icon: <Bike     {...ICON_PROPS} /> },
+  { label: 'Rentals', to: ROUTES.RENTALS, icon: <Receipt  {...ICON_PROPS} /> },
   { label: 'Maintenance', to: ROUTES.MAINTENANCE, icon: <Wrench   {...ICON_PROPS} /> },
-  { label: 'Analytics',   to: ROUTES.ANALYTICS,   icon: <BarChart3 {...ICON_PROPS} /> },
+  { label: 'Analytics', to: ROUTES.ANALYTICS, icon: <BarChart3 {...ICON_PROPS} /> },
 ]
 
 // 2. Định nghĩa Props cho component NavList
@@ -64,16 +64,16 @@ function NavList({ items, sectionLabel, onNavigate }: NavListProps) {
         <NavLink
           key={item.to}
           to={item.to}
-          className={({ isActive }) => 
+          className={({ isActive }) =>
             cn(
               // Base classes: Bố cục hàng, hiệu ứng transition dịch chuyển nhẹ sang phải khi hover
               "flex items-center gap-3 min-h-11 px-4 py-[0.7rem] rounded-sm font-medium border border-transparent",
               "transition-[background,color,transform,border-color,box-shadow] duration-180 ease-out",
               "hover:text-text-strong hover:bg-electric/8 hover:translate-x-0.5",
-              
+
               // Quản lý Icon SVG nằm bên trong Link mặc định
               "[&_svg]:shrink-0 [&_svg]:opacity-80 hover:[&_svg]:opacity-100",
-              
+
               // Cấu hình trạng thái khi Menu ĐANG ACTIVE
               isActive ? [
                 "text-white bg-linear-to-br from-electric/22 to-cyan/10 border-border-glow",
@@ -162,7 +162,7 @@ export default function AppShell({ mode = 'user', children }: AppShellProps) {
             <div className="w-9 h-9 rounded-full grid place-items-center bg-gradient-brand text-white font-bold text-[0.85rem] [box-shadow:0_0_12px_rgba(0,82,255,0.4)]">
               {getInitials(user?.fullName, user?.email)}
             </div>
-            
+
             <div className="grid gap-[0.05rem] min-w-0">
               <span className="text-[0.88rem] font-semibold text-text-strong whitespace-nowrap overflow-hidden text-ellipsis">
                 {user?.fullName || (isAdminMode ? 'Administrator' : 'User')}
@@ -172,7 +172,7 @@ export default function AppShell({ mode = 'user', children }: AppShellProps) {
               </span>
             </div>
           </div>
-          
+
           <Button
             variant="secondary"
             onClick={handleLogout}

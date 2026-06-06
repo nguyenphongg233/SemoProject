@@ -59,18 +59,18 @@ export default function AuthShell({ eyebrow, title, description, children }: Aut
           </p>
 
           <ul className="grid gap-3 list-none mt-5 text-text/88">
-            
+
             {/* Tính năng 1 */}
             <li className="flex items-center gap-[0.7rem] text-[0.98rem] before:content-[''] before:w-2 before:h-2 before:rounded-full before:bg-cyan before:shadow-[0_0_12px_var(--color-cyan)] before:shrink-0">
               <ShieldCheck size={18} strokeWidth={1.6} className="text-cyan-soft" />
               <span>JWT secured, enterprise-grade RBAC</span>
             </li>
-            
+
             <li className="flex items-center gap-[0.7rem] text-[0.98rem] before:content-[''] before:w-2 before:h-2 before:rounded-full before:bg-cyan before:shadow-[0_0_12px_var(--color-cyan)] before:shrink-0">
               <Activity size={18} strokeWidth={1.6} className="text-cyan-soft" />
               <span>Real-time fleet monitoring on map</span>
             </li>
-            
+
             <li className="flex items-center gap-[0.7rem] text-[0.98rem] before:content-[''] before:w-2 before:h-2 before:rounded-full before:bg-cyan before:shadow-[0_0_12px_var(--color-cyan)] before:shrink-0">
               <Zap size={18} strokeWidth={1.6} className="text-cyan-soft" />
               <span>Instant wallet top-up, 1-tap ride booking</span>

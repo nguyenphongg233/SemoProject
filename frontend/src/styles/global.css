@@ -34,7 +34,8 @@
   --color-brand-soft: rgba(0, 82, 255, 0.16);
   --color-accent: var(--color-cyan);
   --color-success: #00E0A4;
-  --color-warning: #FF9F43; /* 💡 ĐÃ ĐỔI: Màu cam cảnh báo chuẩn Tech */
+  --color-warning: #FF9F43;
+  /* 💡 ĐÃ ĐỔI: Màu cam cảnh báo chuẩn Tech */
   --color-danger: #FF5C7A;
 
   /* ===== Văn bản trạng thái (Dành cho Alert, Badge pastel) ===== */
@@ -59,8 +60,8 @@
   --background-image-gradient-brand-soft: linear-gradient(135deg, rgba(0, 82, 255, 0.2), rgba(0, 209, 255, 0.2));
   --background-image-gradient-border: linear-gradient(135deg, rgba(0, 209, 255, 0.6), rgba(0, 82, 255, 0.2) 60%, rgba(109, 93, 255, 0.5));
   --background-image-gradient-hero: radial-gradient(circle at 20% 0%, rgba(0, 209, 255, 0.18), transparent 45%),
-                   radial-gradient(circle at 100% 20%, rgba(0, 82, 255, 0.22), transparent 50%),
-                   radial-gradient(circle at 50% 100%, rgba(109, 93, 255, 0.18), transparent 55%);
+    radial-gradient(circle at 100% 20%, rgba(0, 82, 255, 0.22), transparent 50%),
+    radial-gradient(circle at 50% 100%, rgba(109, 93, 255, 0.18), transparent 55%);
 
   /* ===== Bo góc ===== */
   --radius-xl: 32px;
@@ -107,14 +108,20 @@ textarea {
   letter-spacing: 0.01em;
 }
 
-h1, h2, h3, h4, h5 {
+h1,
+h2,
+h3,
+h4,
+h5 {
   color: var(--text-strong);
   letter-spacing: -0.02em;
   font-weight: 700;
   line-height: 1.25;
 }
 
-p { line-height: 1.7; }
+p {
+  line-height: 1.7;
+}
 
 
 
@@ -134,15 +141,22 @@ p { line-height: 1.7; }
   color: var(--text-muted) !important;
   font-size: 0.7rem !important;
 }
-.leaflet-control-attribution a { color: var(--color-cyan-soft) !important; }
 
-.leaflet-popup-content-wrapper, .leaflet-popup-tip {
+.leaflet-control-attribution a {
+  color: var(--color-cyan-soft) !important;
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
   background: rgba(17, 28, 52, 0.95) !important;
   color: var(--text) !important;
   border: 1px solid var(--border-strong);
   box-shadow: var(--shadow-soft) !important;
 }
-.leaflet-popup-content { font-family: inherit; }
+
+.leaflet-popup-content {
+  font-family: inherit;
+}
 
 .leaflet-tooltip {
   background: rgba(11, 17, 32, 0.85) !important;
@@ -153,18 +167,26 @@ p { line-height: 1.7; }
   font-weight: 600;
   box-shadow: 0 0 16px rgba(0, 82, 255, 0.35) !important;
 }
+
 .leaflet-tooltip-top:before,
 .leaflet-tooltip-bottom:before,
 .leaflet-tooltip-left:before,
-.leaflet-tooltip-right:before { display: none; }
+.leaflet-tooltip-right:before {
+  display: none;
+}
 
 
 
 /* ================== AUTH SHELL ================== */
 
 @keyframes floatOrb {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50%      { transform: translate(20px, -30px) scale(1.08); }
+
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate(20px, -30px) scale(1.08);
+  }
 }
-
-

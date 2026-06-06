@@ -18,3 +18,8 @@ export async function resolveMaintenance(scooterId: number | string) {
   const { data } = await axiosClient.post(`/api/maintenance/${scooterId}/resolve`)
   return data
 }
+
+export async function getAllMaintenanceLogs() {
+  const { data } = await axiosClient.get('/api/maintenance')
+  return data
+}

@@ -11,6 +11,7 @@
 # Log files
 *.log
 .vscode/
+.codegraph/
 postman/
 .postman/
 

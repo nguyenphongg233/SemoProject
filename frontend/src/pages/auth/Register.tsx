@@ -57,8 +57,8 @@ export default function Register() {
 
   // FIX 5: Định nghĩa chính xác kiểu dữ liệu cho hàm tạo eyeButton
   const eyeButton = (
-    visible: boolean, 
-    setter: React.Dispatch<React.SetStateAction<boolean>>, 
+    visible: boolean,
+    setter: React.Dispatch<React.SetStateAction<boolean>>,
     label: string
   ) => (
     <button
@@ -72,11 +72,11 @@ export default function Register() {
   )
 
   return (
-      <AuthShell
-        eyebrow="Create Account"
-        title="Start Your Journey."
-        description="Sign up to access the smart e-scooter network, manage your wallet, and rent history — all in one place."
-      >
+    <AuthShell
+      eyebrow="Create Account"
+      title="Start Your Journey."
+      description="Sign up to access the smart e-scooter network, manage your wallet, and rent history — all in one place."
+    >
       <Card variant="glow">
         <form className="grid gap-[1.1rem]" onSubmit={handleSubmit}>
           <div className="grid gap-2 mb-2">

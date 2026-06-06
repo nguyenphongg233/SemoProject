@@ -24,7 +24,7 @@ import { SectionHeader,
   Alert, Button, Card, TextField
 } from '@/components'
 import { getAllScooters } from '@/features/scooters'
-import { startRental, endRental } from '@/features/rentals'
+import { startRental, endRental, getRentalHistory } from '@/features/rentals'
 import { useAuth } from '@/hooks/useAuth'
 import { SCOOTER_STATUSES, SCOOTER_STATUS_OPTIONS } from '@/constants'
 import { formatBatteryLevel, formatCoordinates, formatCurrency,
@@ -181,6 +181,44 @@ export default function BookingPage() {
       return () => { if (tickRef.current) clearInterval(tickRef.current) }
     }
   }, [ride?.state])
+
+  // Poll backend every 5s to check if admin force-ended the rental
+  useEffect(() => {
+    if (ride?.state !== 'riding' || !ride?.rentalId) return
+
+    let alive = true
+    const pollBackend = async () => {
+      try {
+        const history = await getRentalHistory('ALL')
+        if (!alive) return
+        
+        const currentRental = history.find((r: any) => r.id === ride.rentalId)
+        
+        if (currentRental && currentRental.status === 'COMPLETED') {
+          // Ride was ended by admin
+          setCompletedInfo({
+            rentalId: currentRental.id,
+            scooterName: ride.scooterName,
+            totalPrice: currentRental.totalPrice ?? 0,
+            endTime: currentRental.endTime,
+            startedAt: ride.startedAt,
+          })
+          setRide(null)
+          saveRide(null)
+          setSelectedId(null)
+          setRefreshKey((k) => k + 1)
+        }
+      } catch (err) {
+        console.error('Failed to sync rental status', err)
+      }
+    }
+
+    const interval = setInterval(pollBackend, 5000)
+    return () => {
+      alive = false
+      clearInterval(interval)
+    }
+  }, [ride?.state, ride?.rentalId, ride?.scooterName, ride?.startedAt])
 
   // Load scooters
   useEffect(() => {
@@ -376,17 +414,17 @@ export default function BookingPage() {
         />
         <div className="flex gap-2 flex-wrap">
           <span
-            className={`inline-flex items-center gap-2 p-2 rounded-full border font-semibold transition-colors
+            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md border text-sm font-semibold transition-colors
               ${userPos 
-                ? 'text-cyan-soft border-(--border-glow) bg-[rgba(0,209,255,0.08)]' 
-                : 'text-(--warning) border-[rgba(218,12,12,0.4)] bg-[rgba(255,179,71,0.08)]'
+                ? 'text-cyan-soft border-cyan-soft/50 bg-[rgba(0,209,255,0.05)]' 
+                : 'text-[var(--warning)] border-[rgba(218,12,12,0.4)] bg-[rgba(255,179,71,0.08)]'
               }`}
           >
             <Crosshair size={14} strokeWidth={1.9} />
             {userPos ? 'Location available' : geoError ? 'Location error' : 'Location unavailable'}
           </span>
 
-          <span className="inline-flex items-center gap-1.5 p-2 rounded-full font-semibold text-cyan-soft border border-(--border-glow) bg-[rgba(0,209,255,0.08)]">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-semibold text-cyan-soft border border-cyan-soft/50 bg-[rgba(0,209,255,0.05)]">
             <Zap size={14} strokeWidth={1.9} />
             {visibleScooters.length} suitable scooters
           </span>
@@ -396,16 +434,18 @@ export default function BookingPage() {
       {scootersError && <Alert tone="error">{scootersError}</Alert>}
       {actionError && <Alert tone="error">{actionError}</Alert>}
       {completedInfo && (
-        <div className="flex items-center justify-between gap-2.5 p-[0.8rem_1rem] rounded-[14px] bg-linear-to-br from-[rgba(0,224,164,0.18)] to-[rgba(0,82,255,0.18)] border border-[rgba(0,224,164,0.4)] mb-[0.7rem] text-(--text-strong) [&_strong]:text-white">
-          <span>
-            <Sparkles size={18} strokeWidth={1.8} />
-            Trip ended on <strong>{completedInfo.scooterName}</strong> · Total fare: {' '}
-            <strong>{formatCurrency(completedInfo.totalPrice)}</strong>
-          </span>
-          <Button variant="secondary" onClick={dismissCompleted}>
-            Close
-          </Button>
-        </div>
+        <Alert tone="success">
+          <div className="flex items-center justify-between gap-2.5">
+            <span>
+              <Sparkles size={18} strokeWidth={1.8} className="inline mr-2" />
+              Trip ended on <strong>{completedInfo.scooterName}</strong> · Total fare: {' '}
+              <strong>{formatCurrency(completedInfo.totalPrice)}</strong>
+            </span>
+            <Button variant="secondary" onClick={dismissCompleted}>
+              Close
+            </Button>
+          </div>
+        </Alert>
       )}
 
       <div className="grid gap-[1.2rem] items-start grid-cols-1 xl:grid-cols-[360px_minmax(0,1fr)_360px]">
@@ -425,7 +465,7 @@ export default function BookingPage() {
             <div>
               <span className="block mb-1.5 font-bold">Status</span>
               <select
-                className="w-full min-h-11 p-[0.7rem_1rem] border border-(--border) rounded-xl bg-[rgba(11,17,32,0.65)] text-(--text-strong) appearance-none bg-no-repeat bg-position-[right_1rem_center] bg-size-[10px] bg-[url('data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%228%22 viewBox=%220 0 12 8%22%3E%3Cpath fill=%22%2300D1FF%22 d=%22M6 8L0 0h12z%22/%3E%3C/svg%3E')] focus:outline-none focus:border-(--border-glow) focus:shadow-[0_0_0_4px_rgba(0,209,255,0.12)]"
+                className="w-full min-h-11 p-[0.7rem_1rem] border border-border rounded-xl bg-surface text-text-strong focus:outline-none focus:border-brand"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
@@ -491,18 +531,9 @@ export default function BookingPage() {
                 <div
                   key={s.id}
                   className={cn(
-                    // Base Layout & Định dạng thẻ bao ngoài (Card)
-                    "relative grid gap-2 p-[0.95rem_1rem] rounded-[14px] border border-border bg-surface-elevated cursor-pointer",
-                    "transition-[border-color,transform,box-shadow,background] duration-200 ease-out",
-                    "hover:border-border-strong hover:-translate-y-px hover:bg-electric/6",
-                    
-                    // Trạng thái khi xe ĐƯỢC CHỌN (isSelected)
-                    isSelected && [
-                      "border-border-glow bg-linear-to-br from-electric/18 to-cyan/6",
-                      "shadow-[0_0_0_1px_var(--color-border-glow),0_12px_28px_rgba(0,82,255,0.2)]"
-                    ],
-                    
-                    // Trạng thái khi xe BỊ KHÓA (isLocked) và không được chọn
+                    "relative grid gap-2 p-[0.95rem_1rem] rounded-[14px] border bg-surface-elevated cursor-pointer",
+                    "transition-all duration-200 ease-out hover:-translate-y-px",
+                    isSelected ? "border-brand bg-brand-soft/20" : "border-border",
                     (isLocked && !isSelected) && "opacity-55"
                   )}
                   onClick={() => handleSelect(s)}
@@ -557,20 +588,12 @@ export default function BookingPage() {
                     </span>
                     
                     {!isLocked && (
-                      <button
-                        type="button"
-                        className={cn(
-                          "p-1 px-3 rounded-full border border-border-glow text-cyan-soft cursor-pointer", // Mẹo: Thêm px-3 để text nút không bị dính
-                          "transition-all duration-200 ease-out bg-brand-soft",
-                          "hover:text-white hover:bg-electric/32",
-                          isSelected && "bg-gradient-brand text-white"
-                        )}
-                        onClick={(e) => { e.stopPropagation(); handleSelect(s) }}
+                      <Button
+                        variant={isSelected ? 'primary' : 'secondary'}
+                        onClick={(e: React.MouseEvent) => { e.stopPropagation(); handleSelect(s) }}
                       >
-                        <span className="font-bold text-sm">
-                          {isSelected ? 'Currently selected' : 'Select scooter'}
-                        </span>
-                      </button>
+                        {isSelected ? 'Selected' : 'Select'}
+                      </Button>
                     )}
                   </div>
                 </div>
@@ -593,8 +616,8 @@ export default function BookingPage() {
               <span className="inline-flex items-center gap-2"><i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-[#0052FF] text-[rgba(0,82,255,0.5)]" /> In Use</span>
               <span className="inline-flex items-center gap-2"><i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-danger text-[rgba(255,92,122,0.5)]" /> Maintenance</span>
             </div>
-            <span className="inline-flex items-center gap-1.5 p-2 rounded-full text-xs font-semibold text-cyan-soft border border-(--border-glow) bg-[rgba(0,209,255,0.08)]">
-              <Filter size={20} strokeWidth={1.9} />
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold text-cyan-soft border border-cyan-soft/50 bg-[rgba(0,209,255,0.05)]">
+              <Filter size={16} strokeWidth={1.9} />
               Radius: {radiusKm.toFixed(1)} km
             </span>
           </div>
@@ -669,7 +692,7 @@ export default function BookingPage() {
 
         {/* ============== CỘT PHẢI: RIDE STATUS + ALERTS ============== */}
         <div className="grid gap-5">
-          <Card variant="glow">
+          <Card>
             <div className="flex items-center justify-between gap-[0.6rem] mb-[0.6rem]">
               <SectionHeader eyebrow="Ride Status" title="" />
               {ride?.state === 'riding' && (
@@ -693,7 +716,7 @@ export default function BookingPage() {
                 </p>
 
                 {ride?.state === 'riding' && (
-                  <div className="[font-variant-numeric:tabular-nums] font-extrabold tracking-[-0.02em] text-3xl bg-linear-to-br from-white to-cyan-soft bg-clip-text text-transparent bg-size-[auto_120%]">
+                  <div className="font-bold text-3xl text-text-strong">
                     {fmtDuration(ridingMs)}
                   </div>
                 )}
@@ -781,18 +804,18 @@ export default function BookingPage() {
             />
             <div className="mt-2.5 grid gap-3">
               <Button
+                variant="secondary"
                 onClick={() => reportIssue('overheat')}
                 disabled={!selectedScooter}
-                className="text-white bg-linear-to-br from-[#ffb347] to-[#443a2d] shadow-[0_0_24px_rgba(255,179,71,0.35)]"
                 leadingIcon={<Thermometer size={16} strokeWidth={1.8} />}
               >
                 Battery overheating
               </Button>
               
               <Button
+                variant="secondary"
                 onClick={() => reportIssue('battery-drop')}
                 disabled={!selectedScooter}
-                className="text-white bg-linear-to-br from-[#ff5c7a] to-[#c11d3f] shadow-[0_0_24px_rgba(255,92,122,0.35)]"
                 leadingIcon={<Gauge size={16} strokeWidth={1.8} />}
               >
                 Rapid battery drain

@@ -66,3 +66,8 @@ export async function toggleUserStatus(id: number | string) {
   const { data } = await axiosClient.put(`/api/users/${id}/toggle-status`)
   return data
 }
+
+export async function getUserTransactions(id: number | string) {
+  const { data } = await axiosClient.get(`/api/users/${id}/transactions`)
+  return data
+}

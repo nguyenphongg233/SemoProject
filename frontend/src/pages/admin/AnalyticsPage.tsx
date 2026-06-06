@@ -1,5 +1,5 @@
 // Admin analytics page using the optimal-stations API.
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 // FIX 1: Dùng type-only import cho SyntheticEvent và ChangeEvent
 import type { SyntheticEvent, ChangeEvent } from 'react'
 
@@ -8,8 +8,10 @@ import { SectionHeader,
   ScooterMap
  } from '@/components'
 import { getAllScooters } from '@/features/scooters'
+import { getRentalHistory } from '@/features/rentals'
+import { getAllMaintenanceLogs } from '@/features/maintenance'
 import { getOptimalStations } from '@/features/analytics'
-import { getApiErrorMessage } from '@/utils'
+import { getApiErrorMessage, formatCurrency } from '@/utils'
 
 // FIX 2: Import đúng Type Scooter của dự án thay vì tự định nghĩa bừa
 import type { Scooter, LatLngPos } from '@/types/models'
@@ -20,8 +22,47 @@ export default function AnalyticsPage() {
   const [points, setPoints] = useState<LatLngPos[]>([])
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
-  // Hiện tại state này đã mang đúng cấu trúc mà <ScooterMap /> yêu cầu
+  
+  // Dashboard Metrics Data
   const [scooters, setScooters] = useState<Scooter[]>([])
+  const [rentals, setRentals] = useState<any[]>([])
+  const [maintenanceLogs, setMaintenanceLogs] = useState<any[]>([])
+  const [dashboardLoading, setDashboardLoading] = useState(true)
+
+  // Load Dashboard Data
+  useEffect(() => {
+    let mounted = true
+    async function loadDashboard() {
+      try {
+        setDashboardLoading(true)
+        const [scooterData, rentalData, logsData] = await Promise.all([
+          getAllScooters().catch(() => []),
+          getRentalHistory('ALL').catch(() => []),
+          getAllMaintenanceLogs().catch(() => []) // Catching error since backend might not implement this yet
+        ])
+        if (mounted) {
+          setScooters(Array.isArray(scooterData) ? scooterData : [])
+          setRentals(Array.isArray(rentalData) ? rentalData : [])
+          setMaintenanceLogs(Array.isArray(logsData) ? logsData : [])
+        }
+      } catch (err) {
+        if (mounted) console.error('Failed to load dashboard metrics', err)
+      } finally {
+        if (mounted) setDashboardLoading(false)
+      }
+    }
+    loadDashboard()
+    return () => { mounted = false }
+  }, [])
+
+  // Calculate Metrics
+  const totalRevenue = rentals.reduce((sum, r) => sum + (Number(r.totalCost) || 0), 0)
+  const totalRides = rentals.length
+  
+  const fleetTotal = scooters.length
+  const fleetAvailable = scooters.filter(s => s.status === 'AVAILABLE').length
+  
+  const totalMaintenanceCost = maintenanceLogs.reduce((sum, log) => sum + (Number(log.cost) || 0), 0)
 
   async function handleSubmit(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -54,11 +95,52 @@ export default function AnalyticsPage() {
     <div className="grid gap-6">
       <SectionHeader
         eyebrow="Admin"
-        title="Analytics"
-        description="Calculate optimal charging stations from the analytics endpoint."
+        title="Analytics & Operations"
+        description="Monitor system revenue, fleet utilization, and calculate optimal charging stations."
       />
 
       {error && <Alert tone="error">{error}</Alert>}
+
+      <div className="grid gap-[1.1rem] grid-cols-4 max-[980px]:grid-cols-2 max-sm:grid-cols-1">
+        <Card>
+          <p className="text-text-faded font-semibold text-sm uppercase tracking-[0.12em]">
+            Total Revenue
+          </p>
+          <div className="mt-2 text-4xl font-extrabold tracking-[-0.04em] bg-[linear-gradient(135deg,#fff,var(--color-cyan-soft)_120%)] bg-clip-text text-transparent leading-[1.1]">
+            {dashboardLoading ? '—' : formatCurrency(totalRevenue)}
+          </div>
+        </Card>
+        <Card>
+          <p className="text-text-faded font-semibold text-sm uppercase tracking-[0.12em]">
+            Total Rides
+          </p>
+          <div className="mt-2 text-4xl font-extrabold tracking-[-0.04em] bg-[linear-gradient(135deg,#fff,var(--color-cyan-soft)_120%)] bg-clip-text text-transparent leading-[1.1]">
+            {dashboardLoading ? '—' : totalRides}
+          </div>
+        </Card>
+        <Card>
+          <p className="text-text-faded font-semibold text-sm uppercase tracking-[0.12em]">
+            Fleet Available
+          </p>
+          <div className="mt-2 text-4xl font-extrabold tracking-[-0.04em] bg-[linear-gradient(135deg,#fff,var(--success)_120%)] bg-clip-text text-transparent leading-[1.1]">
+            {dashboardLoading ? '—' : `${Math.round((fleetAvailable / (fleetTotal || 1)) * 100)}%`}
+          </div>
+        </Card>
+        <Card>
+          <p className="text-text-faded font-semibold text-sm uppercase tracking-[0.12em]">
+            Maintenance Costs
+          </p>
+          <div className="mt-2 text-4xl font-extrabold tracking-[-0.04em] bg-[linear-gradient(135deg,#fff,var(--warning)_120%)] bg-clip-text text-transparent leading-[1.1]">
+            {dashboardLoading ? '—' : formatCurrency(totalMaintenanceCost)}
+          </div>
+        </Card>
+      </div>
+
+      <SectionHeader 
+        eyebrow="AI Insights"
+        title="Optimal Charging Stations"
+        description="Run K-Means clustering algorithm on live fleet data to determine optimal locations for future charging stations."
+      />
 
       <Card>
         <form className="grid gap-4 grid-cols-[minmax(0,1fr)_auto] items-end max-sm:grid-cols-1" onSubmit={handleSubmit}>

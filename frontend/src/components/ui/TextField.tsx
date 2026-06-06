@@ -34,13 +34,13 @@ export default function TextField({
     "placeholder:text-text-faded",
 
     "hover:border-border-strong",
-    
+
     "focus:outline-none focus:border-border-glow focus:bg-[rgba(11,17,32,0.85)]",
     "focus:shadow-[0_0_0_4px_rgba(0,209,255,0.15),0_0_24px_rgba(0,82,255,0.18)]",
-    
+
     leadingIcon ? "pl-[2.75rem]" : "pl-[1.1rem]",
     trailingAction ? "pr-[2.75rem]" : "pr-[1.1rem]",
-    
+
     error && "border-color-danger/60 focus:border-color-danger/80 shadow-[0_0_0_4px_rgba(255,92,122,0.12)]"
   )
 
@@ -65,9 +65,9 @@ export default function TextField({
               {leadingIcon}
             </span>
           )}
-          
+
           {inputElement}
-          
+
           {trailingAction && (
             <span className="absolute right-3 flex items-center justify-center pointer-events-auto">
               {trailingAction}
@@ -83,7 +83,7 @@ export default function TextField({
           {helpText}
         </span>
       )}
-      
+
       {error && (
         <span id={`${fieldId}-error`} className="text-xs text-(--danger)">
           {error}
