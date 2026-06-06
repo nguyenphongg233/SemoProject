@@ -27,19 +27,44 @@ public class TransactionService {
 
     @Transactional(readOnly = true)
     public List<TransactionResponseDTO> getMyTransactionHistory() {
+        User user = requireAuthenticatedUser();
+        List<Transaction> transactions = transactionRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
+        return transactions.stream().map(this::mapToDTO).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<TransactionResponseDTO> getAllTransactions() {
+        requireAdminAccess();
+
+        List<Transaction> transactions = transactionRepository.findByOrderByCreatedAtDesc();
+        return transactions.stream().map(this::mapToDTO).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<TransactionResponseDTO> getTransactionsByUserId(Integer userId) {
+        requireAdminAccess();
+
+        userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với ID: " + userId));
+
+        List<Transaction> transactions = transactionRepository.findByUserIdOrderByCreatedAtDesc(userId);
+        return transactions.stream().map(this::mapToDTO).collect(Collectors.toList());
+    }
+
+    private User requireAuthenticatedUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
             throw new RuntimeException("Truy cập bị từ chối: Vui lòng đăng nhập lại!");
         }
-
-        User user = userRepository.findByEmail(auth.getName())
+        return userRepository.findByEmail(auth.getName())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng hệ thống"));
+    }
 
-        List<Transaction> transactions = transactionRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
-
-        return transactions.stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
+    private void requireAdminAccess() {
+        User user = requireAuthenticatedUser();
+        if (!"ADMIN".equals(user.getRole())) {
+            throw new RuntimeException("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
+        }
     }
 
     private TransactionResponseDTO mapToDTO(Transaction transaction) {

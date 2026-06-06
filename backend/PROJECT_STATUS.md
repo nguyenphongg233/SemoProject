@@ -35,7 +35,7 @@
 * **Ví điện tử:** Nạp tiền (Deposit), quản lý số dư (`balance`).
 * **Luồng Thuê Xe (Rental Core):** Bắt đầu chuyến (`IN_USE`), kết thúc chuyến (`AVAILABLE`).
 * **Tính toán cước:** Tự động trừ cọc (50.000 VNĐ), hoàn cọc, tính cước thời gian thực (1.000 VNĐ/phút).
-* **Lịch sử giao dịch:** Ghi vết tự động minh bạch (`DEPOSIT`, `RENTAL_DEPOSIT`, `RENTAL_REFUND`, `RENTAL_PAYMENT`).
+* **Lịch sử giao dịch & Đối soát (Audit):** Ghi vết tự động minh bạch (`DEPOSIT`, `RENTAL_DEPOSIT`, `RENTAL_REFUND`, `RENTAL_PAYMENT`). Bổ sung luồng API đặc quyền cho phép Admin xem toàn cảnh biến động số dư của toàn hệ thống và tra cứu chéo theo từng tài khoản khách hàng.
 * **Tài khoản nâng cao:** Khách hàng tự đổi mật khẩu, Admin cấp lại mật khẩu.
 * **Quản lý Nợ (Debt Management):** Ghi nhận số dư âm, chặn khách hàng đang nợ thuê chuyến mới.
 * **Cấu hình hệ thống động (System Config):** Triển khai bảng Key-Value linh hoạt kết hợp Spring Cache và chuẩn hóa DTO để quản lý các tham số tài chính (Giá thuê, Giá cọc) hiệu năng cao mà không cần can thiệp mã nguồn.
