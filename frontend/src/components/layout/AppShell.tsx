@@ -10,6 +10,11 @@ import {
   BarChart3,
   LogOut,
   MapPinned,
+  Settings,
+  Bell,
+  Sun,
+  Moon,
+  Palette,
 } from 'lucide-react'
 import SemoIcon from '@/assets/semo-icon.svg?react';
 
@@ -17,6 +22,7 @@ import { ROUTES, ROLES } from '@/constants'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '../ui'
 import { cn } from '@/utils'; // Đường dẫn tới hàm cn của bạn
+import { useTheme } from '@/contexts/ThemeContext';
 
 
 // 1. Định nghĩa kiểu cho một phần tử menu
@@ -40,6 +46,7 @@ const adminNavItems: NavItem[] = [
   { label: 'Rentals', to: ROUTES.RENTALS, icon: <Receipt  {...ICON_PROPS} /> },
   { label: 'Maintenance', to: ROUTES.MAINTENANCE, icon: <Wrench   {...ICON_PROPS} /> },
   { label: 'Analytics', to: ROUTES.ANALYTICS, icon: <BarChart3 {...ICON_PROPS} /> },
+  { label: 'Settings', to: ROUTES.SETTINGS, icon: <Settings {...ICON_PROPS} /> },
 ]
 
 // 2. Định nghĩa Props cho component NavList
@@ -112,6 +119,7 @@ interface AppShellProps {
 export default function AppShell({ mode = 'user', children }: AppShellProps) {
   const navigate = useNavigate()
   const { user, logout } = useAuth() // Sẽ tự động nhận diện type từ AuthContextType
+  const { theme, toggleTheme } = useTheme()
 
   const isAdminMode = mode === 'admin'
   const navItems = isAdminMode ? adminNavItems : userNavItems
@@ -198,6 +206,19 @@ export default function AppShell({ mode = 'user', children }: AppShellProps) {
           </div>
 
           <div className="flex items-center flex-wrap">
+            {isAdminMode && (
+              <button className="relative p-2 mr-3 text-text-muted hover:text-cyan-soft transition-colors" title="Notifications (Pending API)">
+                <Bell size={20} strokeWidth={2} />
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[var(--danger)] animate-pulse"></span>
+              </button>
+            )}
+            <button 
+              onClick={toggleTheme}
+              className="relative p-2 mr-4 text-text-muted hover:text-cyan-soft transition-colors rounded-full hover:bg-[rgba(255,255,255,0.05)]" 
+              title={`Current Theme: ${theme}`}
+            >
+              {theme === 'light' ? <Sun size={20} strokeWidth={2} /> : theme === 'dark' ? <Moon size={20} strokeWidth={2} /> : <Palette size={20} strokeWidth={2} />}
+            </button>
             <span className="inline-flex items-center justify-center min-h-8 px-4
               rounded-full text-sm font-semibold tracking-wider
               bg-[rgba(0,209,255,0.12)] border border-[rgba(0,209,255,0.3)]

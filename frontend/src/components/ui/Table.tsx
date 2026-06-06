@@ -20,14 +20,14 @@ export default function Table<T extends Record<string, any>>({
   emptyMessage = 'No data available yet.'
 }: TableProps<T>) {
   return (
-    <div className="overflow-auto rounded-md border border-border bg-[#0b1120]/50 backdrop-blur-md">
+    <div className="overflow-auto max-h-[500px] rounded-md border border-border bg-[#0b1120]/50 backdrop-blur-md">
       <table className="w-full border-collapse min-w-135">
         <thead>
           <tr>
             {columns.map((column) => (
               <th
                 key={column.key}
-                className="p-4 px-[1.2rem] text-left border-b border-border bg-brand-soft text-[0.78rem] font-bold uppercase tracking-[0.12em] text-text-muted"
+                className="sticky top-0 z-10 p-4 px-[1.2rem] text-left border-b border-border bg-[#10172A] text-[0.78rem] font-bold uppercase tracking-[0.12em] text-text-muted"
               >
                 {column.label}
               </th>

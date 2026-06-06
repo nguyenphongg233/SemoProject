@@ -6,7 +6,7 @@ import { ROUTES, ROLES } from '@/constants'
 import { useAuth } from '@/hooks/useAuth'
 import { 
   Login, Register, DashboardPage, ProfilePage, BookingPage, 
-  AnalyticsPage, MaintenancePage, RentalsPage, ScootersPage, UsersPage 
+  AnalyticsPage, MaintenancePage, RentalsPage, ScootersPage, UsersPage, SettingsPage 
 } from '@/pages'
 
 function RoleHomeRedirect() {
@@ -45,6 +45,7 @@ export default function AppRouter() {
             <Route path={ROUTES.RENTALS} element={<RentalsPage />} />
             <Route path={ROUTES.MAINTENANCE} element={<MaintenancePage />} />
             <Route path={ROUTES.ANALYTICS} element={<AnalyticsPage />} />
+            <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
           </Route>
         </Route>
 

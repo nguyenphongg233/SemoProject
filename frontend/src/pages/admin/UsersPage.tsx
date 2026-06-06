@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from 'react'
 // FIX 1: Import type-only chống lỗi verbatimModuleSyntax
 import type { SyntheticEvent, ChangeEvent } from 'react'
 
+import { Download } from 'lucide-react'
+
 import { SectionHeader,
   Alert, Button, Card, Modal, Table, TextField
 } from '@/components'
@@ -392,16 +394,26 @@ export default function UsersPage() {
             <option value={ROLES.CUSTOMER}>Customer</option>
           </select>
         </div>
-        <Button 
-          variant={sortByBalance === 'none' ? 'secondary' : 'primary'}
-          onClick={() => {
-            if (sortByBalance === 'none') setSortByBalance('desc')
-            else if (sortByBalance === 'desc') setSortByBalance('asc')
-            else setSortByBalance('none')
-          }}
-        >
-          Sort by Balance {sortByBalance === 'desc' ? '↓' : sortByBalance === 'asc' ? '↑' : ''}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="secondary"
+            title="Pending backend implementation"
+            onClick={() => alert("Chức năng Export CSV hiện đang chờ Backend API.")}
+            leadingIcon={<Download size={16} />}
+          >
+            Export CSV
+          </Button>
+          <Button 
+            variant={sortByBalance === 'none' ? 'secondary' : 'primary'}
+            onClick={() => {
+              if (sortByBalance === 'none') setSortByBalance('desc')
+              else if (sortByBalance === 'desc') setSortByBalance('asc')
+              else setSortByBalance('none')
+            }}
+          >
+            Sort by Balance {sortByBalance !== 'none' && (sortByBalance === 'desc' ? '↓' : '↑')}
+          </Button>
+        </div>
       </div>
 
       <Card>

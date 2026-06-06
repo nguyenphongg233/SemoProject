@@ -17,7 +17,7 @@ import { CircleMarker, MapContainer, Popup, TileLayer, Tooltip, Circle, useMap }
 import type { LatLngTuple } from 'leaflet'
 import {
   Search, Filter, MapPin, RefreshCcw, Crosshair, Zap, Unlock, Play, Square,
-  Battery, Gauge, Thermometer, AlertTriangle, ShieldAlert, Sparkles, Clock,
+  Battery, Gauge, Thermometer, ShieldAlert, Sparkles, Clock,
 } from 'lucide-react'
 
 import { SectionHeader,
@@ -53,6 +53,7 @@ interface RideState {
   unlockedAt?: number
   startedAt?: number
   rentalId?: number | string
+  userId?: number | string
 }
 
 interface CompletedInfo {
@@ -182,6 +183,21 @@ export default function BookingPage() {
     }
   }, [ride?.state])
 
+  // Lỗi bảo mật fix: Clear ride if it belongs to another user
+  useEffect(() => {
+    if (user?.id && ride) {
+      if (ride.userId && ride.userId !== user.id) {
+        setRide(null);
+        saveRide(null);
+        setSelectedId(null);
+      } else if (!ride.userId) {
+        const nextRide = { ...ride, userId: user.id };
+        setRide(nextRide);
+        saveRide(nextRide);
+      }
+    }
+  }, [user?.id, ride]);
+
   // Poll backend every 5s to check if admin force-ended the rental
   useEffect(() => {
     if (ride?.state !== 'riding' || !ride?.rentalId) return
@@ -194,15 +210,19 @@ export default function BookingPage() {
         
         const currentRental = history.find((r: any) => r.id === ride.rentalId)
         
-        if (currentRental && currentRental.status === 'COMPLETED') {
-          // Ride was ended by admin
-          setCompletedInfo({
-            rentalId: currentRental.id,
-            scooterName: ride.scooterName,
-            totalPrice: currentRental.totalPrice ?? 0,
-            endTime: currentRental.endTime,
-            startedAt: ride.startedAt,
-          })
+        // If rental doesn't exist for this user OR it's completed
+        if (!currentRental || currentRental.status === 'COMPLETED') {
+          if (currentRental) {
+            // Ride was ended by admin
+            setCompletedInfo({
+              rentalId: currentRental.id,
+              scooterName: ride.scooterName,
+              totalPrice: currentRental.totalPrice ?? 0,
+              endTime: currentRental.endTime,
+              startedAt: ride.startedAt,
+            })
+          }
+          // Clear ride
           setRide(null)
           saveRide(null)
           setSelectedId(null)
@@ -213,6 +233,7 @@ export default function BookingPage() {
       }
     }
 
+    pollBackend() // Call immediately on mount
     const interval = setInterval(pollBackend, 5000)
     return () => {
       alive = false
@@ -308,7 +329,7 @@ export default function BookingPage() {
     setSelectedId(s.id)
     setActionError(null)
     if (!ride) {
-      const initRide: RideState = { state: 'selected', scooterId: s.id, scooterName: s.name || `#${s.id}` }
+      const initRide: RideState = { state: 'selected', scooterId: s.id, scooterName: s.name || `#${s.id}`, userId: user?.id ?? undefined }
       setRide(initRide)
       saveRide(initRide)
     }
@@ -328,6 +349,7 @@ export default function BookingPage() {
       reservedAt: Date.now(),
       scooterId: selectedScooter.id,
       scooterName: selectedScooter.name || `#${selectedScooter.id}`,
+      userId: user?.id ?? undefined,
     }
     setRide(reservedRide)
     saveRide(reservedRide)

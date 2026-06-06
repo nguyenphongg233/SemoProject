@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from 'react'
 // FIX 1: Thêm type-only import cho các Event React
 import type { SyntheticEvent, ChangeEvent } from 'react'
 
+import { Download } from 'lucide-react'
+
 import { SectionHeader,
   Alert, Button, Card, Modal, Table, TextField,
   ScooterMap
@@ -209,7 +211,19 @@ export default function ScootersPage() {
         eyebrow="Admin"
         title="Scooters"
         description="Create and update scooters, battery levels, and fleet status."
-        actions={<Button onClick={openCreate}>New scooter</Button>}
+        actions={
+          <div className="flex gap-2">
+            <Button 
+              variant="secondary"
+              title="Pending backend implementation"
+              onClick={() => alert("Chức năng Export CSV hiện đang chờ Backend API.")}
+              leadingIcon={<Download size={16} />}
+            >
+              Export CSV
+            </Button>
+            <Button onClick={openCreate}>New scooter</Button>
+          </div>
+        }
       />
 
       <div className="grid gap-[1.1rem] grid-cols-4 max-[980px]:grid-cols-2 max-sm:grid-cols-1">

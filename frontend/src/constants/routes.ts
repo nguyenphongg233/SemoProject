@@ -10,5 +10,6 @@ export const ROUTES = {
   RENTALS: '/rentals',
   MAINTENANCE: '/maintenance',
   ANALYTICS: '/analytics',
+  SETTINGS: '/settings',
   PROFILE: '/profile',
 }
