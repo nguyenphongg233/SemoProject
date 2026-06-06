@@ -17,7 +17,7 @@ import { CircleMarker, MapContainer, Popup, TileLayer, Tooltip, Circle, useMap }
 import type { LatLngTuple } from 'leaflet'
 import {
   Search, Filter, MapPin, RefreshCcw, Crosshair, Zap, Unlock, Play, Square,
-  Battery, Gauge, Thermometer, AlertTriangle, ShieldAlert, Sparkles, Clock,
+  Battery, Gauge, Thermometer, ShieldAlert, Sparkles, Clock,
 } from 'lucide-react'
 
 import { SectionHeader,
@@ -593,7 +593,7 @@ export default function BookingPage() {
               <span className="inline-flex items-center gap-2"><i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-[#0052FF] text-[rgba(0,82,255,0.5)]" /> In Use</span>
               <span className="inline-flex items-center gap-2"><i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-danger text-[rgba(255,92,122,0.5)]" /> Maintenance</span>
             </div>
-            <span className="inline-flex items-center gap-1.5 p-2 rounded-full text-xs font-semibold text-cyan-soft border border-(--border-glow) bg-[rgba(0,209,255,0.08)]">
+            <span className="inline-flex items-center gap-1.5 p-2 rounded-full text-lg font-semibold text-cyan-soft border border-(--border-glow) bg-[rgba(0,209,255,0.08)]">
               <Filter size={20} strokeWidth={1.9} />
               Radius: {radiusKm.toFixed(1)} km
             </span>

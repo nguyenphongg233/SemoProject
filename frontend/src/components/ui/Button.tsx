@@ -14,14 +14,33 @@ const buttonVariants = cva(
           'hover:not-disabled:bg-[position:100%_100%]',
           'hover:disabled:no-underline hover:not-disabled:-translate-y-[1px] hover:not-disabled:brightness-[1.08]',
           'active:not-disabled:translate-y-0',
-          'hover:not-disabled:shadow-[0_0_28px_rgba(0,82,255,0.6),0_0_72px_rgba(0,209,255,0.3)]'
+          'hover:not-disabled:shadow-glow-cyan'
         ].join(' '),
-        secondary: 
-          'text-text-strong bg-surface-elevated border border-border-strong backdrop-blur-[12px] hover:not-disabled:-translate-y-[1px] hover:not-disabled:brightness-[1.08] active:not-disabled:translate-y-0 disabled:opacity-55 disabled:cursor-not-allowed hover:not-disabled:bg-electric/12 hover:not-disabled:border-border-glow',
-        destructive: 
-          'text-white bg-gradient-to-br from-[#ff3d6e] to-[#c11d3f] shadow-[0_0_24px_rgba(255,92,122,0.45)] hover:not-disabled:-translate-y-[1px] hover:not-disabled:brightness-[1.08] active:not-disabled:translate-y-0 disabled:opacity-55 disabled:cursor-not-allowed',
-        ghost: 
-          'text-text-muted bg-transparent border border-transparent hover:not-disabled:-translate-y-[1px] hover:not-disabled:brightness-[1.08] active:not-disabled:translate-y-0 disabled:opacity-55 disabled:cursor-not-allowed hover:not-disabled:text-text-strong hover:not-disabled:bg-surface-muted',
+        
+        secondary: [
+          'text-text-strong bg-surface-elevated border border-border-strong backdrop-blur-[12px]',
+          'hover:not-disabled:-translate-y-[1px] hover:not-disabled:brightness-[1.05]',
+          'active:not-disabled:translate-y-0',
+          'disabled:opacity-55 disabled:cursor-not-allowed',
+          'hover:not-disabled:bg-brand-soft hover:not-disabled:border-border-glow',
+          'dark:text-white' /* Trả lại chữ trắng khi ở giao diện tối */
+        ].join(' '),
+        
+        destructive: [
+          'text-white bg-danger',
+          'shadow-[0_4px_12px_rgba(220,38,38,0.25)]', /* Đổ bóng mịn cho light mode */
+          'dark:shadow-[0_0_24px_rgba(255,92,122,0.45)]', /* Đổ bóng neon cho dark mode */
+          'hover:not-disabled:-translate-y-[1px] hover:not-disabled:brightness-[1.1]',
+          'active:not-disabled:translate-y-0',
+          'disabled:opacity-55 disabled:cursor-not-allowed'
+        ].join(' '),
+        
+        ghost: [
+          'text-text-muted bg-transparent border border-transparent',
+          'hover:not-disabled:-translate-y-[1px] active:not-disabled:translate-y-0',
+          'disabled:opacity-55 disabled:cursor-not-allowed',
+          'hover:not-disabled:text-text-strong hover:not-disabled:bg-surface-muted'
+        ].join(' '),
       },
     },
     defaultVariants: {

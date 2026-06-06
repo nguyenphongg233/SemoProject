@@ -29,19 +29,19 @@ export default function TextField({
 
   const inputClass = cn(
     "w-full min-h-13 p-4 border border-border rounded-[14px]",
-    "bg-[rgba(11,17,32,0.65)] text-text-strong",
+    "bg-surface text-text-strong", 
     "transition-[border-color,box-shadow,background] duration-200 ease-out",
     "placeholder:text-text-faded",
 
     "hover:border-border-strong",
     
-    "focus:outline-none focus:border-border-glow focus:bg-[rgba(11,17,32,0.85)]",
-    "focus:shadow-[0_0_0_4px_rgba(0,209,255,0.15),0_0_24px_rgba(0,82,255,0.18)]",
+    "focus:outline-none focus:border-border-glow focus:bg-surface-strong",
+    "focus:shadow-glow-blue",
     
     leadingIcon ? "pl-[2.75rem]" : "pl-[1.1rem]",
     trailingAction ? "pr-[2.75rem]" : "pr-[1.1rem]",
     
-    error && "border-color-danger/60 focus:border-color-danger/80 shadow-[0_0_0_4px_rgba(255,92,122,0.12)]"
+    error && "border-danger/60 focus:border-danger/80 shadow-[0_0_0_4px_rgba(255,92,122,0.12)]"
   )
 
   const inputElement = (
@@ -61,7 +61,7 @@ export default function TextField({
       {leadingIcon || trailingAction ? (
         <div className="relative flex items-center">
           {leadingIcon && (
-            <span className="absolute left-3 flex items-center justify-center pointer-events-none text-(--text-muted)">
+            <span className="absolute left-3 flex items-center justify-center pointer-events-none text-text-muted">
               {leadingIcon}
             </span>
           )}
@@ -79,13 +79,13 @@ export default function TextField({
       )}
 
       {helpText && !error && (
-        <span id={`${fieldId}-help`} className="text-xs text-(--text-muted)">
+        <span id={`${fieldId}-help`} className="text-xs text-text-muted">
           {helpText}
         </span>
       )}
       
       {error && (
-        <span id={`${fieldId}-error`} className="text-xs text-(--danger)">
+        <span id={`${fieldId}-error`} className="text-xs text-danger">
           {error}
         </span>
       )}

@@ -215,7 +215,11 @@ export default function ScootersPage() {
             <p className="text-text-faded font-semibold text-sm uppercase tracking-[0.12em]">
               {item.label}
             </p>
-            <div className="mt-2 text-4xl font-extrabold tracking-[-0.04em] bg-[linear-gradient(135deg,#fff,var(--color-cyan-soft)_120%)] bg-clip-text text-transparent leading-[1.1]">
+            <div 
+              className="mt-2 text-4xl font-extrabold tracking-[-0.04em] bg-clip-text text-transparent leading-[1.1]
+                        bg-[linear-gradient(135deg,var(--color-text-strong),var(--color-accent)_120%)]
+                        dark:bg-[linear-gradient(135deg,#FFFFFF,var(--color-accent)_120%)]"
+            >
               {loading ? '—' : item.value}
             </div>
           </Card>
@@ -298,20 +302,28 @@ export default function ScootersPage() {
           />
 
           <label className="grid gap-2">
-            <span className="text-sm font-semibold text-(--text)">Status</span>
+            <span className="text-sm font-semibold text-text-strong">{/* Sửa text-(--text) thành token chuẩn */}
+              Status
+            </span>
             <select
-              className="w-full min-h-13 p-4 border border-(--border) rounded-[14px]
-                       bg-[rgba(11,17,32,0.65)] text-(--text-strong)
-                         transition-[border-color,box-shadow,background] duration-200 ease-out
-                         placeholder:text-(--text-faded) hover:border-(--border-strong)
-                         focus:outline-none focus:border-(--border-glow)
-                         focus:bg-[rgba(11,17,32,0.85)]
-                         focus:shadow-[0_0_0_4px_rgba(0,209,255,0.15),0_0_24px_rgba(0,82,255,0.18)]"
+              className="w-full min-h-13 p-4 border border-border rounded-[14px]
+                        bg-surface text-text-strong
+                        transition-[border-color,box-shadow,background] duration-200 ease-out
+                        placeholder:text-text-faded hover:border-border-strong
+                        focus:outline-none focus:border-border-glow
+                        focus:bg-bg-accent
+                        focus:shadow-[var(--sh-soft),var(--sh-glow-blue)]" /* Đổ bóng kép thích ứng theo Theme */
               value={form.status}
-              onChange={(event: ChangeEvent<HTMLSelectElement>) => setForm((current) => ({ ...current, status: event.target.value }))}
+              onChange={(event: ChangeEvent<HTMLSelectElement>) => 
+                setForm((current) => ({ ...current, status: event.target.value }))
+              }
             >
               {Object.values(SCOOTER_STATUSES).map((status) => (
-                <option key={status} value={status}>
+                <option 
+                  key={status} 
+                  value={status}
+                  className="bg-bg-accent text-text-strong"
+                >
                   {getStatusLabel(status)}
                 </option>
               ))}

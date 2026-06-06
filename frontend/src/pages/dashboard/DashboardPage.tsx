@@ -193,13 +193,13 @@ export default function DashboardPage() {
       >
         <div className="relative flex items-center justify-between gap-6 flex-wrap">
           <div>
-            <p className="m-0 text-cyan-soft uppercase tracking-[0.2em] text-[0.72rem] font-bold">
+            <p className="text-cyan-soft uppercase tracking-[0.2em] text-[0.72rem] font-bold">
               Hello, {greetingName}
             </p>
             <h2 className="mt-[0.3rem] mr-0 mb-[0.6rem] ml-0 text-[clamp(1.8rem,3vw,2.5rem)] tracking-[-0.03em]">
               System is fully operational.
             </h2>
-            <p className="m-0 text-[#e6eeff]/78 max-w-[50ch]">
+            <p className="text-[#e6eeff]/78 max-w-[50ch]">
               Track e-scooter fleet status in real-time, manage trips, and top
               up your wallet — all in one high-tech dashboard.
             </p>

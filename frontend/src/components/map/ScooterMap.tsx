@@ -13,20 +13,10 @@ const NORTHERN_VIETNAM_BOUNDS: [[number, number], [number, number]] = [
   [23.75, 108.20],
 ]
 
-const statusStyles: Record<string, { color: string; fillColor: string }> = {
-  [SCOOTER_STATUSES.AVAILABLE]: { color: '#00D1FF', fillColor: '#00D1FF' },
-  [SCOOTER_STATUSES.IN_USE]: { color: '#0052FF', fillColor: '#0052FF' },
-  [SCOOTER_STATUSES.MAINTENANCE]: { color: '#FF5C7A', fillColor: '#FF5C7A' },
-}
-
 const statusLabels: Record<string, string> = {
   [SCOOTER_STATUSES.AVAILABLE]: 'Available',
   [SCOOTER_STATUSES.IN_USE]: 'In Use',
   [SCOOTER_STATUSES.MAINTENANCE]: 'Maintenance',
-}
-
-function resolveMarkerStyle(status: string) {
-  return statusStyles[status] || { color: '#8BA0C7', fillColor: '#8BA0C7' }
 }
 
 interface MapClickHandlerProps {
@@ -63,6 +53,17 @@ export default function ScooterMap({ scooters = [], stations = [], onMapClick }:
 
   return (
     <div className="relative grid gap-3">
+      {/* CSS Injection để Leaflet tự nhận diện biến CSS cho các Marker */}
+      <style>{`
+        .marker-preview { color: #6D5DFF; fill: #6D5DFF; }
+        .marker-station { color: var(--accent-color); fill: var(--accent-color); }
+        
+        /* Đồng bộ màu Scooter theo từng trạng thái bằng CSS Biến hóa */
+        .marker-scooter-available { color: var(--accent-color); fill: var(--accent-color); }
+        .marker-scooter-in-use { color: var(--brand); fill: var(--brand); }
+        .marker-scooter-maintenance { color: var(--danger); fill: var(--danger); }
+      `}</style>
+
       <MapContainer
         center={BACH_KHOA_CENTER}
         zoom={16}
@@ -71,7 +72,7 @@ export default function ScooterMap({ scooters = [], stations = [], onMapClick }:
         maxBounds={NORTHERN_VIETNAM_BOUNDS}
         maxBoundsViscosity={1}
         scrollWheelZoom
-        className="w-full h-130 rounded-[22px] overflow-hidden border border-(--border-strong) shadow-(--shadow-soft)"
+        className="w-full h-130 rounded-[22px] overflow-hidden border border-border-strong shadow-soft"
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -91,17 +92,13 @@ export default function ScooterMap({ scooters = [], stations = [], onMapClick }:
           <CircleMarker
             center={[preview.lat, preview.lng]}
             radius={8}
-            pathOptions={{
-              color: '#6D5DFF',
-              fillColor: '#6D5DFF',
-              fillOpacity: 0.7,
-              weight: 2,
-            }}
+            className="marker-preview"
+            pathOptions={{ fillOpacity: 0.7, weight: 2 }}
           >
             <Popup>
-              <div className="grid gap-1.5 min-w-50 text-(--text)">
-                <strong className="text-cyan-soft">Selected Point</strong>
-                <div>{formatCoordinates(preview.lat, preview.lng)}</div>
+              <div className="grid gap-1.5 min-w-50 text-text">
+                <strong className="text-brand">Selected Point</strong>
+                <div className="text-text-muted">{formatCoordinates(preview.lat, preview.lng)}</div>
               </div>
             </Popup>
           </CircleMarker>
@@ -115,20 +112,16 @@ export default function ScooterMap({ scooters = [], stations = [], onMapClick }:
                 key={`station-${idx}`}
                 center={[Number(station.lat), Number(station.lng)]}
                 radius={12}
-                pathOptions={{
-                  color: '#38ddff',
-                  fillColor: '#38ddff',
-                  fillOpacity: 0.6,
-                  weight: 2,
-                }}
+                className="marker-station"
+                pathOptions={{ fillOpacity: 0.6, weight: 2 }}
               >
                 <Tooltip direction="top" offset={[0, -8]} opacity={1} permanent>
                   {station.name || `Station #${idx + 1}`}
                 </Tooltip>
                 <Popup>
-                  <div className="grid gap-1.5 min-w-50 text-(--text)">
-                    <strong className="text-cyan-soft">{station.name || `Station #${idx + 1}`}</strong>
-                    <p>Location: {formatCoordinates(station.lat, station.lng)}</p>
+                  <div className="grid gap-1.5 min-w-50 text-text">
+                    <strong className="text-brand">{station.name || `Station #${idx + 1}`}</strong>
+                    <p className="text-text-muted">Location: {formatCoordinates(station.lat, station.lng)}</p>
                   </div>
                 </Popup>
               </CircleMarker>
@@ -137,29 +130,31 @@ export default function ScooterMap({ scooters = [], stations = [], onMapClick }:
         {mappedScooters.map((scooter) => {
           const lat = Number(scooter.currentLat)
           const lng = Number(scooter.currentLng)
-          const markerStyle = resolveMarkerStyle(scooter.status)
+          
+          // Xác định class động dựa theo trạng thái xe
+          let statusClass = 'marker-scooter-available'
+          if (scooter.status === SCOOTER_STATUSES.IN_USE) statusClass = 'marker-scooter-in-use'
+          if (scooter.status === SCOOTER_STATUSES.MAINTENANCE) statusClass = 'marker-scooter-maintenance'
 
           return (
             <CircleMarker
               key={scooter.id}
               center={[lat, lng]}
               radius={10}
-              pathOptions={{
-                color: markerStyle.color,
-                fillColor: markerStyle.fillColor,
-                fillOpacity: 0.85,
-                weight: 2,
-              }}
+              className={statusClass}
+              pathOptions={{ fillOpacity: 0.85, weight: 2 }}
             >
               <Tooltip direction="top" offset={[0, -8]} opacity={1} permanent>
                 {scooter.name ? `${scooter.name} — ID:${scooter.id}` : `ID:${scooter.id}`}
               </Tooltip>
               <Popup>
-                <div className="grid gap-1.5 min-w-50 text-(--text)">
-                  <strong className="text-cyan-soft">{scooter.name || `Scooter #${scooter.id}`}</strong>
-                  <p>Status: {statusLabels[scooter.status] || scooter.status || '—'}</p>
-                  <p>Battery: {formatBatteryLevel(scooter.batteryLevel) || '—'}</p>
-                  <p>Location: {formatCoordinates(scooter.currentLat, scooter.currentLng) || '—'}</p>
+                <div className="grid gap-1.5 min-w-50 text-text">
+                  <strong className="text-brand">{scooter.name || `Scooter #${scooter.id}`}</strong>
+                  <div className="space-y-0.5 text-sm text-text-muted">
+                    <p>Status: <span className="text-text font-medium">{statusLabels[scooter.status] || scooter.status || '—'}</span></p>
+                    <p>Battery: <span className="text-text font-medium">{formatBatteryLevel(scooter.batteryLevel) || '—'}</span></p>
+                    <p>Location: <span className="text-text font-medium">{formatCoordinates(scooter.currentLat, scooter.currentLng) || '—'}</span></p>
+                  </div>
                 </div>
               </Popup>
             </CircleMarker>
@@ -167,20 +162,22 @@ export default function ScooterMap({ scooters = [], stations = [], onMapClick }:
         })}
       </MapContainer>
 
-      <div className="flex flex-wrap gap-10 text-lg ml-4 text-text-muted">
+      {/* Chú thích bản đồ (Legend) thích ứng toàn diện */}
+      <div className="flex flex-wrap gap-10 text-base ml-4 text-text-muted font-medium">
         <span className="inline-flex items-center gap-2">
-          <i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-[#00D1FF] text-[rgba(0,209,255,0.5)]" /> Available
+          <i className="w-3 h-3 rounded-full inline-block bg-accent-color shadow-glow-cyan" /> Available
         </span>
         <span className="inline-flex items-center gap-2">
-          <i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-[#0052FF] text-[rgba(0,82,255,0.5)]" /> In Use
+          <i className="w-3 h-3 rounded-full inline-block bg-brand shadow-glow-blue" /> In Use
         </span>
         <span className="inline-flex items-center gap-2">
-          <i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-danger text-[rgba(255,92,122,0.5)]" /> Maintenance
+          <i className="w-3 h-3 rounded-full inline-block bg-danger/90 dark:bg-danger shadow-[0_0_8px_rgba(220,38,38,0.4)] dark:shadow-[0_0_8px_rgba(255,92,122,0.5)]" /> Maintenance
         </span>
       </div>
 
+      {/* Khối thông báo lỗi (Empty State) tự động đổi màu */}
       {mappedScooters.length === 0 && (
-        <div className="p-6 rounded-lg bg-[rgba(0,82,255,0.08)] border border-[rgba(0,82,255,0.22)] text-text-muted">
+        <div className="p-6 rounded-lg bg-brand-soft border border-border-strong text-text-muted text-sm">
           No scooters with coordinates available. Please add lat/lng in the scooter form to display them on the map.
         </div>
       )}
