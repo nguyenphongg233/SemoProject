@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 public class RentalResponseDTO {
     private Integer id;
     private Integer userId;
+    private String userName;
     private Integer scooterId;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
@@ -29,6 +30,14 @@ public class RentalResponseDTO {
 
     public void setUserId(Integer userId) {
         this.userId = userId;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
     public Integer getScooterId() {

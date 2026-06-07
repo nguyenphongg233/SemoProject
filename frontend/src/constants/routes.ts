@@ -16,4 +16,6 @@ export const ROUTES = {
   WALLET: '/wallet',
   ACCOUNT: '/account',
   MY_RIDES: '/rides',
+  CHARGING: '/admin/charging',
+  GEOFENCE: '/admin/geofence',
 }

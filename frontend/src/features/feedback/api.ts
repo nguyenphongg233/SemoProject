@@ -10,3 +10,8 @@ export async function getAllFeedbacks() {
   const { data } = await axiosClient.get('/api/feedbacks')
   return data
 }
+
+export async function getMyFeedbacks() {
+  const { data } = await axiosClient.get('/api/feedbacks/my')
+  return data
+}

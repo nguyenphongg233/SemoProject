@@ -34,3 +34,8 @@ export async function updateScooter(id: number | string, request: any) {
   const { data } = await axiosClient.put(`/api/scooters/${id}`, request)
   return data
 }
+
+export async function deleteScooter(id: number | string) {
+  const { data } = await axiosClient.delete(`/api/scooters/${id}`)
+  return data
+}

@@ -7,8 +7,9 @@ import { Download, Pencil, Coins, History, Ban, Unlock, KeyRound, Trash2 } from 
 
 import { SectionHeader,
   Alert, Button, Card, Modal, Table,  TextField,
-  DropdownMenu
+  DropdownMenu, EmptyState, UserCell
 } from '@/components'
+import { Inbox } from 'lucide-react'
 import type { DropdownMenuItem } from '@/components/ui/DropdownMenu'
 import type { TableColumn } from '@/components/ui/Table'
 import { ROLES } from '@/constants'
@@ -122,8 +123,11 @@ export default function UsersPage() {
   // FIX 5: Định nghĩa kiểu dữ liệu row: User cho các cột hiển thị dữ liệu
   const columns: TableColumn<User>[] = [
     { key: 'id', label: 'ID', align: 'right' as const, isNumeric: true },
-    { key: 'fullName', label: 'Name' },
-    { key: 'email', label: 'Email' },
+    { 
+      key: 'user', 
+      label: 'User', 
+      render: (row: User) => <UserCell userId={row.id || 0} userName={row.fullName} email={row.email} /> 
+    },
     { key: 'phoneNumber', label: 'Phone' },
     { key: 'balance', label: 'Balance', align: 'right' as const, isNumeric: true, render: (row: User) => (row.balance == null ? '-' : formatCurrency(row.balance)) },
     { key: 'role', label: 'Role' },
@@ -414,12 +418,18 @@ export default function UsersPage() {
       </div>
 
       <Card>
-        <Table
-          columns={columns}
-          rows={filteredUsers}
-          rowKey={(row: User, index: number) => row.id?.toString() ?? `user-idx-${index}`}
-          emptyMessage={loading ? 'Loading users...' : 'No users found.'}
-        />
+          <Table
+            columns={columns}
+            rows={filteredUsers}
+            rowKey={(row) => (row.id ? row.id.toString() : `user-${Math.random()}`)}
+            emptyState={
+              <EmptyState
+                icon={<Inbox size={24} />}
+                title="No users found"
+                description="There are currently no users matching your criteria."
+              />
+            }
+          />
       </Card>
 
       <Modal

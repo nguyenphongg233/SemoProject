@@ -29,14 +29,14 @@ export default function TextField({
 
   const inputClass = cn(
     "w-full min-h-13 p-4 border border-border rounded-[14px]",
-    "bg-[rgba(11,17,32,0.65)] text-text-strong",
+    "bg-surface text-text-strong",
     "transition-[border-color,box-shadow,background] duration-200 ease-out",
     "placeholder:text-text-faded",
 
     "hover:border-border-strong",
 
-    "focus:outline-none focus:border-border-glow focus:bg-[rgba(11,17,32,0.85)]",
-    "focus:shadow-[0_0_0_4px_rgba(0,209,255,0.15),0_0_24px_rgba(0,82,255,0.18)]",
+    "focus:outline-none focus:border-brand focus:bg-surface-elevated",
+    "focus:shadow-[0_0_0_4px_var(--color-brand-soft),0_0_24px_var(--color-brand-soft)]",
 
     leadingIcon ? "pl-[2.75rem]" : "pl-[1.1rem]",
     trailingAction ? "pr-[2.75rem]" : "pr-[1.1rem]",

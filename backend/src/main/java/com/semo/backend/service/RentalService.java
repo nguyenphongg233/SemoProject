@@ -1,5 +1,12 @@
 package com.semo.backend.service;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.semo.backend.dto.RentalRequestDTO;
 import com.semo.backend.dto.RentalResponseDTO;
 import com.semo.backend.entity.Rental;
@@ -11,13 +18,6 @@ import com.semo.backend.repository.ScooterRepository;
 import com.semo.backend.repository.TransactionRepository;
 import com.semo.backend.util.AuthUtil;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.List;
-
 @Service
 public class RentalService {
 
@@ -28,8 +28,8 @@ public class RentalService {
     private static final List<String> VALID_STATUSES = List.of("ALL", "ACTIVE", "COMPLETED");
 
     public RentalService(RentalRepository rentalRepository, ScooterRepository scooterRepository,
-                         TransactionRepository transactionRepository,
-                         AuthUtil authUtil) {
+            TransactionRepository transactionRepository,
+            AuthUtil authUtil) {
         this.rentalRepository = rentalRepository;
         this.scooterRepository = scooterRepository;
         this.transactionRepository = transactionRepository;
@@ -45,11 +45,13 @@ public class RentalService {
 
         if (!"ADMIN".equals(user.getRole())) {
             if (user.getBalance() < 0) {
-                throw new RuntimeException("Tài khoản của bạn đang có dư nợ (" + user.getBalance() + " VNĐ). Vui lòng nạp tiền để thanh toán nợ trước khi thuê chuyến mới!");
+                throw new RuntimeException("Tài khoản của bạn đang có dư nợ (" + user.getBalance()
+                        + " VNĐ). Vui lòng nạp tiền để thanh toán nợ trước khi thuê chuyến mới!");
             }
 
             if (user.getBalance() < 50000.0) {
-                throw new RuntimeException("Số dư tài khoản không đủ. Vui lòng đảm bảo trong ví có ít nhất 50.000 VNĐ để đặt cọc.");
+                throw new RuntimeException(
+                        "Số dư tài khoản không đủ. Vui lòng đảm bảo trong ví có ít nhất 50.000 VNĐ để đặt cọc.");
             }
         }
 
@@ -115,7 +117,12 @@ public class RentalService {
         scooter.setStatus("AVAILABLE");
 
         if (!"ADMIN".equals(rentalOwner.getRole())) {
-            rentalOwner.subtractBalance(amount - 50000.0);
+            double diff = amount - 50000.0;
+            if (diff > 0) {
+                rentalOwner.subtractBalance(diff);
+            } else if (diff < 0) {
+                rentalOwner.addBalance(-diff);
+            }
 
             Transaction refundTx = new Transaction();
             refundTx.setUser(rentalOwner);
@@ -150,11 +157,10 @@ public class RentalService {
 
         if (isAdmin) {
             rentals = isAllStatus ? rentalRepository.findAllByOrderByStartTimeDesc()
-                                  : rentalRepository.findByStatusOrderByStartTimeDesc(status);
-        }
-        else {
+                    : rentalRepository.findByStatusOrderByStartTimeDesc(status);
+        } else {
             rentals = isAllStatus ? rentalRepository.findByUserOrderByStartTimeDesc(user)
-                                  : rentalRepository.findByUserAndStatusOrderByStartTimeDesc(user, status);
+                    : rentalRepository.findByUserAndStatusOrderByStartTimeDesc(user, status);
         }
 
         return rentals.stream()
@@ -166,6 +172,8 @@ public class RentalService {
         RentalResponseDTO dto = new RentalResponseDTO();
         dto.setId(rental.getId());
         dto.setUserId(rental.getUser().getId());
+        dto.setUserName(
+                rental.getUser().getFullName() != null ? rental.getUser().getFullName() : rental.getUser().getEmail());
         dto.setScooterId(rental.getScooter().getId());
         dto.setStartTime(rental.getStartTime());
         dto.setEndTime(rental.getEndTime());

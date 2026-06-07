@@ -13,9 +13,9 @@ export async function getMaintenanceLogsByScooterId(scooterId: number | string) 
   return data
 }
 
-// Bổ sung kiểu number | string cho scooterId
-export async function resolveMaintenance(scooterId: number | string) {
-  const { data } = await axiosClient.post(`/api/maintenance/${scooterId}/resolve`)
+// Bổ sung kiểu number | string cho scooterId, thêm tham số cost mặc định là 0
+export async function resolveMaintenance(scooterId: number | string, cost: number = 0) {
+  const { data } = await axiosClient.post(`/api/maintenance/${scooterId}/resolve`, { cost })
   return data
 }
 

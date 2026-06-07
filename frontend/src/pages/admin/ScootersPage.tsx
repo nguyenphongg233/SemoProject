@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 // FIX 1: Thêm type-only import cho các Event React
 import type { SyntheticEvent, ChangeEvent } from 'react'
 
-import { Download, Pencil } from 'lucide-react'
+import { Download, Pencil, LayoutGrid, CheckCircle2, PlayCircle, Wrench, Zap } from 'lucide-react'
 
 import { SectionHeader,
   Alert, Button, Card, Modal, Table, TextField,
@@ -40,6 +40,7 @@ function getStatusLabel(status: string): string {
     [SCOOTER_STATUSES.AVAILABLE]: 'Available',
     [SCOOTER_STATUSES.IN_USE]: 'In use',
     [SCOOTER_STATUSES.MAINTENANCE]: 'Maintenance',
+    [SCOOTER_STATUSES.CHARGING]: 'Charging',
   }
 
   return labels[status] || status || 'Unknown'
@@ -90,12 +91,14 @@ export default function ScootersPage() {
     const available = scooters.filter((item) => item.status === SCOOTER_STATUSES.AVAILABLE).length
     const inUse = scooters.filter((item) => item.status === SCOOTER_STATUSES.IN_USE).length
     const maintenance = scooters.filter((item) => item.status === SCOOTER_STATUSES.MAINTENANCE).length
+    const charging = scooters.filter((item) => item.status === SCOOTER_STATUSES.CHARGING).length
 
     return [
-      { label: 'Total', value: total },
-      { label: 'Available', value: available },
-      { label: 'In use', value: inUse },
-      { label: 'Maintenance', value: maintenance },
+      { label: 'Total Fleet', value: total, icon: <LayoutGrid size={20} /> },
+      { label: 'Available', value: available, icon: <CheckCircle2 size={20} /> },
+      { label: 'In Use', value: inUse, icon: <PlayCircle size={20} /> },
+      { label: 'Maintenance', value: maintenance, icon: <Wrench size={20} /> },
+      { label: 'Charging', value: charging, icon: <Zap size={20} /> },
     ]
   }, [scooters])
 
@@ -229,13 +232,16 @@ export default function ScootersPage() {
         }
       />
 
-      <div className="grid gap-[1.1rem] grid-cols-4 max-[980px]:grid-cols-2 max-sm:grid-cols-1">
+      <div className="grid gap-[1.1rem] grid-cols-5 max-[1100px]:grid-cols-3 max-[700px]:grid-cols-2 max-sm:grid-cols-1">
         {summary.map((item) => (
           <Card key={item.label}>
-            <p className="text-text-faded font-semibold text-sm uppercase tracking-[0.12em]">
-              {item.label}
-            </p>
-            <div className="mt-2 text-4xl font-extrabold tracking-[-0.04em] bg-[linear-gradient(135deg,#fff,var(--color-cyan-soft)_120%)] bg-clip-text text-transparent leading-[1.1]">
+            <div className="flex items-center gap-2 mb-2 text-text-faded">
+              {item.icon}
+              <p className="font-semibold text-xs uppercase tracking-[0.12em]">
+                {item.label}
+              </p>
+            </div>
+            <div className="text-4xl font-extrabold tracking-[-0.04em] bg-[linear-gradient(135deg,#fff,var(--color-cyan-soft)_120%)] bg-clip-text text-transparent leading-[1.1]">
               {loading ? '—' : item.value}
             </div>
           </Card>

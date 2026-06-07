@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { ArrowUpRight, ArrowDownRight, RefreshCw, Search } from 'lucide-react'
-import { SectionHeader, Card, Table, Alert, TextField, Button } from '@/components'
+import { ArrowUpRight, ArrowDownRight, RefreshCw, Search, Inbox } from 'lucide-react'
+import { SectionHeader, Card, Table, Alert, TextField, Button, EmptyState, UserCell } from '@/components'
 import { getAllTransactions } from '@/features/transactions'
 import { formatCurrency, formatDateTime, getApiErrorMessage, cn } from '@/utils'
 import type { TableColumn } from '@/components/ui/Table'
@@ -55,11 +55,7 @@ export default function TransactionsPage() {
     {
       label: 'User',
       key: 'userName',
-      render: (t: any) => (
-        <div className="flex flex-col">
-          <span className="font-semibold text-white">{t.userName || `User ID: ${t.userId}`}</span>
-        </div>
-      )
+      render: (t: any) => <UserCell userId={t.userId} userName={t.userName} />
     },
     {
       label: 'Type',
@@ -82,6 +78,7 @@ export default function TransactionsPage() {
     {
       label: 'Amount',
       key: 'amount',
+      align: 'right',
       render: (t: any) => {
         const isDeposit = t.type === 'DEPOSIT'
         return (
@@ -159,8 +156,14 @@ export default function TransactionsPage() {
           <Table 
             columns={columns} 
             rows={filtered} 
-            rowKey={(row) => row.id}
-            emptyMessage="No transactions found matching your criteria."
+            rowKey={(row: any) => row.id}
+            emptyState={
+              <EmptyState
+                icon={<Inbox size={24} />}
+                title="No transactions found"
+                description="There are currently no transactions matching your criteria."
+              />
+            }
           />
         )}
       </Card>

@@ -63,6 +63,13 @@ public class FeedbackService {
                 .collect(java.util.stream.Collectors.toList());
     }
 
+    public java.util.List<FeedbackResponseDTO> getMyFeedbacks() {
+        User user = authUtil.requireActiveAuthenticatedUser();
+        return feedbackRepository.findByUser(user).stream()
+                .map(this::mapToDTO)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
 
 
     private FeedbackResponseDTO mapToDTO(Feedback feedback) {

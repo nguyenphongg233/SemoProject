@@ -358,3 +358,165 @@ input:-webkit-autofill:active {
 /* ================== SEMO MODE (ORIGINAL THEME) ================== */
 /* Semo mode uses the default hardcoded gradients and styling present in the components.
    No overrides needed. It will naturally fall back to the exact code from the commit! */
+
+/* ================== HUST MODE OVERRIDES ================== */
+:root.hust {
+  --color-scheme: light;
+
+  /* HUST Red & White - Light Mode Palette */
+  --color-midnight: #FFFFFF;
+  --color-midnight-2: #F8FAFC;
+  --color-midnight-3: #F1F5F9;
+  
+  --color-bg: #FFFFFF;
+  --color-bg-accent: #F1F5F9;
+  --color-surface: rgba(255, 255, 255, 0.85);
+  --color-surface-strong: rgba(255, 255, 255, 0.98);
+  --color-surface-muted: rgba(0, 0, 0, 0.04);
+  --color-surface-elevated: rgba(255, 255, 255, 1);
+
+  --color-text: #1E293B;
+  --color-text-strong: #ce1628; /* HUST Red */
+  --color-text-muted: #64748B;
+  --color-text-faded: #94A3B8;
+
+  --color-electric: #ce1628; /* Override electric with HUST red */
+  --color-electric-soft: #e53e4f;
+  --color-cyan: #f9a826; /* Gold */
+  --color-cyan-soft: #fbbf24;
+
+  --color-brand: #ce1628;
+  --color-brand-dark: #a8111e;
+  --color-brand-soft: rgba(206, 22, 40, 0.12);
+
+  --color-border: rgba(206, 22, 40, 0.15);
+  --color-border-strong: rgba(206, 22, 40, 0.3);
+  --color-border-glow: rgba(206, 22, 40, 0.2);
+
+  --shadow-card: 0 10px 40px rgba(206, 22, 40, 0.08);
+  --shadow-soft: 0 4px 20px rgba(206, 22, 40, 0.05);
+  --shadow-glow-blue: 0 0 24px rgba(206, 22, 40, 0.45);
+  --shadow-glow-cyan: 0 0 24px rgba(249, 168, 38, 0.45);
+
+  --background-image-gradient-brand: linear-gradient(135deg, #ce1628 0%, #a8111e 100%);
+  --background-image-gradient-brand-soft: linear-gradient(135deg, rgba(206, 22, 40, 0.15), rgba(249, 168, 38, 0.15));
+}
+
+:root.hust body {
+  font-weight: 500;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(206, 22, 40, 0.08), transparent 36%),
+    radial-gradient(circle at 88% 12%, rgba(249, 168, 38, 0.06), transparent 40%),
+    radial-gradient(circle at 70% 95%, rgba(206, 22, 40, 0.05), transparent 50%),
+    linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+}
+
+:root.hust .leaflet-container {
+  background: #F1F5F9 !important;
+}
+
+:root.hust .leaflet-tile {
+  filter: none;
+}
+
+:root.hust .leaflet-popup-content-wrapper,
+:root.hust .leaflet-popup-tip {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #1E293B !important;
+  border: 1px solid rgba(206,22,40,0.2);
+}
+
+:root.hust .leaflet-tooltip {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #1E293B !important;
+  border: 1px solid rgba(206,22,40,0.2) !important;
+  box-shadow: 0 4px 12px rgba(206, 22, 40, 0.1) !important;
+}
+
+/* Override utility text colors that get hidden in light mode */
+:root.hust .text-text-strong { color: #020617 !important; }
+:root.hust .text-text-muted { color: #1E293B !important; }
+:root.hust .text-text-faded { color: #334155 !important; }
+:root.hust .text-cyan-400, :root.hust .text-cyan-soft { color: #ce1628 !important; }
+:root.hust .text-cyan-300 { color: #ce1628 !important; }
+:root.hust .text-cyan-500 { color: #a8111e !important; }
+:root.hust .bg-cyan-500 { background-color: #ce1628 !important; }
+:root.hust .bg-cyan-600 { background-color: #a8111e !important; }
+:root.hust .bg-slate-800, :root.hust .bg-slate-800\/80, :root.hust .bg-slate-800\/20, :root.hust .bg-slate-800\/50 { background-color: #FFFFFF !important; border: 1px solid rgba(206,22,40,0.1); }
+:root.hust .bg-slate-900, :root.hust .bg-slate-900\/50, :root.hust .bg-slate-900\/40 { background-color: #F8FAFC !important; border: 1px solid rgba(206,22,40,0.1); }
+:root.hust .border-white\/5 { border-color: rgba(206,22,40,0.1) !important; }
+:root.hust .border-white\/10 { border-color: rgba(206,22,40,0.15) !important; }
+:root.hust .border-white\/20 { border-color: rgba(206,22,40,0.2) !important; }
+
+/* Fix Sidebar */
+:root.hust aside {
+  background: #FFFFFF !important;
+  color: #1E293B !important;
+  border-right: 1px solid rgba(206,22,40,0.15);
+}
+:root.hust aside nav a {
+  color: #475569 !important;
+  font-weight: 600 !important;
+}
+:root.hust aside nav a.active, :root.hust aside nav a[aria-current="page"] {
+  color: #ce1628 !important;
+  font-weight: 700 !important;
+  background: rgba(206, 22, 40, 0.08) !important;
+  border-right: 3px solid #ce1628;
+}
+:root.hust aside nav a:hover {
+  color: #ce1628 !important;
+  background: rgba(206, 22, 40, 0.04) !important;
+}
+
+/* Fix Header */
+:root.hust header {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border-bottom: 1px solid rgba(206,22,40,0.15);
+}
+
+/* Fix Stats Cards & Dashboard Numbers */
+:root.hust .bg-clip-text {
+  background: linear-gradient(135deg, #ce1628, #f9a826) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+:root.hust table th {
+  background: #F8FAFC !important;
+  color: #ce1628 !important;
+  border-bottom: 2px solid rgba(206,22,40,0.1) !important;
+}
+:root.hust table td {
+  border-bottom: 1px solid rgba(206,22,40,0.05) !important;
+}
+:root.hust table tr:hover td {
+  background: rgba(206,22,40,0.02) !important;
+}
+
+:root.hust select,
+:root.hust input,
+:root.hust textarea {
+  background: #FFFFFF !important;
+  color: #1E293B !important;
+  border: 1px solid rgba(206,22,40,0.2) !important;
+}
+
+:root.hust input:focus,
+:root.hust select:focus,
+:root.hust textarea:focus {
+  border-color: #ce1628 !important;
+  box-shadow: 0 0 0 3px rgba(206, 22, 40, 0.1) !important;
+}
+
+/* Fix autofill for HUST mode */
+:root.hust input:-webkit-autofill,
+:root.hust input:-webkit-autofill:hover, 
+:root.hust input:-webkit-autofill:focus, 
+:root.hust input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 50px #FFFFFF inset !important;
+  -webkit-text-fill-color: #1E293B !important;
+}

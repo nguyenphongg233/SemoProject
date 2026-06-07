@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import type { SyntheticEvent, ChangeEvent } from 'react'
 import {
-  User, Mail, ShieldCheck, Lock, KeyRound, Eye, EyeOff, Save, Camera, Upload
+  User, Mail, ShieldCheck, Lock, KeyRound, Eye, EyeOff, Save, Camera
 } from 'lucide-react'
 
 import { SectionHeader, Alert, Button, Card, TextField } from '@/components'

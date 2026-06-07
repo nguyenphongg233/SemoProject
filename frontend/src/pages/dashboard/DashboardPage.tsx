@@ -12,6 +12,7 @@ import {
   Gauge,
 } from 'lucide-react'
 
+import { TrendingUp, TrendingDown } from 'lucide-react'
 import { SectionHeader,
   Alert, Button, Card, Table,
   ScooterMap
@@ -26,6 +27,7 @@ const statusMeta: Record<string, { label: string; className: string }> = {
   [SCOOTER_STATUSES.AVAILABLE]:   { label: 'Available',     className: 'is-available' },
   [SCOOTER_STATUSES.IN_USE]:      { label: 'In Use',        className: 'is-in-use' },
   [SCOOTER_STATUSES.MAINTENANCE]: { label: 'Under Maintenance', className: 'is-maintenance' },
+  [SCOOTER_STATUSES.CHARGING]:    { label: 'Charging',      className: 'is-charging' },
 }
 
 function getStatusLabel(status: string): string {
@@ -83,6 +85,7 @@ export default function DashboardPage() {
     const available = scooters.filter((s) => s.status === SCOOTER_STATUSES.AVAILABLE).length
     const inUse = scooters.filter((s) => s.status === SCOOTER_STATUSES.IN_USE).length
     const maintenance = scooters.filter((s) => s.status === SCOOTER_STATUSES.MAINTENANCE).length
+    const charging = scooters.filter((s) => s.status === SCOOTER_STATUSES.CHARGING).length
 
     const batteryLevels = scooters
       .map((s) => Number(s.batteryLevel))
@@ -91,7 +94,7 @@ export default function DashboardPage() {
       ? Math.round(batteryLevels.reduce((a, b) => a + b, 0) / batteryLevels.length)
       : 0
 
-    return { total, available, inUse, maintenance, avgBattery }
+    return { total, available, inUse, maintenance, charging, avgBattery }
   }, [scooters])
 
   const summaryCards = useMemo(() => ([
@@ -100,24 +103,32 @@ export default function DashboardPage() {
       value: summary.total,
       note: 'All scooters in the system',
       icon: <Bike size={20} strokeWidth={1.7} />,
+      trend: '+12% this week',
+      trendPositive: true
     },
     {
       label: 'Available for Rent',
       value: summary.available,
       note: 'Scooters ready for rental',
       icon: <Sparkles size={20} strokeWidth={1.7} />,
+      trend: '+5% this week',
+      trendPositive: true
     },
     {
       label: 'Average Battery',
       value: `${summary.avgBattery}%`,
       note: 'Calculated across all scooters',
       icon: <BatteryFull size={20} strokeWidth={1.7} />,
+      trend: '-2% today',
+      trendPositive: false
     },
     {
       label: 'Under Maintenance',
       value: summary.maintenance,
       note: 'Temporarily unavailable',
       icon: <Wrench size={20} strokeWidth={1.7} />,
+      trend: '-1 from yesterday',
+      trendPositive: true
     },
   ]), [summary])
 
@@ -186,20 +197,20 @@ export default function DashboardPage() {
   return (
     <div className="grid gap-6">
       <section className="relative p-8 px-[2.2rem] rounded-lg
-        bg-[radial-gradient(circle_at_90%_-20%,rgba(0,209,255,0.4),transparent_55%),radial-gradient(circle_at_-10%_120%,rgba(109,93,255,0.4),transparent_60%),linear-gradient(135deg,rgba(0,82,255,0.85),rgba(11,17,32,0.92))]
+        bg-gradient-brand
         border border-border-glow shadow-glow-blue overflow-hidden
         text-white after:content-[''] after:absolute after:inset-0
         after:pointer-events-none after:opacity-60"
       >
         <div className="relative flex items-center justify-between gap-6 flex-wrap">
           <div>
-            <p className="m-0 text-cyan-soft uppercase tracking-[0.2em] text-[0.72rem] font-bold">
+            <p className="m-0 text-white/80 uppercase tracking-[0.2em] text-[0.72rem] font-bold">
               Hello, {greetingName}
             </p>
-            <h2 className="mt-[0.3rem] mr-0 mb-[0.6rem] ml-0 text-[clamp(1.8rem,3vw,2.5rem)] tracking-[-0.03em]">
+            <h2 className="mt-[0.3rem] mr-0 mb-[0.6rem] ml-0 text-[clamp(1.8rem,3vw,2.5rem)] tracking-[-0.03em] font-extrabold">
               System is fully operational.
             </h2>
-            <p className="m-0 text-[#e6eeff]/78 max-w-[50ch]">
+            <p className="m-0 text-white/80 max-w-[50ch]">
               Track e-scooter fleet status in real-time, manage trips, and top
               up your wallet — all in one high-tech dashboard.
             </p>
@@ -225,32 +236,27 @@ export default function DashboardPage() {
 
       <div className="grid gap-[1.1rem] grid-cols-4 max-[980px]:grid-cols-2 max-sm:grid-cols-1">
         {summaryCards.map((card) => (
-          <Card key={card.label} variant="glow">
-              <div className="flex items-center justify-between gap-[0.6rem]">
-                <p className="text-text-faded font-semibold text-sm
-                  uppercase tracking-[0.12em]"
-                >
+          <div key={card.label} className="rounded-xl bg-surface-elevated backdrop-blur-md border border-border p-5 relative overflow-hidden flex flex-col justify-between">
+              <div className="flex items-center justify-between gap-3 mb-2">
+                <p className="text-xs tracking-wider text-text-muted uppercase font-semibold">
                   {card.label}
                 </p>
-                <span className="w-10 h-10 rounded-[12px] grid
-                  place-items-center bg-gradient-brand-soft border
-                  border-border-strong text-cyan-soft
-                  shadow-[inset_0_0_12px_rgba(0,209,255,0.18)]"
-                >
+                <span className="w-8 h-8 rounded-lg grid place-items-center bg-brand/5 border border-brand/10 text-brand">
                   {card.icon}
                 </span>
               </div>
-              <div className="mt-[0.6rem] mr-0 mb-[0.4rem] ml-0 text-[2.2rem]
-                font-extrabold tracking-[-0.04em]
-                bg-[linear-gradient(135deg,#fff,var(--color-cyan-soft)_120%)]
-                bg-clip-text text-transparent leading-[1.1]"
-              >
-                {loading ? '—' : card.value}
+              
+              <div className="flex items-end justify-between mt-1">
+                <div className="text-3xl font-bold text-text-strong">
+                  {loading ? '—' : card.value}
+                </div>
+                
+                <div className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${card.trendPositive ? 'text-emerald-400 bg-emerald-400/10' : 'text-rose-400 bg-rose-400/10'}`}>
+                  {card.trendPositive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                  {card.trend}
+                </div>
               </div>
-              <p className="m-0 text-sm text-text-muted">
-                {card.note}
-              </p>
-            </Card>
+            </div>
         ))}
       </div>
 

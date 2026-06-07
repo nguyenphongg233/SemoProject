@@ -33,4 +33,9 @@ public class FeedbackController {
     public ResponseEntity<List<FeedbackResponseDTO>> getAllFeedbacks() {
         return ResponseEntity.ok(feedbackService.getAllFeedbacks());
     }
+
+    @GetMapping("/my")
+    public ResponseEntity<List<FeedbackResponseDTO>> getMyFeedbacks() {
+        return ResponseEntity.ok(feedbackService.getMyFeedbacks());
+    }
 }

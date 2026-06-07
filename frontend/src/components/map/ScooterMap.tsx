@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import 'leaflet/dist/leaflet.css'
-import { CircleMarker, MapContainer, Popup, TileLayer, Tooltip, useMapEvents } from 'react-leaflet'
+import { CircleMarker, Circle, MapContainer, Popup, TileLayer, Tooltip, useMapEvents } from 'react-leaflet'
 import type { LeafletMouseEvent } from 'leaflet'
 
 import { SCOOTER_STATUSES } from '@/constants'
@@ -17,12 +17,14 @@ const statusStyles: Record<string, { color: string; fillColor: string }> = {
   [SCOOTER_STATUSES.AVAILABLE]: { color: '#00D1FF', fillColor: '#00D1FF' },
   [SCOOTER_STATUSES.IN_USE]: { color: '#0052FF', fillColor: '#0052FF' },
   [SCOOTER_STATUSES.MAINTENANCE]: { color: '#FF5C7A', fillColor: '#FF5C7A' },
+  [SCOOTER_STATUSES.CHARGING]: { color: '#FFB800', fillColor: '#FFB800' },
 }
 
 const statusLabels: Record<string, string> = {
   [SCOOTER_STATUSES.AVAILABLE]: 'Available',
   [SCOOTER_STATUSES.IN_USE]: 'In Use',
   [SCOOTER_STATUSES.MAINTENANCE]: 'Maintenance',
+  [SCOOTER_STATUSES.CHARGING]: 'Charging',
 }
 
 function resolveMarkerStyle(status: string) {
@@ -47,10 +49,12 @@ function MapClickHandler({ onClick }: MapClickHandlerProps) {
 interface ScooterMapProps {
   scooters?: Scooter[];
   stations?: Station[];
+  zones?: any[];
+  previewRadius?: number;
   onMapClick?: (pos: LatLngPos) => void;
 }
 
-export default function ScooterMap({ scooters = [], stations = [], onMapClick }: ScooterMapProps) {
+export default function ScooterMap({ scooters = [], stations = [], zones = [], previewRadius, onMapClick }: ScooterMapProps) {
   const [preview, setPreview] = useState<LatLngPos | null>(null)
 
   const mappedScooters = useMemo(
@@ -88,23 +92,45 @@ export default function ScooterMap({ scooters = [], stations = [], onMapClick }:
         )}
 
         {preview && onMapClick && (
-          <CircleMarker
-            center={[preview.lat, preview.lng]}
-            radius={8}
-            pathOptions={{
-              color: '#6D5DFF',
-              fillColor: '#6D5DFF',
-              fillOpacity: 0.7,
-              weight: 2,
-            }}
-          >
-            <Popup>
-              <div className="grid gap-1.5 min-w-50 text-(--text)">
-                <strong className="text-cyan-soft">Selected Point</strong>
-                <div>{formatCoordinates(preview.lat, preview.lng)}</div>
-              </div>
-            </Popup>
-          </CircleMarker>
+          previewRadius ? (
+            <Circle
+              center={[preview.lat, preview.lng]}
+              radius={previewRadius}
+              pathOptions={{
+                color: '#6D5DFF',
+                fillColor: '#6D5DFF',
+                fillOpacity: 0.3,
+                weight: 2,
+                dashArray: '5, 5'
+              }}
+            >
+              <Popup>
+                <div className="grid gap-1.5 min-w-50 text-(--text)">
+                  <strong className="text-cyan-soft">Geofence Preview</strong>
+                  <div>{formatCoordinates(preview.lat, preview.lng)}</div>
+                  <div>Radius: {previewRadius}m</div>
+                </div>
+              </Popup>
+            </Circle>
+          ) : (
+            <CircleMarker
+              center={[preview.lat, preview.lng]}
+              radius={8}
+              pathOptions={{
+                color: '#6D5DFF',
+                fillColor: '#6D5DFF',
+                fillOpacity: 0.7,
+                weight: 2,
+              }}
+            >
+              <Popup>
+                <div className="grid gap-1.5 min-w-50 text-(--text)">
+                  <strong className="text-cyan-soft">Selected Point</strong>
+                  <div>{formatCoordinates(preview.lat, preview.lng)}</div>
+                </div>
+              </Popup>
+            </CircleMarker>
+          )
         )}
 
         {Array.isArray(stations) &&
@@ -165,6 +191,40 @@ export default function ScooterMap({ scooters = [], stations = [], onMapClick }:
             </CircleMarker>
           )
         })}
+
+        {Array.isArray(zones) && zones.map((z, idx) => {
+          const isActive = z.status === 'ACTIVE'
+          const lat = Number(z.centerLat)
+          const lng = Number(z.centerLng)
+          
+          if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null
+          
+          return (
+            <Circle
+              key={`zone-${z.id || idx}`}
+              center={[lat, lng]}
+              radius={Number(z.radius)}
+              pathOptions={{
+                color: isActive ? '#00D1FF' : '#8BA0C7',
+                fillColor: isActive ? '#00D1FF' : '#8BA0C7',
+                fillOpacity: isActive ? 0.15 : 0.05,
+                weight: 2,
+                dashArray: isActive ? undefined : '5, 5'
+              }}
+            >
+               <Tooltip direction="top" opacity={1} permanent>
+                 {z.name || `Zone #${z.id}`}
+               </Tooltip>
+               <Popup>
+                 <div className="grid gap-1.5 min-w-50 text-(--text)">
+                   <strong className="text-cyan-soft">{z.name || `Zone #${z.id}`}</strong>
+                   <p>Status: {z.status}</p>
+                   <p>Radius: {z.radius}m</p>
+                 </div>
+               </Popup>
+            </Circle>
+          )
+        })}
       </MapContainer>
 
       <div className="flex flex-wrap gap-10 text-lg ml-4 text-text-muted">
@@ -176,6 +236,9 @@ export default function ScooterMap({ scooters = [], stations = [], onMapClick }:
         </span>
         <span className="inline-flex items-center gap-2">
           <i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-danger text-[rgba(255,92,122,0.5)]" /> Maintenance
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-[#FFB800] text-[rgba(255,184,0,0.5)]" /> Charging
         </span>
       </div>
 

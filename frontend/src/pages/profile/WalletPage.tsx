@@ -2,10 +2,10 @@
 import { useState, useEffect } from 'react'
 import type { SyntheticEvent, ChangeEvent } from 'react'
 import {
-  Wallet, Sparkles, Plus, Clock, ArrowUpRight, ArrowDownRight, Activity
+  Wallet, Sparkles, Plus, ArrowUpRight, ArrowDownRight, Activity, Inbox
 } from 'lucide-react'
 
-import { SectionHeader, Alert, Button, Card, TextField } from '@/components'
+import { SectionHeader, Alert, Button, Card, TextField, EmptyState } from '@/components'
 import { useAuth } from '@/hooks/useAuth'
 import { depositToWallet, getUserById } from '@/features/users'
 import { getMyTransactionHistory } from '@/features/transactions'
@@ -118,19 +118,19 @@ export default function WalletPage() {
           
           {/* Wallet hero */}
           <section className="relative p-8 rounded-3xl
-            bg-[radial-gradient(circle_at_90%_0%,rgba(0,209,255,0.35),transparent_50%),linear-gradient(135deg,rgba(0,82,255,0.8)_0%,rgba(17,28,52,0.95)_100%)]
-            border border-white/10 text-white overflow-hidden shadow-[0_0_40px_rgba(0,209,255,0.15)]
+            bg-gradient-brand
+            border border-border text-white overflow-hidden shadow-glow-blue
             before:content-[''] before:absolute before:-top-1/2 before:right-[-20%]
             before:w-96 before:h-96 before:rounded-full
-            before:bg-[radial-gradient(circle,rgba(0,209,255,0.3),transparent_70%)] before:blur-[20px] before:pointer-events-none"
+            before:bg-[radial-gradient(circle,var(--color-brand-soft),transparent_70%)] before:blur-[20px] before:pointer-events-none"
           >
-            <p className="relative m-0 text-sm uppercase tracking-[0.2em] font-bold text-cyan-300">
+            <p className="relative m-0 text-sm uppercase tracking-[0.2em] font-bold text-white/80">
               Current Balance
             </p>
             <p className="relative mt-2 mb-3 text-5xl font-extrabold tracking-tight">
               {balanceDisplay}
             </p>
-            <p className="relative m-0 text-slate-300 text-sm">
+            <p className="relative m-0 text-white/80 text-sm">
               Currency: <strong className="text-white">VND</strong> &nbsp;•&nbsp;
               Account holder:{' '}
               <strong className="text-white">{user?.fullName || user?.email || '—'}</strong>
@@ -144,7 +144,7 @@ export default function WalletPage() {
           </section>
 
           {/* Deposit card */}
-          <Card className="rounded-3xl border-white/5 bg-slate-900/50 backdrop-blur-md p-6">
+          <Card className="rounded-3xl border-border bg-surface-elevated backdrop-blur-md p-6">
             <SectionHeader
               eyebrow="Wallet"
               title="Top Up Wallet"
@@ -158,10 +158,10 @@ export default function WalletPage() {
                   <button
                     key={v}
                     type="button"
-                    className="px-4 py-2 rounded-full border border-white/10
-                    bg-slate-800/50 text-slate-300 text-sm font-semibold
-                    transition-all duration-200 hover:border-cyan-500/50
-                    hover:text-cyan-300 hover:bg-cyan-500/10"
+                    className="px-4 py-2 rounded-full border border-border
+                    bg-surface text-text-strong text-sm font-semibold
+                    transition-all duration-200 hover:border-brand/50
+                    hover:text-brand hover:bg-brand/10"
                     onClick={() => pickQuickAmount(v)}
                   >
                     + {formatCurrency(v)}
@@ -190,7 +190,7 @@ export default function WalletPage() {
               <Button
                 type="submit"
                 disabled={loadingDeposit}
-                className="rounded-xl h-12 bg-cyan-600 hover:bg-cyan-500 text-white border-none shadow-[0_0_15px_rgba(8,145,178,0.3)]"
+                className="rounded-xl h-12 bg-brand hover:brightness-110 text-white border-none shadow-[0_0_15px_var(--color-brand-soft)]"
                 leadingIcon={<Plus size={18} strokeWidth={1.8} />}
               >
                 {loadingDeposit ? 'Processing...' : 'Confirm Top Up'}
@@ -199,7 +199,7 @@ export default function WalletPage() {
           </Card>
           
           {/* Transaction History Card */}
-          <Card className="rounded-3xl border-white/5 bg-slate-900/50 backdrop-blur-md p-6">
+          <Card className="rounded-3xl border-border bg-surface-elevated backdrop-blur-md p-6">
             <SectionHeader
               eyebrow="History"
               title="Recent Transactions"
@@ -208,28 +208,30 @@ export default function WalletPage() {
             />
             <div className="mt-6">
               {loadingTx ? (
-                <p className="text-sm text-slate-400 py-4">Loading history...</p>
+                <p className="text-sm text-text-muted py-4">Loading history...</p>
               ) : transactions.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-10 text-slate-400 bg-slate-800/20 rounded-2xl border border-white/5 border-dashed">
-                  <Clock size={32} className="mb-2 opacity-50" />
-                  <p className="text-sm">No transactions yet.</p>
-                </div>
+                <EmptyState
+                  icon={<Inbox size={24} />}
+                  title="No transactions yet"
+                  description="Your wallet top-ups and ride payments will appear here."
+                  className="bg-surface-muted rounded-2xl border border-border border-dashed py-10"
+                />
               ) : (
                 <div className="grid gap-3">
                   {transactions.slice(0, 10).map((tx) => {
                     const isTopup = tx.amount > 0 || String(tx.type).toUpperCase() === 'DEPOSIT';
                     return (
-                      <div key={tx.id} className="flex items-center justify-between p-4 rounded-2xl bg-slate-800/40 border border-white/5 hover:bg-slate-800/60 transition-colors">
+                      <div key={tx.id} className="flex items-center justify-between p-4 rounded-2xl bg-surface border border-border hover:bg-surface-muted transition-colors">
                         <div className="flex items-center gap-4">
-                          <div className={`p-2.5 rounded-xl ${isTopup ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
+                          <div className={`p-2.5 rounded-xl ${isTopup ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}>
                             {isTopup ? <ArrowDownRight size={20} /> : <ArrowUpRight size={20} />}
                           </div>
                           <div>
-                            <p className="text-sm font-bold text-white mb-0.5">{tx.description || tx.reason || (isTopup ? 'Wallet Top-up' : 'Ride Payment')}</p>
-                            <p className="text-xs text-slate-400">{formatDateTime(tx.createdAt)}</p>
+                            <p className="text-sm font-bold text-text-strong mb-0.5">{tx.description || tx.reason || (isTopup ? 'Wallet Top-up' : 'Ride Payment')}</p>
+                            <p className="text-xs text-text-muted">{formatDateTime(tx.createdAt)}</p>
                           </div>
                         </div>
-                        <span className={`text-base font-bold ${isTopup ? 'text-emerald-400' : 'text-white'}`}>
+                        <span className={`text-base font-bold ${isTopup ? 'text-emerald-500' : 'text-text-strong'}`}>
                           {isTopup ? '+' : ''}{formatCurrency(tx.amount)}
                         </span>
                       </div>

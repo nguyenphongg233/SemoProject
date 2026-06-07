@@ -24,13 +24,13 @@ export default function AuthShell({ eyebrow, title, description, children }: Aut
         /* Pseudo-element ::after */
         after:content-[''] after:absolute after:w-130 after:h-130 after:rounded-full 
         after:-right-40 after:top-[20%] 
-        after:bg-[radial-gradient(circle,rgba(0,209,255,0.35),transparent_70%)] 
+        after:bg-[radial-gradient(circle,var(--color-brand-soft),transparent_70%)] 
         after:blur-2xl after:-z-10 after:animate-[floatOrb_14s_ease-in-out_infinite] 
 
         /* Pseudo-element ::before */
         before:content-[''] before:absolute before:w-90 before:h-90 before:rounded-full 
         before:-left-30 before:bottom-[10%] 
-        before:bg-[radial-gradient(circle,rgba(0,82,255,0.45),transparent_70%)] 
+        before:bg-[radial-gradient(circle,var(--color-brand-soft),transparent_70%)] 
         before:blur-12 before:-z-10 before:animate-[floatOrb_18s_ease-in-out_infinite_reverse]
       ">
         <div className="relative z-10 flex items-center gap-4">
@@ -79,7 +79,7 @@ export default function AuthShell({ eyebrow, title, description, children }: Aut
           </ul>
         </div>
 
-        <p className="relative z-1 text-[#e6eeff]/55 text-[0.82rem] m-0" >
+        <p className="relative z-1 text-text-muted text-[0.82rem] m-0" >
           © {new Date().getFullYear()} SEMO — Smart e-mobility platform.
         </p>
       </aside>

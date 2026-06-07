@@ -13,9 +13,10 @@ import {
   MapPinned,
   Settings,
   Bell,
-  Sun,
   Moon,
-  Palette,
+  GraduationCap,
+  Zap,
+  Map
 } from 'lucide-react'
 import SemoIcon from '@/assets/semo-icon.svg?react';
 
@@ -49,6 +50,8 @@ const adminNavItems: NavItem[] = [
   { label: 'Rentals', to: ROUTES.RENTALS, icon: <Receipt  {...ICON_PROPS} /> },
   { label: 'Transactions', to: ROUTES.TRANSACTIONS, icon: <Receipt {...ICON_PROPS} /> },
   { label: 'Maintenance', to: ROUTES.MAINTENANCE, icon: <Wrench   {...ICON_PROPS} /> },
+  { label: 'Charging', to: ROUTES.CHARGING, icon: <Zap {...ICON_PROPS} /> },
+  { label: 'Geofence', to: ROUTES.GEOFENCE, icon: <Map {...ICON_PROPS} /> },
   { label: 'Feedbacks', to: ROUTES.FEEDBACKS, icon: <MessageSquare {...ICON_PROPS} /> },
   { label: 'Analytics', to: ROUTES.ANALYTICS, icon: <BarChart3 {...ICON_PROPS} /> },
   { label: 'Settings', to: ROUTES.SETTINGS, icon: <Settings {...ICON_PROPS} /> },
@@ -222,10 +225,10 @@ export default function AppShell({ mode = 'user', children }: AppShellProps) {
             )}
             <button 
               onClick={toggleTheme}
-              className="relative p-2 mr-4 text-text-muted hover:text-cyan-soft transition-colors rounded-full hover:bg-[rgba(255,255,255,0.05)]" 
-              title={`Current Theme: ${theme}`}
+              className="relative p-2 mr-4 text-text-muted hover:text-brand transition-colors rounded-full hover:bg-[rgba(255,255,255,0.05)] flex items-center justify-center" 
+              title={`Current Theme: ${theme.toUpperCase()}`}
             >
-              {theme === 'light' ? <Sun size={20} strokeWidth={2} /> : theme === 'dark' ? <Moon size={20} strokeWidth={2} /> : <Palette size={20} strokeWidth={2} />}
+              {theme === 'hust' ? <GraduationCap size={20} strokeWidth={2} className="text-[#ce1628]" /> : <Moon size={20} strokeWidth={2} className="text-cyan-soft" />}
             </button>
             <span className="inline-flex items-center justify-center min-h-8 px-4
               rounded-full text-sm font-semibold tracking-wider
