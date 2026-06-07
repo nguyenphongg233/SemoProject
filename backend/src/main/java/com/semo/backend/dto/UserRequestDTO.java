@@ -2,6 +2,7 @@ package com.semo.backend.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class UserRequestDTO {
@@ -12,12 +13,20 @@ public class UserRequestDTO {
 
     @NotBlank(message = "Mật khẩu không được để trống")
     @Size(min = 8, message = "Mật khẩu phải ít nhất 8 ký tự")
+    @Pattern(
+            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*$",
+            message = "Mật khẩu phải chứa ít nhất 1 chữ cái in hoa, 1 chữ cái in thường và 1 chữ số"
+    )
     private String password;
 
     @NotBlank(message = "Tên đầy đủ không được để trống")
     private String fullName;
 
     @NotBlank(message = "Số điện thoại không được để trống")
+    @Pattern(
+            regexp = "^[0-9]{10}$",
+            message = "Số điện thoại không hợp lệ (phải bao gồm đúng 10 chữ số)"
+    )
     private String phoneNumber;
 
     // Constructors
