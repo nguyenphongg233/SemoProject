@@ -84,9 +84,9 @@ const ACTIVE_RIDE_KEY = 'semo_active_ride'
 const REPORTS_KEY = 'semo_scooter_reports'
 
 const statusStyles: Record<string, { color: string; fillColor: string }> = {
-  [SCOOTER_STATUSES.AVAILABLE]:   { color: '#00D1FF', fillColor: '#00D1FF' },
-  [SCOOTER_STATUSES.IN_USE]:      { color: '#0052FF', fillColor: '#0052FF' },
-  [SCOOTER_STATUSES.MAINTENANCE]: { color: '#FF5C7A', fillColor: '#FF5C7A' },
+  [SCOOTER_STATUSES.AVAILABLE]:   { color: 'var(--color-cyan)', fillColor: 'var(--color-cyan)' },
+  [SCOOTER_STATUSES.IN_USE]:      { color: 'var(--color-brand)', fillColor: 'var(--color-brand)' },
+  [SCOOTER_STATUSES.MAINTENANCE]: { color: 'var(--color-electric)', fillColor: 'var(--color-electric)' },
 }
 
 const statusLabel: Record<string, string> = {
@@ -446,7 +446,7 @@ export default function BookingPage() {
               <CircleMarker
                 center={userPos}
                 radius={8}
-                pathOptions={{ color: '#00E0A4', fillColor: '#00E0A4', fillOpacity: 0.9, weight: 2 }}
+                pathOptions={{ color: 'var(--color-brand)', fillColor: 'var(--color-brand)', fillOpacity: 0.9, weight: 2 }}
               >
                 <Tooltip direction="top" offset={[0, -8]} permanent>You are here</Tooltip>
               </CircleMarker>
@@ -454,7 +454,7 @@ export default function BookingPage() {
                 <Circle
                   center={userPos}
                   radius={radiusKm * 1000}
-                  pathOptions={{ color: '#00D1FF', fillColor: '#00D1FF', fillOpacity: 0.06, weight: 1, dashArray: '6 6' }}
+                  pathOptions={{ color: 'var(--color-brand)', fillColor: 'var(--color-brand)', fillOpacity: 0.06, weight: 1, dashArray: '6 6' }}
                 />
               )}
             </>
@@ -494,7 +494,7 @@ export default function BookingPage() {
         </div>
 
         {/* ============== FLOATING ALERTS (Trực tiếp trên Map) ============== */}
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-3 w-full max-w-lg pointer-events-none px-4">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] flex flex-col items-center gap-3 w-full max-w-lg pointer-events-none px-4">
           {scootersError && <div className="pointer-events-auto w-full"><Alert tone="error">{scootersError}</Alert></div>}
           {actionError && <div className="pointer-events-auto w-full"><Alert tone="error">{actionError}</Alert></div>}
           {completedInfo && (
@@ -503,8 +503,8 @@ export default function BookingPage() {
                 <div className="flex items-center justify-between gap-2.5">
                   <span>
                     <Sparkles size={18} strokeWidth={1.8} className="inline mr-2" />
-                    Trip ended on <strong className="text-emerald-400">{completedInfo.scooterName}</strong> · Total fare: {' '}
-                    <strong className="text-emerald-400">{formatCurrency(completedInfo.totalPrice)}</strong>
+                    Trip ended on <strong className="text-brand">{completedInfo.scooterName}</strong> · Total fare: {' '}
+                    <strong className="text-brand">{formatCurrency(completedInfo.totalPrice)}</strong>
                   </span>
                   <Button variant="secondary" onClick={dismissCompleted}>
                     Close
@@ -518,7 +518,7 @@ export default function BookingPage() {
         {/* ============== PANEL TOGGLE BUTTON (Trực tiếp trên Map) ============== */}
         <button
           onClick={() => setShowPanels(!showPanels)}
-          className="absolute top-4 right-4 z-20 inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border text-sm font-bold shadow-lg backdrop-blur-md transition-colors text-text-strong border-white/10 bg-slate-900/80 hover:bg-slate-800/80 pointer-events-auto"
+          className="absolute top-4 right-4 z-[1000] inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border text-sm font-bold shadow-lg backdrop-blur-md transition-colors text-text-strong border-border bg-surface hover:bg-surface-muted pointer-events-auto"
         >
           {showPanels ? <EyeOff size={16} strokeWidth={2} /> : <Eye size={16} strokeWidth={2} />}
           {showPanels ? 'Hide Panels' : 'Show Panels'}
@@ -533,7 +533,7 @@ export default function BookingPage() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-text-strong tracking-tight">Ride Status</h2>
             {ride?.state === 'riding' && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-bold text-cyan-400 bg-cyan-400/10 border border-cyan-400/20 animate-pulse">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-bold text-brand bg-brand/10 border border-brand/20 animate-pulse">
                 <Clock size={14} /> {fmtDuration(ridingMs)}
               </span>
             )}
@@ -551,8 +551,8 @@ export default function BookingPage() {
                   {selectedScooter.name || `Scooter #${selectedScooter.id}`}
                 </p>
                 <div className="flex items-center gap-3 text-sm text-text-muted">
-                  <span className="flex items-center gap-1"><Battery size={14} className="text-emerald-400"/> {formatBatteryLevel(selectedScooter.batteryLevel) || '—'}</span>
-                  {selectedScooter._distance != null && <span className="flex items-center gap-1"><MapPin size={14} className="text-cyan-400"/> {fmtKm(selectedScooter._distance)}</span>}
+                  <span className="flex items-center gap-1"><Battery size={14} className="text-brand"/> {formatBatteryLevel(selectedScooter.batteryLevel) || '—'}</span>
+                  {selectedScooter._distance != null && <span className="flex items-center gap-1"><MapPin size={14} className="text-brand"/> {fmtKm(selectedScooter._distance)}</span>}
                 </div>
               </div>
 
@@ -593,8 +593,7 @@ export default function BookingPage() {
                   Book
                 </Button>
                 <Button
-                  variant="secondary"
-                  className="rounded-xl h-11 bg-slate-800/60 border-white/10 hover:bg-slate-700/80"
+                  className="rounded-xl h-11 bg-surface-muted hover:bg-surface border border-border text-text-strong shadow-sm"
                   onClick={handleUnlock}
                   disabled={ride?.state !== 'reserved'}
                   leadingIcon={<Unlock size={16} />}
@@ -676,7 +675,7 @@ export default function BookingPage() {
                 {userPos ? 'Located' : geoError ? 'Location error' : 'No location'}
               </span>
 
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-cyan-400 border border-cyan-500/20 bg-cyan-500/10">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-brand border border-brand/20 bg-brand/10">
                 <Zap size={14} strokeWidth={2} />
                 {visibleScooters.length} scooters
               </span>
@@ -743,7 +742,7 @@ export default function BookingPage() {
             </form>
           </div>
 
-          <div className="flex-1 overflow-y-auto pr-2 -mr-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-cyan-500/20 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-cyan-500/40">
+          <div className="flex-1 overflow-y-auto pr-2 -mr-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-brand/20 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-brand/40">
             <div className="grid gap-3 pt-2">
               {scootersLoading && <p className="text-text-muted text-sm text-center py-4">Loading scooters...</p>}
               {!scootersLoading && visibleScooters.length === 0 && (
@@ -760,7 +759,7 @@ export default function BookingPage() {
                       "relative grid gap-3 p-4 rounded-2xl border cursor-pointer backdrop-blur-md",
                       "transition-all duration-200 ease-out",
                       isSelected 
-                        ? "border-cyan-500/50 bg-cyan-900/30 shadow-[0_0_15px_rgba(0,209,255,0.15)]" 
+                        ? "border-brand-strong bg-brand/10 shadow-[0_0_15px_var(--color-brand-soft)]" 
                         : "border-white/5 bg-surface-elevated border-border",
                       (isLocked && !isSelected) && "opacity-60"
                     )}
@@ -770,17 +769,17 @@ export default function BookingPage() {
                       <div>
                         <p className="font-bold text-text-strong leading-tight flex items-center gap-2">
                           {s.name || `Scooter #${s.id}`}
-                          {isSelected && <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />}
+                          {isSelected && <span className="w-2 h-2 rounded-full bg-brand animate-pulse" />}
                         </p>
                         <p className="text-text-muted text-[0.8rem] mt-0.5">
                           {formatCoordinates(Number(s._lat), Number(s._lng))}
                         </p>
                       </div>
                       <span className={cn(
-                        "inline-flex items-center px-2.5 py-1 rounded-full text-[0.7rem] font-bold tracking-wider border",
-                        s._status === SCOOTER_STATUSES.AVAILABLE ? "text-cyan-400 border-cyan-400/30 bg-cyan-400/10" :
-                        s._status === SCOOTER_STATUSES.IN_USE ? "text-blue-400 border-blue-400/30 bg-blue-400/10" :
-                        "text-rose-400 border-rose-400/30 bg-rose-400/10"
+                        "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border",
+                        s._status === SCOOTER_STATUSES.AVAILABLE ? "text-cyan border-cyan/30 bg-cyan/10" :
+                        s._status === SCOOTER_STATUSES.IN_USE ? "text-text-faded border-border bg-surface-muted" :
+                        "text-brand border-brand/30 bg-brand/10"
                       )}>
                         {statusLabel[s._status] || s._status}
                       </span>

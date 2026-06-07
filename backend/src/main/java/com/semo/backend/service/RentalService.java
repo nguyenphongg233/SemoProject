@@ -116,7 +116,12 @@ public class RentalService {
         scooter.setStatus("AVAILABLE");
 
         if (!"ADMIN".equals(rentalOwner.getRole())) {
-            rentalOwner.subtractBalance(amount - 50000.0);
+            double diff = amount - 50000.0;
+            if (diff > 0) {
+                rentalOwner.subtractBalance(diff);
+            } else if (diff < 0) {
+                rentalOwner.addBalance(-diff);
+            }
 
             Transaction refundTx = new Transaction();
             refundTx.setUser(rentalOwner);
