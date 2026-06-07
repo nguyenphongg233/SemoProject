@@ -57,6 +57,9 @@ public class User {
     @Column(name = "verification_expiry")
     private LocalDateTime verificationExpiry;
 
+    @Column(name = "is_verified", nullable = false)
+    private Boolean isVerified = false;
+
     public User() {
     }
 
@@ -175,5 +178,13 @@ public class User {
 
     public void setVerificationExpiry(LocalDateTime verificationExpiry) {
         this.verificationExpiry = verificationExpiry;
+    }
+
+    public Boolean getIsVerified() {
+        return isVerified;
+    }
+
+    public void setIsVerified(Boolean isVerified) {
+        this.isVerified = isVerified;
     }
 }

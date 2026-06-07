@@ -31,22 +31,35 @@ public class AuthService {
 
     @Transactional
     public UserResponseDTO register(UserRequestDTO requestDTO) {
-        if (userRepository.existsByEmail(requestDTO.getEmail())) {
-            throw new RuntimeException("Email đã được sử dụng");
-        }
+        User existingUser = userRepository.findByEmail(requestDTO.getEmail()).orElse(null);
 
-        User user = new User(
-                requestDTO.getEmail(),
-                passwordEncoder.encode(requestDTO.getPassword()),
-                requestDTO.getFullName(),
-                requestDTO.getPhoneNumber(),
-                "CUSTOMER",
-                0.0);
-
-        user.setIsActive(false);
         String otp = generateOtp();
-        user.setVerificationCode(otp);
-        user.setVerificationExpiry(LocalDateTime.now().plusMinutes(5));
+        User user;
+
+        if (existingUser != null) {
+            if (Boolean.TRUE.equals(existingUser.getIsVerified())) {
+                throw new RuntimeException("Email này đã được sử dụng để đăng ký!");
+            }
+
+            existingUser.setPassword(passwordEncoder.encode(requestDTO.getPassword()));
+            existingUser.setFullName(requestDTO.getFullName());
+            existingUser.setPhoneNumber(requestDTO.getPhoneNumber());
+            existingUser.setVerificationCode(otp);
+            existingUser.setVerificationExpiry(LocalDateTime.now().plusMinutes(5));
+
+            user = existingUser;
+        } else {
+            user = new User(
+                    requestDTO.getEmail(),
+                    passwordEncoder.encode(requestDTO.getPassword()),
+                    requestDTO.getFullName(),
+                    requestDTO.getPhoneNumber(),
+                    "CUSTOMER",
+                    0.0);
+            user.setIsVerified(false);
+            user.setVerificationCode(otp);
+            user.setVerificationExpiry(LocalDateTime.now().plusMinutes(5));
+        }
 
         user = userRepository.save(user);
 
@@ -60,7 +73,7 @@ public class AuthService {
         User user = userRepository.findByEmail(requestDTO.getEmail())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với email này."));
 
-        if (Boolean.TRUE.equals(user.getIsActive())) {
+        if (Boolean.TRUE.equals(user.getIsVerified())) {
             throw new RuntimeException("Tài khoản này đã được xác thực rồi.");
         }
 
@@ -72,7 +85,7 @@ public class AuthService {
             throw new RuntimeException("Mã xác nhận không chính xác.");
         }
 
-        user.setIsActive(true);
+        user.setIsVerified(true);
         user.setVerificationCode(null);
         user.setVerificationExpiry(null);
 
@@ -94,6 +107,14 @@ public class AuthService {
             throw new RuntimeException("Email hoặc mật khẩu không đúng");
         }
 
+        if (Boolean.FALSE.equals(user.getIsVerified())) {
+            throw new RuntimeException("Tài khoản chưa được xác thực. Vui lòng kiểm tra hộp thư email của bạn để lấy mã OTP.");
+        }
+
+        if (Boolean.FALSE.equals(user.getIsActive())) {
+            throw new RuntimeException("Tài khoản của bạn đã bị khóa do vi phạm chính sách. Vui lòng liên hệ Quản trị viên để được hỗ trợ!");
+        }
+
         String token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
 
         return new LoginResponseDTO(
@@ -102,6 +123,27 @@ public class AuthService {
                 user.getFullName(),
                 user.getRole(),
                 user.getId());
+    }
+
+    @Transactional
+    public void resendOtp(ResendOtpRequestDTO requestDTO) {
+        User user = userRepository.findByEmail(requestDTO.getEmail())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với email này."));
+
+        if (Boolean.TRUE.equals(user.getIsVerified())) {
+            throw new RuntimeException("Tài khoản này đã được xác thực, không cần gửi lại mã.");
+        }
+
+        if (user.getVerificationExpiry() != null &&
+                user.getVerificationExpiry().isAfter(LocalDateTime.now().plusMinutes(4))) {
+            throw new RuntimeException("Vui lòng đợi 1 phút trước khi yêu cầu mã mới.");
+        }
+
+        String newOtp = generateOtp();
+        user.setVerificationCode(newOtp);
+        user.setVerificationExpiry(LocalDateTime.now().plusMinutes(5));
+
+        mailService.sendVerificationEmail(user.getEmail(), newOtp);
     }
 
     private UserResponseDTO mapToUserResponseDTO(User user) {

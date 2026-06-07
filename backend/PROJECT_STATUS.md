@@ -11,7 +11,8 @@
 * Xử lý lỗi truy cập (403 Forbidden, 401 Unauthorized).
 * **Ủy quyền Tập trung (Centralized Authorization):** Triển khai module `AuthUtil` để quản lý tập trung toàn bộ logic phân quyền, tối ưu hóa Clean Code (DRY & SoC) và chống IDOR tuyệt đối cho các API tài khoản và nghiệp vụ.
 * **Global Exception Handling:** Xử lý lỗi tập trung chuẩn Clean Code, bắt mọi ngoại lệ (như `RuntimeException`) trả về chuẩn JSON không cần try-catch thủ công.
-* **Identity & Access Management (IAM) & Email Verification:** Tách biệt luồng xác thực công khai (`AuthController`) và luồng quản trị nội bộ (`UserController`). Tích hợp gửi mã OTP xác thực qua Email (Google SMTP) để kích hoạt tài khoản. Sử dụng `SecureRandom` để sinh mã chuẩn mật mã học và xử lý bất đồng bộ (`@Async`) giúp tối ưu hiệu năng đăng ký.
+* **Identity & Access Management (IAM) & Email Verification:** Tách biệt luồng xác thực công khai (`AuthController`) và luồng quản trị nội bộ (`UserController`). Tích hợp gửi mã OTP (Google SMTP) và API Gửi lại mã (Resend OTP) có cơ chế chống spam.
+* **Tối ưu UX Đăng ký (Abandoned Registration):** 🚨 *Tính năng nâng cao:* Triển khai thuật toán Upsert (Ghi đè) để xử lý mượt mà các trường hợp người dùng thoát trang khi chưa xác thực xong mà không sinh rác CSDL. Tách bạch hoàn toàn cờ `isVerified` và `isActive` để hệ thống thông báo lỗi chính xác giữa việc "Chưa xác thực OTP" và "Bị Admin khóa".
 
 **🚀 Chưa làm:**
 * (Hiện tại hạ tầng bảo mật đã hoàn chỉnh).

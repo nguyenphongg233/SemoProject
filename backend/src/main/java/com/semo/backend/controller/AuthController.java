@@ -45,4 +45,10 @@ public class AuthController {
         LoginResponseDTO responseDTO = authService.login(requestDTO);
         return ResponseEntity.ok(responseDTO);
     }
+
+    @PostMapping("/resend-otp")
+    public ResponseEntity<Map<String, String>> resendOtp(@Valid @RequestBody ResendOtpRequestDTO requestDTO) {
+        authService.resendOtp(requestDTO);
+        return ResponseEntity.ok(Map.of("message", "Mã xác thực mới đã được gửi. Vui lòng kiểm tra email của bạn (bao gồm cả hộp thư Spam)."));
+    }
 }
