@@ -25,8 +25,8 @@
   /* ===== Văn bản ===== */
   --color-text: #E6EEFF;
   --color-text-strong: #FFFFFF;
-  --color-text-muted: #8BA0C7;
-  --color-text-faded: #5B7099;
+  --color-text-muted: #94A3B8; /* Equivalent to text-slate-400 */
+  --color-text-faded: #64748B; /* Equivalent to text-slate-500 for slight variation */
 
   /* ===== Thương hiệu & Trạng thái ===== */
   --color-brand: var(--color-electric);
@@ -70,7 +70,7 @@
   --radius-sm: 10px;
 
   /* ===== Định nghĩa Font chữ mặc định hệ thống ===== */
-  --font-sans: 'Be Vietnam Pro', 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-sans: 'Inter', 'Be Vietnam Pro', ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 
 html,

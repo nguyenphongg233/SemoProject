@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 
-import { SectionHeader, Alert, Button, Table, Modal, TextField } from '@/components'
+import { SectionHeader, Alert, Button, Table, Modal, TextField, DropdownMenu } from '@/components'
+import { CheckCircle, Wrench, FileText, History } from 'lucide-react'
 import { createMaintenanceLog, getMaintenanceLogsByScooterId, resolveMaintenance } from '@/features/maintenance'
 import { getAllScooters, getScootersByStatus, updateScooter } from '@/features/scooters'
 import { formatCurrency, formatDateTime, getApiErrorMessage, formatBatteryLevel } from '@/utils'
@@ -177,9 +178,9 @@ export default function MaintenancePage() {
   }
 
   const columns: TableColumn<Scooter>[] = [
-    { key: 'id', label: 'ID' },
+    { key: 'id', label: 'ID', align: 'right' as const, isNumeric: true },
     { key: 'name', label: 'Name', render: (row) => row.name || `Scooter #${row.id}` },
-    { key: 'batteryLevel', label: 'Battery', render: (row) => formatBatteryLevel(row.batteryLevel) || '-' },
+    { key: 'batteryLevel', label: 'Battery', align: 'right' as const, isNumeric: true, render: (row) => formatBatteryLevel(row.batteryLevel) || '-' },
     {
       key: 'status',
       label: 'Status',
@@ -200,41 +201,26 @@ export default function MaintenancePage() {
     {
       key: 'actions',
       label: 'Actions',
-      render: (row) => (
-        <div className="flex items-center gap-2">
-          {row.status === 'MAINTENANCE' && (
-            <Button
-              variant="primary"
-              onClick={() => handleResolve(row.id)}
-              disabled={resolvingId === row.id}
-            >
-              {resolvingId === row.id ? 'Resolving...' : 'Resolve'}
-            </Button>
-          )}
-          {row.status !== 'MAINTENANCE' && (
-            <Button
-              variant="secondary"
-              onClick={() => handleMarkAsBroken(row)}
-              disabled={resolvingId === row.id}
-            >
-              {resolvingId === row.id ? 'Marking...' : 'Mark Broken'}
-            </Button>
-          )}
-          <Button variant="secondary" onClick={() => openCreateModal(row.id)}>
-            Add Log
-          </Button>
-          <Button variant="ghost" onClick={() => openViewLogsModal(row.id)}>
-            History
-          </Button>
-        </div>
-      ),
+      align: 'center' as const,
+      render: (row) => {
+        const items = [];
+        if (row.status === 'MAINTENANCE') {
+          items.push({ label: 'Resolve', icon: <CheckCircle size={14} />, onClick: () => handleResolve(row.id) });
+        } else {
+          items.push({ label: 'Mark Broken', icon: <Wrench size={14} />, danger: true, onClick: () => handleMarkAsBroken(row) });
+        }
+        items.push({ label: 'Add Log', icon: <FileText size={14} />, onClick: () => openCreateModal(row.id) });
+        items.push({ label: 'History', icon: <History size={14} />, onClick: () => openViewLogsModal(row.id) });
+        
+        return <DropdownMenu items={items} />;
+      },
     },
   ]
 
   const logColumns: TableColumn<MaintenanceLog>[] = [
-    { key: 'id', label: 'ID' },
+    { key: 'id', label: 'ID', align: 'right' as const, isNumeric: true },
     { key: 'description', label: 'Description' },
-    { key: 'cost', label: 'Cost', render: (row) => formatCurrency(row.cost) },
+    { key: 'cost', label: 'Cost', align: 'right' as const, isNumeric: true, render: (row) => formatCurrency(row.cost) },
     { key: 'createdAt', label: 'Created', render: (row) => formatDateTime(row.createdAt) || '-' },
   ]
 

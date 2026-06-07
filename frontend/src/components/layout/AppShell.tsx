@@ -135,14 +135,17 @@ export default function AppShell({ mode = 'user', children }: AppShellProps) {
   const topbarTitle = isAdminMode ? 'Admin console' : 'Personal Console'
 
   return (
-    <div className="grid min-h-screen grid-cols-[280px_minmax(0,1fr)] max-sm:grid-cols-1">
+    <div className={cn(
+      "grid h-screen overflow-hidden grid-cols-[280px_minmax(0,1fr)] max-sm:grid-cols-1",
+      isAdminMode && "bg-slate-900"
+    )}>
       <aside className="flex flex-col gap-[1.6rem] p-[1.5rem_1.2rem] text-white
         bg-[linear-gradient(180deg,rgba(6,10,22,0.92),rgba(11,17,32,0.92)),var(--color-midnight)]
         border-r border-(--border) backdrop-blur-[18px] relative after:content-['']
         after:absolute after:inset-[0_0_0_auto] after:w-px
         after:bg-[linear-gradient(180deg,transparent,var(--color-cyan),transparent)]
         after:opacity-35 after:pointer-events-none sm:border-r max-sm:border-r-0
-        max-sm:border-b max-sm:border-(--border)"
+        max-sm:border-b max-sm:border-(--border) overflow-y-auto"
       >
         <div className="flex items-center justify-between">
           <Link
@@ -191,7 +194,7 @@ export default function AppShell({ mode = 'user', children }: AppShellProps) {
         </div>
       </aside>
 
-      <div className="grid grid-rows-[auto_1fr] min-w-0">
+      <div className="grid grid-rows-[auto_1fr] min-w-0 overflow-y-auto">
         <header className="flex items-center justify-between gap-4 px-8 py-6
           border-b border-border bg-[#0b1120]/55 backdrop-blur-[18px]
           max-sm:flex-col max-sm:items-start"

@@ -7,8 +7,8 @@ const cn = (...inputs: any[]) => twMerge(clsx(inputs))
 
 const cardVariants = cva(
   [
-    "relative p-6 rounded-xl bg-surface/80 border border-border",
-    "shadow-sm overflow-hidden",
+    "relative p-6 rounded-2xl bg-slate-800 border border-border",
+    "shadow-lg overflow-hidden",
   ],
   {
     variants: {

@@ -3,11 +3,11 @@ import { useEffect, useMemo, useState } from 'react'
 // FIX 1: Thêm type-only import cho các Event React
 import type { SyntheticEvent, ChangeEvent } from 'react'
 
-import { Download } from 'lucide-react'
+import { Download, Pencil } from 'lucide-react'
 
 import { SectionHeader,
   Alert, Button, Card, Modal, Table, TextField,
-  ScooterMap
+  ScooterMap, DropdownMenu
  } from '@/components'
 import { SCOOTER_STATUSES } from '@/constants'
 import { createScooter, getAllScooters, updateScooter } from '@/features/scooters'
@@ -101,14 +101,16 @@ export default function ScootersPage() {
 
   // FIX 6: Định nghĩa kiểu dữ liệu row cụ thể cho Table columns
   const columns = [
-    { key: 'id', label: 'ID' },
+    { key: 'id', label: 'ID', align: 'right' as const, isNumeric: true },
     { key: 'name', label: 'Scooter' },
-    { key: 'batteryLevel', label: 'Battery', render: (row: Scooter) => formatBatteryLevel(row.batteryLevel) },
+    { key: 'batteryLevel', label: 'Battery', align: 'right' as const, isNumeric: true, render: (row: Scooter) => formatBatteryLevel(row.batteryLevel) },
     { key: 'status', label: 'Status', render: (row: Scooter) => getStatusLabel(row.status) },
-    { key: 'cycleCount', label: 'Cycles' },
+    { key: 'cycleCount', label: 'Cycles', align: 'right' as const, isNumeric: true },
     {
       key: 'stateOfHealth',
       label: 'SOH',
+      align: 'right' as const,
+      isNumeric: true,
       render: (row: Scooter) => {
         const soh = row.stateOfHealth
         return soh != null ? `${soh.toFixed(2)}` : '-'
@@ -117,6 +119,8 @@ export default function ScootersPage() {
     {
       key: 'temperature',
       label: 'Temp (°C)',
+      align: 'right' as const,
+      isNumeric: true,
       render: (row: Scooter) => {
         const temperature = Number(row.temperature)
         return Number.isFinite(temperature) ? `${temperature.toFixed(1)}` : '-'
@@ -133,12 +137,11 @@ export default function ScootersPage() {
     {
       key: 'actions',
       label: 'Actions',
+      align: 'center' as const,
       render: (row: Scooter) => (
-        <div className="flex items-center gap-3">
-          <Button variant="secondary" onClick={() => openEdit(row)}>
-            Edit
-          </Button>
-        </div>
+        <DropdownMenu items={[
+          { label: 'Edit', icon: <Pencil size={14} />, onClick: () => openEdit(row) }
+        ]} />
       ),
     },
   ]

@@ -7,7 +7,7 @@ import {
   Table,
   Modal,
   TextField,
-  Alert,
+  Alert, DropdownMenu
 } from '@/components'
 import type { TableColumn } from '@/components/ui/Table'
 import {
@@ -179,18 +179,16 @@ export default function SettingsPage() {
     {
       key: 'actions',
       label: 'Actions',
-      render: (row) => (
-        <div className="flex gap-2">
-          <Button variant="ghost" className="min-h-8 px-3 py-1" onClick={() => openEditModal(row)}>
-            <Edit2 size={16} />
-          </Button>
-          {!row.isDefault && (
-            <Button variant="ghost" className="min-h-8 px-3 py-1 text-[var(--danger)] hover:text-white hover:bg-[var(--danger)]" onClick={() => handleDelete(row)}>
-              <Trash2 size={16} />
-            </Button>
-          )}
-        </div>
-      ),
+      align: 'center' as const,
+      render: (row) => {
+        const items = [
+          { label: 'Edit', icon: <Edit2 size={14} />, onClick: () => openEditModal(row) }
+        ];
+        if (!row.isDefault) {
+          items.push({ label: 'Delete', icon: <Trash2 size={14} />, danger: true, onClick: () => handleDelete(row) });
+        }
+        return <DropdownMenu items={items} />;
+      },
     },
   ]
 
