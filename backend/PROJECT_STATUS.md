@@ -64,9 +64,10 @@
 * **Nâng cấp Entity Scooter (Smart Battery):** Bổ sung thành công các chỉ số chuyên sâu theo cam kết: Chu kỳ sạc (`cycleCount`), Mức độ chai pin (`stateOfHealth`), và Nhiệt độ pin (`temperature`).
 * **Giả lập IoT (Digital Twin):** Triển khai Scheduled Tasks (CRON jobs) chạy ngầm mỗi 5 giây để giả lập luồng dữ liệu động từ xa: Tự động di chuyển tọa độ GPS, tiêu hao pin và thay đổi nhiệt độ thực tế khi xe ở trạng thái `IN_USE`.
 * **Auto-Maintenance Thông Minh:** 🚨 *Tính năng đột phá:* Thuật toán tự động quét hệ thống, cô lập và khóa xe chuyển sang trạng thái `MAINTENANCE` nếu phát hiện pin yếu (< 10%) hoặc pin quá nhiệt (> 60°C) nguy hiểm, đồng thời lưu vết vào hệ thống `MaintenanceLog`.
+* **Điều phối & Nghiệm thu Sạc tự động:** 🚨 *Tính năng đột phá:* Ứng dụng thuật toán Tham lam (Greedy Algorithm) ngay tại tầng CSDL để tìm kiếm và điều phối tối ưu $K$ xe cạn pin nhất. Tích hợp mô phỏng vật lý quá trình sạc 2 giai đoạn: cập nhật thời gian thực chu kỳ sạc, phục hồi pin và tính toán độ chai pin.
 
 **🚀 Chưa làm:**
-* [ ] **Xếp lịch sạc tự động:** Tự động hóa xếp lịch sạc pin dựa trên mức năng lượng còn lại của từng xe.
+* (Nhóm giả lập IoT đã hoàn thiện toàn bộ tính năng).
 
 ---
 
@@ -78,3 +79,14 @@
 
 **🚀 Chưa làm:**
 * (Các tính năng định vị không gian lõi đã hoàn thành).
+
+---
+
+## VII. Nhóm Vận Hành Thực Địa (Field Operations Ecosystem)
+**✅ Đã hoàn thành:**
+* (Chưa khởi tạo).
+
+**🚀 Chưa làm:**
+* [ ] **Role Kỹ Thuật Viên (Technician):** Khởi tạo Role `TECHNICIAN` phân tách đặc quyền hệ thống với `ADMIN`, cung cấp luồng API di động nội bộ.
+* [ ] **Quản lý Task Điều phối:** Xây dựng luồng giao việc sạc xe (`ChargingTask`) và bảo trì xe (`MaintenanceTask`) thời gian thực dựa trên vị trí của kỹ thuật viên.
+* [ ] **Nghiệm thu & Hóa đơn:** Cho phép kỹ thuật viên tải lên báo cáo hoàn tất công việc, đính kèm hóa đơn sửa chữa/chi phí sạc thực tế để Admin duyệt và ghi nhận tự động vào Dashboard.

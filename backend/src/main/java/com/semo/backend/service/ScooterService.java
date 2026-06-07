@@ -19,7 +19,7 @@ public class ScooterService {
     private final ScooterRepository scooterRepository;
     private final AuthUtil authUtil;
 
-    private static final List<String> VALID_STATUSES = List.of("AVAILABLE", "MAINTENANCE", "IN_USE");
+    private static final List<String> VALID_STATUSES = List.of("AVAILABLE", "MAINTENANCE", "IN_USE", "CHARGING");
 
     public ScooterService(ScooterRepository scooterRepository, AuthUtil authUtil) {
         this.scooterRepository = scooterRepository;

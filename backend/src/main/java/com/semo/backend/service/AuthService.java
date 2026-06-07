@@ -8,7 +8,6 @@ import com.semo.backend.dto.*;
 import com.semo.backend.entity.User;
 import com.semo.backend.repository.UserRepository;
 import com.semo.backend.util.JwtTokenProvider;
-import com.semo.backend.service.MailService;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
