@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface FeedbackRepository extends JpaRepository<Feedback, Integer> {
     boolean existsByRental(Rental rental);
     Optional<Feedback> findByRentalId(Integer rentalId);
+    void deleteByUserId(Integer userId);
 }

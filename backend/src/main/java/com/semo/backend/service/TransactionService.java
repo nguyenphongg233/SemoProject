@@ -5,9 +5,8 @@ import com.semo.backend.entity.Transaction;
 import com.semo.backend.entity.User;
 import com.semo.backend.repository.TransactionRepository;
 import com.semo.backend.repository.UserRepository;
+import com.semo.backend.util.AuthUtil;
 
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,22 +18,25 @@ public class TransactionService {
 
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
+    private final AuthUtil authUtil;
 
-    public TransactionService(TransactionRepository transactionRepository, UserRepository userRepository) {
+    public TransactionService(TransactionRepository transactionRepository, UserRepository userRepository,
+            AuthUtil authUtil) {
         this.transactionRepository = transactionRepository;
         this.userRepository = userRepository;
+        this.authUtil = authUtil;
     }
 
     @Transactional(readOnly = true)
     public List<TransactionResponseDTO> getMyTransactionHistory() {
-        User user = requireAuthenticatedUser();
+        User user = authUtil.requireAuthenticatedUser();
         List<Transaction> transactions = transactionRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
         return transactions.stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public List<TransactionResponseDTO> getAllTransactions() {
-        requireAdminAccess();
+        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
 
         List<Transaction> transactions = transactionRepository.findByOrderByCreatedAtDesc();
         return transactions.stream().map(this::mapToDTO).collect(Collectors.toList());
@@ -42,7 +44,7 @@ public class TransactionService {
 
     @Transactional(readOnly = true)
     public List<TransactionResponseDTO> getTransactionsByUserId(Integer userId) {
-        requireAdminAccess();
+        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
 
         userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với ID: " + userId));
@@ -51,21 +53,6 @@ public class TransactionService {
         return transactions.stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
-    private User requireAuthenticatedUser() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
-            throw new RuntimeException("Truy cập bị từ chối: Vui lòng đăng nhập lại!");
-        }
-        return userRepository.findByEmail(auth.getName())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng hệ thống"));
-    }
-
-    private void requireAdminAccess() {
-        User user = requireAuthenticatedUser();
-        if (!"ADMIN".equals(user.getRole())) {
-            throw new RuntimeException("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
-        }
-    }
 
     private TransactionResponseDTO mapToDTO(Transaction transaction) {
         TransactionResponseDTO dto = new TransactionResponseDTO();

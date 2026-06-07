@@ -5,8 +5,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,33 +12,18 @@ import com.semo.backend.dto.ScooterRequestDTO;
 import com.semo.backend.dto.ScooterResponseDTO;
 import com.semo.backend.entity.Scooter;
 import com.semo.backend.repository.ScooterRepository;
-import com.semo.backend.entity.User;
-import com.semo.backend.repository.UserRepository;
+import com.semo.backend.util.AuthUtil;
 
 @Service
 public class ScooterService {
     private final ScooterRepository scooterRepository;
-    private final UserRepository userRepository;
+    private final AuthUtil authUtil;
 
-    private static final List<String> VALID_STATUSES = List.of("AVAILABLE", "MAINTENANCE", "IN_USE");
+    private static final List<String> VALID_STATUSES = List.of("AVAILABLE", "MAINTENANCE", "IN_USE", "CHARGING");
 
-    public ScooterService(ScooterRepository scooterRepository, UserRepository userRepository) {
+    public ScooterService(ScooterRepository scooterRepository, AuthUtil authUtil) {
         this.scooterRepository = scooterRepository;
-        this.userRepository = userRepository;
-    }
-
-    private void checkAdminAccess() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
-            throw new RuntimeException("Truy cập bị từ chối: Vui lòng đăng nhập lại!");
-        }
-
-        User user = userRepository.findByEmail(auth.getName())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng hệ thống"));
-
-        if (!"ADMIN".equals(user.getRole())) {
-            throw new RuntimeException("Lỗi phân quyền: Chỉ Quản trị viên mới được phép thực hiện hành động này!");
-        }
+        this.authUtil = authUtil;
     }
 
     private String validateAndNormalizeStatus(String status) {
@@ -56,7 +39,7 @@ public class ScooterService {
 
     @Transactional
     public ScooterResponseDTO createScooter(ScooterRequestDTO requestDTO) {
-        checkAdminAccess();
+        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được phép thực hiện hành động này!");
         Scooter scooter = new Scooter();
         scooter.setName(requestDTO.getName());
         scooter.setBatteryLevel(requestDTO.getBatteryLevel());
@@ -100,7 +83,7 @@ public class ScooterService {
 
     @Transactional
     public ScooterResponseDTO updateScooter(Integer id, ScooterRequestDTO requestDTO) {
-        checkAdminAccess();
+        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được phép thực hiện hành động này!");
 
         Scooter scooter = scooterRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy xe với ID: " + id));
@@ -130,9 +113,8 @@ public class ScooterService {
 
     private ScooterResponseDTO mapToResponseDTO(Scooter scooter) {
         ScooterResponseDTO dto = new ScooterResponseDTO();
-        if (scooter.getId() != null) {
-            dto.setId(scooter.getId().intValue());
-        }
+        if (scooter.getId() != null)
+            dto.setId(scooter.getId());
         dto.setName(scooter.getName());
         dto.setBatteryLevel(scooter.getBatteryLevel());
         dto.setCycleCount(scooter.getCycleCount());

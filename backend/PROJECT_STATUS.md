@@ -9,9 +9,10 @@
 * Xác thực và phân quyền bằng JWT Token.
 * Phân chia 2 Role: `ADMIN` và `CUSTOMER`.
 * Xử lý lỗi truy cập (403 Forbidden, 401 Unauthorized).
-* Chống IDOR tuyệt đối cho các API tài khoản và nghiệp vụ thuê xe (chuẩn `/me`).
+* **Ủy quyền Tập trung (Centralized Authorization):** Triển khai module `AuthUtil` để quản lý tập trung toàn bộ logic phân quyền, tối ưu hóa Clean Code (DRY & SoC) và chống IDOR tuyệt đối cho các API tài khoản và nghiệp vụ.
 * **Global Exception Handling:** Xử lý lỗi tập trung chuẩn Clean Code, bắt mọi ngoại lệ (như `RuntimeException`) trả về chuẩn JSON không cần try-catch thủ công.
-* **Identity & Access Management (IAM) & Email Verification:** Tách biệt luồng xác thực công khai (`AuthController`) và luồng quản trị nội bộ (`UserController`). Tích hợp gửi mã OTP xác thực qua Email (Google SMTP) để kích hoạt tài khoản. Sử dụng `SecureRandom` để sinh mã chuẩn mật mã học và xử lý bất đồng bộ (`@Async`) giúp tối ưu hiệu năng đăng ký.
+* **Identity & Access Management (IAM) & Email Verification:** Tách biệt luồng xác thực công khai (`AuthController`) và luồng quản trị nội bộ (`UserController`). Tích hợp gửi mã OTP (Google SMTP) và API Gửi lại mã (Resend OTP) có cơ chế chống spam.
+* **Tối ưu UX Đăng ký (Abandoned Registration):** 🚨 *Tính năng nâng cao:* Triển khai thuật toán Upsert (Ghi đè) để xử lý mượt mà các trường hợp người dùng thoát trang khi chưa xác thực xong mà không sinh rác CSDL. Tách bạch hoàn toàn cờ `isVerified` và `isActive` để hệ thống thông báo lỗi chính xác giữa việc "Chưa xác thực OTP" và "Bị Admin khóa".
 
 **🚀 Chưa làm:**
 * (Hiện tại hạ tầng bảo mật đã hoàn chỉnh).
@@ -20,7 +21,7 @@
 
 ## II. Nhóm Quản Lý Cơ Bản (CRUD)
 **✅ Đã hoàn thành:**
-* **User CRUD:** Đăng ký (kết hợp OTP), xem thông tin cá nhân, xem danh sách (Admin).
+* **User CRUD:** Đăng ký (kết hợp OTP), xem thông tin cá nhân, xem danh sách (Admin). Triển khai cơ chế Xóa cứng an toàn (Cascading Hard Delete), tự động dọn dẹp vòng đời dữ liệu (Feedback → Transaction → Rental) để tránh lỗi toàn vẹn CSDL.
 * **User Profile:** Cập nhật thông tin (Partial Update - `UserUpdateRequestDTO`).
 * **Scooter CRUD:** Admin thêm xe mới, cập nhật trạng thái/pin/tọa độ, xem danh sách (có phân trang).
 * **Feedback CRUD:** Khách hàng đánh giá (1-5 sao) và bình luận chuyến đi đã hoàn thành (Unique constraint).
@@ -63,9 +64,10 @@
 * **Nâng cấp Entity Scooter (Smart Battery):** Bổ sung thành công các chỉ số chuyên sâu theo cam kết: Chu kỳ sạc (`cycleCount`), Mức độ chai pin (`stateOfHealth`), và Nhiệt độ pin (`temperature`).
 * **Giả lập IoT (Digital Twin):** Triển khai Scheduled Tasks (CRON jobs) chạy ngầm mỗi 5 giây để giả lập luồng dữ liệu động từ xa: Tự động di chuyển tọa độ GPS, tiêu hao pin và thay đổi nhiệt độ thực tế khi xe ở trạng thái `IN_USE`.
 * **Auto-Maintenance Thông Minh:** 🚨 *Tính năng đột phá:* Thuật toán tự động quét hệ thống, cô lập và khóa xe chuyển sang trạng thái `MAINTENANCE` nếu phát hiện pin yếu (< 10%) hoặc pin quá nhiệt (> 60°C) nguy hiểm, đồng thời lưu vết vào hệ thống `MaintenanceLog`.
+* **Điều phối & Nghiệm thu Sạc tự động:** 🚨 *Tính năng đột phá:* Ứng dụng thuật toán Tham lam (Greedy Algorithm) ngay tại tầng CSDL để tìm kiếm và điều phối tối ưu $K$ xe cạn pin nhất. Tích hợp mô phỏng vật lý quá trình sạc 2 giai đoạn: cập nhật thời gian thực chu kỳ sạc, phục hồi pin và tính toán độ chai pin.
 
 **🚀 Chưa làm:**
-* [ ] **Xếp lịch sạc tự động:** Tự động hóa xếp lịch sạc pin dựa trên mức năng lượng còn lại của từng xe.
+* (Nhóm giả lập IoT đã hoàn thiện toàn bộ tính năng).
 
 ---
 
@@ -73,6 +75,18 @@
 **✅ Đã hoàn thành:**
 * **WebSocket Tracking:** Tích hợp thành công cấu hình mạng STOMP/WebSocket công khai (`/ws`), tự động truyền tải và cập nhật luồng dữ liệu di chuyển động của dàn xe lên Admin Dashboard theo thời gian thực mà không cần reload trang.
 * **Lưu vết Tọa độ Lịch sử (GIS Tracking):** Tự động chụp và lưu trữ tọa độ `startLat`, `startLng`, `endLat`, `endLng` của từng chuyến đi để phục vụ bài toán Big Data.
+* **Geofencing (Hàng rào địa lý Đa khu vực):** 🚨 *Tính năng đột phá:* Ứng dụng thuật toán Haversine để tính toán khoảng cách không gian. Thiết kế module `GeofenceZone` (CRUD) cho phép Admin cấu hình động nhiều vùng hoạt động. Tích hợp Job quét ngầm thời gian thực (5s/lần) tự động rà soát và phát tín hiệu cảnh báo khi xe chạy ra khỏi toàn bộ các vùng an toàn.
 
 **🚀 Chưa làm:**
-* [ ] **Geofencing (Hàng rào địa lý):** Thuật toán cảnh báo thời gian thực nếu hệ thống phát hiện tọa độ xe di chuyển vượt quá ranh giới khu vực quy định (ví dụ: ra khỏi khuôn viên trường Đại học Bách Khoa Hà Nội).
+* (Các tính năng định vị không gian lõi đã hoàn thành).
+
+---
+
+## VII. Nhóm Vận Hành Thực Địa (Field Operations Ecosystem)
+**✅ Đã hoàn thành:**
+* (Chưa khởi tạo).
+
+**🚀 Chưa làm:**
+* [ ] **Role Kỹ Thuật Viên (Technician):** Khởi tạo Role `TECHNICIAN` phân tách đặc quyền hệ thống với `ADMIN`, cung cấp luồng API di động nội bộ.
+* [ ] **Quản lý Task Điều phối:** Xây dựng luồng giao việc sạc xe (`ChargingTask`) và bảo trì xe (`MaintenanceTask`) thời gian thực dựa trên vị trí của kỹ thuật viên.
+* [ ] **Nghiệm thu & Hóa đơn:** Cho phép kỹ thuật viên tải lên báo cáo hoàn tất công việc, đính kèm hóa đơn sửa chữa/chi phí sạc thực tế để Admin duyệt và ghi nhận tự động vào Dashboard.

@@ -5,41 +5,34 @@ import com.semo.backend.dto.FeedbackResponseDTO;
 import com.semo.backend.entity.Rental;
 import com.semo.backend.entity.User;
 import com.semo.backend.entity.Feedback;
-import com.semo.backend.repository.UserRepository;
 import com.semo.backend.repository.RentalRepository;
 import com.semo.backend.repository.FeedbackRepository;
+import com.semo.backend.util.AuthUtil;
 
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class FeedbackService {
     private final FeedbackRepository feedbackRepository;
-    private final UserRepository userRepository;
     private final RentalRepository rentalRepository;
+    private final AuthUtil authUtil;
 
-    public FeedbackService(FeedbackRepository feedbackRepository, UserRepository userRepository, RentalRepository rentalRepository) {
+    public FeedbackService(FeedbackRepository feedbackRepository, RentalRepository rentalRepository,
+            AuthUtil authUtil) {
         this.feedbackRepository = feedbackRepository;
-        this.userRepository = userRepository;
         this.rentalRepository = rentalRepository;
+        this.authUtil = authUtil;
     }
 
     @Transactional
     public FeedbackResponseDTO submitFeedback(FeedbackRequestDTO requestDTO) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
-            throw new RuntimeException("Truy cập bị từ chối: Vui lòng đăng nhập lại!");
-        }
-
-        User loggedInUser = userRepository.findByEmail(auth.getName())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng hệ thống"));
+        User user = authUtil.requireActiveAuthenticatedUser();
 
         Rental rental = rentalRepository.findById(requestDTO.getRentalId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy chuyến đi"));
 
-        if (!rental.getUser().getId().equals(loggedInUser.getId())) {
+        if (!rental.getUser().getId().equals(user.getId())) {
             throw new RuntimeException("Lỗi bảo mật: Bạn không thể đánh giá chuyến đi của người khác!");
         }
 
@@ -53,7 +46,7 @@ public class FeedbackService {
 
         Feedback feedback = new Feedback();
         feedback.setRental(rental);
-        feedback.setUser(loggedInUser);
+        feedback.setUser(user);
         feedback.setRating(requestDTO.getRating());
         feedback.setComment(requestDTO.getComment());
 
@@ -63,10 +56,14 @@ public class FeedbackService {
     }
 
     public java.util.List<FeedbackResponseDTO> getAllFeedbacks() {
+        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
+
         return feedbackRepository.findAll().stream()
                 .map(this::mapToDTO)
                 .collect(java.util.stream.Collectors.toList());
     }
+
+
 
     private FeedbackResponseDTO mapToDTO(Feedback feedback) {
         FeedbackResponseDTO dto = new FeedbackResponseDTO();

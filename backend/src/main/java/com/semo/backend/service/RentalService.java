@@ -8,11 +8,9 @@ import com.semo.backend.entity.Transaction;
 import com.semo.backend.entity.User;
 import com.semo.backend.repository.RentalRepository;
 import com.semo.backend.repository.ScooterRepository;
-import com.semo.backend.repository.UserRepository;
 import com.semo.backend.repository.TransactionRepository;
+import com.semo.backend.util.AuthUtil;
 
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,21 +23,22 @@ public class RentalService {
 
     private final RentalRepository rentalRepository;
     private final ScooterRepository scooterRepository;
-    private final UserRepository userRepository;
     private final TransactionRepository transactionRepository;
+    private final AuthUtil authUtil;
     private static final List<String> VALID_STATUSES = List.of("ALL", "ACTIVE", "COMPLETED");
 
     public RentalService(RentalRepository rentalRepository, ScooterRepository scooterRepository,
-                         UserRepository userRepository, TransactionRepository transactionRepository) {
+                         TransactionRepository transactionRepository,
+                         AuthUtil authUtil) {
         this.rentalRepository = rentalRepository;
         this.scooterRepository = scooterRepository;
-        this.userRepository = userRepository;
         this.transactionRepository = transactionRepository;
+        this.authUtil = authUtil;
     }
 
     @Transactional
     public RentalResponseDTO startRental(RentalRequestDTO requestDTO) {
-        User user = requireActiveAuthenticatedUser();
+        User user = authUtil.requireActiveAuthenticatedUser();
 
         Scooter scooter = scooterRepository.findById(requestDTO.getScooterId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Xe"));
@@ -82,7 +81,7 @@ public class RentalService {
 
     @Transactional
     public RentalResponseDTO endRental(Integer rentalId) {
-        User loggedInUser = requireActiveAuthenticatedUser();
+        User loggedInUser = authUtil.requireActiveAuthenticatedUser();
 
         Rental rental = rentalRepository.findById(rentalId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy chuyến đi"));
@@ -142,7 +141,7 @@ public class RentalService {
         if (!VALID_STATUSES.contains(status)) {
             throw new RuntimeException("Trạng thái không hợp lệ!");
         }
-        User user = requireActiveAuthenticatedUser();
+        User user = authUtil.requireActiveAuthenticatedUser();
 
         boolean isAdmin = "ADMIN".equals(user.getRole()),
                 isAllStatus = "ALL".equals(status);
@@ -177,21 +176,5 @@ public class RentalService {
         dto.setEndLat(rental.getEndLat());
         dto.setEndLng(rental.getEndLng());
         return dto;
-    }
-
-    private User requireActiveAuthenticatedUser() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
-            throw new RuntimeException("Truy cập bị từ chối: Vui lòng đăng nhập lại!");
-        }
-
-        User user = userRepository.findByEmail(auth.getName())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng hệ thống"));
-
-        if (Boolean.FALSE.equals(user.getIsActive())) {
-            throw new RuntimeException("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên!");
-        }
-
-        return user;
     }
 }

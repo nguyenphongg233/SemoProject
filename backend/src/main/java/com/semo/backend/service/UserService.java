@@ -3,8 +3,7 @@ package com.semo.backend.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import com.semo.backend.repository.FeedbackRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +14,7 @@ import com.semo.backend.entity.Transaction;
 import com.semo.backend.repository.RentalRepository;
 import com.semo.backend.repository.UserRepository;
 import com.semo.backend.repository.TransactionRepository;
+import com.semo.backend.util.AuthUtil;
 
 @Service
 public class UserService {
@@ -23,13 +23,18 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final RentalRepository rentalRepository;
     private final TransactionRepository transactionRepository;
+    private final FeedbackRepository feedbackRepository;
+    private final AuthUtil authUtil;
 
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder,
-                       RentalRepository rentalRepository, TransactionRepository transactionRepository) {
+                       RentalRepository rentalRepository, TransactionRepository transactionRepository,
+                       FeedbackRepository feedbackRepository, AuthUtil authUtil) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.rentalRepository = rentalRepository;
         this.transactionRepository = transactionRepository;
+        this.feedbackRepository = feedbackRepository;
+        this.authUtil = authUtil;
     }
 
     /**
@@ -64,7 +69,7 @@ public class UserService {
      * @return UserResponseDTO
      */
     public UserResponseDTO getUserById(Integer id) {
-        checkAdminOrSelfAccess(id);
+        authUtil.requireAdminOrSelfAccess(id, "Lỗi phân quyền: Bạn không có quyền xem thông tin user này!");
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy User với ID: " + id));
         return mapToResponseDTO(user);
@@ -77,7 +82,7 @@ public class UserService {
      * @return UserResponseDTO
      */
     public UserResponseDTO getUserByEmail(String email) {
-        checkAdminAccess();
+        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy User với email: " + email));
         return mapToResponseDTO(user);
@@ -89,7 +94,7 @@ public class UserService {
      * @return List UserResponseDTO
      */
     public List<UserResponseDTO> getAllUsers() {
-        checkAdminAccess();
+        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
         return userRepository.findAll()
                 .stream()
                 .map(this::mapToResponseDTO)
@@ -103,7 +108,7 @@ public class UserService {
      * @return List UserResponseDTO
      */
     public List<UserResponseDTO> getUsersByRole(String role) {
-        checkAdminAccess();
+        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
         return userRepository.findByRole(role)
                 .stream()
                 .map(this::mapToResponseDTO)
@@ -119,7 +124,7 @@ public class UserService {
      */
     @Transactional
     public UserResponseDTO updateUser(Integer id, UserUpdateRequestDTO requestDTO) {
-        checkAdminOrSelfAccess(id);
+        authUtil.requireAdminOrSelfAccess(id, "Lỗi phân quyền: Bạn không có quyền xem thông tin user này!");
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy User với ID: " + id));
 
@@ -150,11 +155,12 @@ public class UserService {
      */
     @Transactional
     public void deleteUser(Integer id) {
-        checkAdminAccess();
+        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy User với ID: " + id));
-        // Remove rentals associated with this user first to avoid foreign key
-        // constraint
+
+        feedbackRepository.deleteByUserId(id);
+        transactionRepository.deleteByUserId(id);
         rentalRepository.deleteByUserId(id);
         userRepository.delete(user);
     }
@@ -177,7 +183,7 @@ public class UserService {
      */
     @Transactional
     public String adminResetPassword(Integer id, String newPassword) {
-        checkAdminAccess();
+        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy User với ID: " + id));
 
@@ -196,7 +202,7 @@ public class UserService {
      */
     @Transactional
     public void changePassword(String currentPassword, String newPassword) {
-        User user = requireActiveAuthenticatedUser();
+        User user = authUtil.requireActiveAuthenticatedUser();
 
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
             throw new RuntimeException("Mật khẩu hiện tại không đúng.");
@@ -261,46 +267,9 @@ public class UserService {
         return dto;
     }
 
-    private User checkAdminAccess() {
-        User user = requireActiveAuthenticatedUser();
-
-        if (!"ADMIN".equals(user.getRole())) {
-            throw new RuntimeException("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
-        }
-
-        return user;
-    }
-
-    private void checkAdminOrSelfAccess(Integer targetUserId) {
-        User currentUser = requireActiveAuthenticatedUser();
-
-        if ("ADMIN".equals(currentUser.getRole()) || currentUser.getId().equals(targetUserId)) {
-            return;
-        }
-
-        throw new RuntimeException("Lỗi phân quyền: Bạn không có quyền xem thông tin user này!");
-    }
-
-    private User requireActiveAuthenticatedUser() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
-            throw new RuntimeException("Truy cập bị từ chối: Vui lòng đăng nhập lại!");
-        }
-
-        String email = auth.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy User"));
-
-        if (Boolean.FALSE.equals(user.getIsActive())) {
-            throw new RuntimeException("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên!");
-        }
-
-        return user;
-    }
-
     @Transactional
     public DepositResponseDTO deposit(DepositRequestDTO requestDTO) {
-        User user = requireActiveAuthenticatedUser();
+        User user = authUtil.requireActiveAuthenticatedUser();
 
         user.addBalance(requestDTO.getAmount());
 
@@ -319,7 +288,7 @@ public class UserService {
 
     @Transactional
     public UserResponseDTO toggleUserStatus(Integer targetUserId) {
-        User admin = checkAdminAccess();
+        User admin = authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
 
 
         if (admin.getId().equals(targetUserId)) {

@@ -10,4 +10,5 @@ import java.util.List;
 public interface TransactionRepository extends JpaRepository<Transaction, Integer> {
     List<Transaction> findByUserIdOrderByCreatedAtDesc(Integer userId);
     List<Transaction> findByOrderByCreatedAtDesc();
+    void deleteByUserId(Integer userId);
 }

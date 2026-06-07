@@ -80,6 +80,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/analytics/**").hasRole("ADMIN")
                         .requestMatchers("/api/statistics/**").hasRole("ADMIN")
 
+                        // Geofence zones (admin)
+                        .requestMatchers("/api/geofence/**").hasRole("ADMIN")
+
                         // Fallback: any other request must be authenticated
                         .anyRequest().authenticated())
                 .addFilterBefore(
