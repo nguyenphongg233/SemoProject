@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 
-import { SectionHeader, Alert, Button, Table, Modal } from '@/components'
+import { SectionHeader, Alert, Button, Table, Modal, DropdownMenu } from '@/components'
+import { StopCircle } from 'lucide-react'
 import { getRentalHistory, endRental } from '@/features/rentals'
 import { formatDateTime, formatCurrency, getApiErrorMessage } from '@/utils'
 import type { TableColumn } from '@/components/ui/Table'
@@ -77,9 +78,9 @@ export default function RentalsPage() {
   }
 
   const columns: TableColumn<RentalResult>[] = [
-    { key: 'id', label: 'ID' },
-    { key: 'userId', label: 'User ID' },
-    { key: 'scooterId', label: 'Scooter ID' },
+    { key: 'id', label: 'ID', align: 'right' as const, isNumeric: true },
+    { key: 'userId', label: 'User ID', align: 'right' as const, isNumeric: true },
+    { key: 'scooterId', label: 'Scooter ID', align: 'right' as const, isNumeric: true },
     {
       key: 'status',
       label: 'Status',
@@ -108,20 +109,19 @@ export default function RentalsPage() {
     {
       key: 'totalPrice',
       label: 'Price',
+      align: 'right' as const,
+      isNumeric: true,
       render: (row) => formatCurrency(row.totalPrice),
     },
     {
       key: 'actions',
       label: 'Actions',
+      align: 'center' as const,
       render: (row) =>
         row.status === 'ACTIVE' ? (
-          <Button
-            variant="secondary"
-            onClick={() => handleOpenConfirm(row.id)}
-            disabled={loading || ending}
-          >
-            Force End
-          </Button>
+          <DropdownMenu items={[
+            { label: 'Force End', icon: <StopCircle size={14} />, danger: true, onClick: () => handleOpenConfirm(row.id) }
+          ]} />
         ) : null,
     },
   ]

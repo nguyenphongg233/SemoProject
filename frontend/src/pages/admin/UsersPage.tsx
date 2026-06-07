@@ -3,9 +3,14 @@ import { useEffect, useMemo, useState } from 'react'
 // FIX 1: Import type-only chống lỗi verbatimModuleSyntax
 import type { SyntheticEvent, ChangeEvent } from 'react'
 
+import { Download, Pencil, Coins, History, Ban, Unlock, KeyRound, Trash2 } from 'lucide-react'
+
 import { SectionHeader,
-  Alert, Button, Card, Modal, Table, TextField
+  Alert, Button, Card, Modal, Table,  TextField,
+  DropdownMenu
 } from '@/components'
+import type { DropdownMenuItem } from '@/components/ui/DropdownMenu'
+import type { TableColumn } from '@/components/ui/Table'
 import { ROLES } from '@/constants'
 import {
   adminResetPassword,
@@ -115,12 +120,12 @@ export default function UsersPage() {
   }, [users])
 
   // FIX 5: Định nghĩa kiểu dữ liệu row: User cho các cột hiển thị dữ liệu
-  const columns = [
-    { key: 'id', label: 'ID' },
+  const columns: TableColumn<User>[] = [
+    { key: 'id', label: 'ID', align: 'right' as const, isNumeric: true },
     { key: 'fullName', label: 'Name' },
     { key: 'email', label: 'Email' },
     { key: 'phoneNumber', label: 'Phone' },
-    { key: 'balance', label: 'Balance', render: (row: User) => (row.balance == null ? '-' : formatCurrency(row.balance)) },
+    { key: 'balance', label: 'Balance', align: 'right' as const, isNumeric: true, render: (row: User) => (row.balance == null ? '-' : formatCurrency(row.balance)) },
     { key: 'role', label: 'Role' },
     {
       key: 'status',
@@ -140,36 +145,30 @@ export default function UsersPage() {
     {
       key: 'actions',
       label: 'Actions',
-      render: (row: User) => (
-        <div className="flex items-center gap-2 flex-wrap">
-          <Button variant="secondary" onClick={() => openEdit(row)}>
-            Edit
-          </Button>
-          <Button variant="secondary" onClick={() => openDeposit(row)}>
-            Top Up
-          </Button>
-          <Button variant="ghost" onClick={() => openHistory(row)}>
-            History
-          </Button>
-          {row.role !== ROLES.ADMIN && (
-            <Button 
-              variant={row.status === 'BANNED' ? 'primary' : 'secondary'} 
-              onClick={() => handleToggleStatus(row)}
-              disabled={saving}
-            >
-              {row.status === 'BANNED' ? 'Unban' : 'Ban'}
-            </Button>
-          )}
-          <Button variant="ghost" onClick={() => openReset(row)}>
-            Reset PW
-          </Button>
-          {row.role !== ROLES.ADMIN && (
-            <Button variant="destructive" onClick={() => openDelete(row)}>
-              Delete
-            </Button>
-          )}
-        </div>
-      ),
+      align: 'center' as const,
+      render: (row: User) => {
+        const items: DropdownMenuItem[] = [
+          { label: 'Edit', icon: <Pencil size={14} />, onClick: () => openEdit(row) },
+          { label: 'Top Up', icon: <Coins size={14} />, onClick: () => openDeposit(row) },
+          { label: 'History', icon: <History size={14} />, onClick: () => openHistory(row) },
+        ];
+        
+        if (row.role !== ROLES.ADMIN) {
+          items.push({
+            label: row.status === 'BANNED' ? 'Unban' : 'Ban',
+            icon: row.status === 'BANNED' ? <Unlock size={14} /> : <Ban size={14} />,
+            onClick: () => handleToggleStatus(row)
+          });
+        }
+        
+        items.push({ label: 'Reset PW', icon: <KeyRound size={14} />, onClick: () => openReset(row) });
+        
+        if (row.role !== ROLES.ADMIN) {
+          items.push({ label: 'Delete', icon: <Trash2 size={14} />, danger: true, onClick: () => openDelete(row) });
+        }
+
+        return <DropdownMenu items={items} />;
+      },
     },
   ]
 
@@ -392,16 +391,26 @@ export default function UsersPage() {
             <option value={ROLES.CUSTOMER}>Customer</option>
           </select>
         </div>
-        <Button 
-          variant={sortByBalance === 'none' ? 'secondary' : 'primary'}
-          onClick={() => {
-            if (sortByBalance === 'none') setSortByBalance('desc')
-            else if (sortByBalance === 'desc') setSortByBalance('asc')
-            else setSortByBalance('none')
-          }}
-        >
-          Sort by Balance {sortByBalance === 'desc' ? '↓' : sortByBalance === 'asc' ? '↑' : ''}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="secondary"
+            title="Pending backend implementation"
+            onClick={() => alert("Chức năng Export CSV hiện đang chờ Backend API.")}
+            leadingIcon={<Download size={16} />}
+          >
+            Export CSV
+          </Button>
+          <Button 
+            variant={sortByBalance === 'none' ? 'secondary' : 'primary'}
+            onClick={() => {
+              if (sortByBalance === 'none') setSortByBalance('desc')
+              else if (sortByBalance === 'desc') setSortByBalance('asc')
+              else setSortByBalance('none')
+            }}
+          >
+            Sort by Balance {sortByBalance !== 'none' && (sortByBalance === 'desc' ? '↓' : '↑')}
+          </Button>
+        </div>
       </div>
 
       <Card>

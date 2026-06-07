@@ -1,0 +1,169 @@
+import { useEffect, useState } from 'react'
+import { ArrowUpRight, ArrowDownRight, RefreshCw, Search } from 'lucide-react'
+import { SectionHeader, Card, Table, Alert, TextField, Button } from '@/components'
+import { getAllTransactions } from '@/features/transactions'
+import { formatCurrency, formatDateTime, getApiErrorMessage, cn } from '@/utils'
+import type { TableColumn } from '@/components/ui/Table'
+
+export default function TransactionsPage() {
+  const [transactions, setTransactions] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [query, setQuery] = useState('')
+  const [typeFilter, setTypeFilter] = useState('ALL')
+
+  const fetchTransactions = async () => {
+    try {
+      setLoading(true)
+      setError('')
+      const data = await getAllTransactions()
+      // Sắp xếp mới nhất lên đầu
+      const sorted = [...data].sort((a: any, b: any) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )
+      setTransactions(sorted)
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Failed to fetch transactions.'))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchTransactions()
+  }, [])
+
+  const filtered = transactions.filter(t => {
+    if (typeFilter !== 'ALL' && t.type !== typeFilter) return false
+    if (query) {
+      const lowerQuery = query.toLowerCase()
+      const userName = (t.userName || '').toLowerCase()
+      const desc = (t.description || '').toLowerCase()
+      if (!userName.includes(lowerQuery) && !desc.includes(lowerQuery) && !String(t.id).includes(lowerQuery)) {
+        return false
+      }
+    }
+    return true
+  })
+
+  const columns: TableColumn<any>[] = [
+    {
+      label: 'Transaction ID',
+      key: 'id',
+      render: (t: any) => <span className="text-slate-400 font-mono">#{t.id}</span>
+    },
+    {
+      label: 'User',
+      key: 'userName',
+      render: (t: any) => (
+        <div className="flex flex-col">
+          <span className="font-semibold text-white">{t.userName || `User ID: ${t.userId}`}</span>
+        </div>
+      )
+    },
+    {
+      label: 'Type',
+      key: 'type',
+      render: (t: any) => {
+        const isDeposit = t.type === 'DEPOSIT'
+        return (
+          <span className={cn(
+            "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border",
+            isDeposit 
+              ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" 
+              : "bg-rose-500/10 text-rose-400 border-rose-500/20"
+          )}>
+            {isDeposit ? <ArrowDownRight size={14} /> : <ArrowUpRight size={14} />}
+            {t.type}
+          </span>
+        )
+      }
+    },
+    {
+      label: 'Amount',
+      key: 'amount',
+      render: (t: any) => {
+        const isDeposit = t.type === 'DEPOSIT'
+        return (
+          <span className={cn(
+            "font-bold font-mono",
+            isDeposit ? "text-emerald-400" : "text-rose-400"
+          )}>
+            {isDeposit ? '+' : '-'}{formatCurrency(t.amount)}
+          </span>
+        )
+      }
+    },
+    {
+      label: 'Description',
+      key: 'description',
+      render: (t: any) => <span className="text-slate-400 text-sm max-w-[200px] truncate block" title={t.description}>{t.description}</span>
+    },
+    {
+      label: 'Date',
+      key: 'createdAt',
+      render: (t: any) => <span className="text-sm text-slate-400">{formatDateTime(t.createdAt)}</span>
+    }
+  ]
+
+  return (
+    <div className="space-y-6">
+      <SectionHeader
+        eyebrow="Financials"
+        title="Transactions"
+        description="Monitor all system deposits and rental payments."
+        actions={
+          <Button variant="secondary" onClick={fetchTransactions} leadingIcon={<RefreshCw size={16} />}>
+            Refresh
+          </Button>
+        }
+      />
+
+      <Card className="p-4 flex flex-col md:flex-row gap-4 items-center justify-between">
+        <div className="w-full md:w-96">
+          <TextField
+            name="search"
+            placeholder="Search by User Name or ID..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            leadingIcon={<Search size={18} />}
+          />
+        </div>
+        
+        <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
+          <div className="flex items-center gap-2 bg-slate-900 p-1 rounded-xl border border-white/10 shrink-0">
+            {['ALL', 'DEPOSIT', 'PAYMENT'].map((type) => (
+              <button
+                key={type}
+                onClick={() => setTypeFilter(type)}
+                className={cn(
+                  "px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                  typeFilter === type 
+                    ? "bg-cyan-500/20 text-cyan-400" 
+                    : "text-slate-400 hover:text-white hover:bg-white/5"
+                )}
+              >
+                {type === 'ALL' ? 'All Types' : type}
+              </button>
+            ))}
+          </div>
+        </div>
+      </Card>
+
+      {error && <Alert tone="error">{error}</Alert>}
+
+      <Card className="overflow-hidden">
+        {loading ? (
+          <div className="p-8 text-center text-slate-400">Loading...</div>
+        ) : (
+          <Table 
+            columns={columns} 
+            rows={filtered} 
+            rowKey={(row) => row.id}
+            emptyMessage="No transactions found matching your criteria."
+          />
+        )}
+      </Card>
+    </div>
+  )
+}

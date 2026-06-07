@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.GetMapping;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/feedbacks")
@@ -25,5 +27,10 @@ public class FeedbackController {
     public ResponseEntity<FeedbackResponseDTO> submitFeedback(@Valid @RequestBody FeedbackRequestDTO requestDTO) {
         FeedbackResponseDTO responseDTO = feedbackService.submitFeedback(requestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<FeedbackResponseDTO>> getAllFeedbacks() {
+        return ResponseEntity.ok(feedbackService.getAllFeedbacks());
     }
 }

@@ -5,3 +5,8 @@ export async function submitFeedback(request: any) {
   const { data } = await axiosClient.post('/api/feedbacks', request)
   return data
 }
+
+export async function getAllFeedbacks() {
+  const { data } = await axiosClient.get('/api/feedbacks')
+  return data
+}

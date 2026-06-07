@@ -13,4 +13,6 @@ export {
   getUserTransactions,
   toggleUserStatus,
   updateUser,
+  updateProfile,
+  uploadAvatar,
 } from './api'

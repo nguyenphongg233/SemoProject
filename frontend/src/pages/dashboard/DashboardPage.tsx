@@ -212,7 +212,7 @@ export default function DashboardPage() {
             >
               Refresh Data
             </Button>
-            <Link to={ROUTES.PROFILE} className="no-underline">
+            <Link to={ROUTES.ACCOUNT} className="no-underline">
               <Button leadingIcon={<Gauge size={16} strokeWidth={1.8} />}>
                 Manage Wallet
               </Button>

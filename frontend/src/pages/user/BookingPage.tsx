@@ -17,12 +17,10 @@ import { CircleMarker, MapContainer, Popup, TileLayer, Tooltip, Circle, useMap }
 import type { LatLngTuple } from 'leaflet'
 import {
   Search, Filter, MapPin, RefreshCcw, Crosshair, Zap, Unlock, Play, Square,
-  Battery, Gauge, Thermometer, AlertTriangle, ShieldAlert, Sparkles, Clock,
+  Battery, Gauge, Thermometer, ShieldAlert, Sparkles, Clock, Bike, Eye, EyeOff,
 } from 'lucide-react'
 
-import { SectionHeader,
-  Alert, Button, Card, TextField
-} from '@/components'
+import { Alert, Button } from '@/components'
 import { getAllScooters } from '@/features/scooters'
 import { startRental, endRental, getRentalHistory } from '@/features/rentals'
 import { useAuth } from '@/hooks/useAuth'
@@ -53,6 +51,7 @@ interface RideState {
   unlockedAt?: number
   startedAt?: number
   rentalId?: number | string
+  userId?: number | string
 }
 
 interface CompletedInfo {
@@ -155,13 +154,13 @@ export default function BookingPage() {
   // Vị trí user
   const [userPos, setUserPos] = useState<LatLngTuple | null>(null)
   const [geoError, setGeoError] = useState<string | null>(null)
-  const [geoLoading, setGeoLoading] = useState<boolean>(false)
 
   // Bộ lọc
   const [query, setQuery] = useState<string>('')
   const [statusFilter, setStatusFilter] = useState<string>('ALL')
   const [useRadius, setUseRadius] = useState<boolean>(true)
   const [radiusKm, setRadiusKm] = useState<number>(1.5)
+  const [showPanels, setShowPanels] = useState<boolean>(true)
 
   // Trạng thái flow (persist localStorage)
   const [ride, setRide] = useState<RideState | null>(() => loadRide())
@@ -182,6 +181,21 @@ export default function BookingPage() {
     }
   }, [ride?.state])
 
+  // Lỗi bảo mật fix: Clear ride if it belongs to another user
+  useEffect(() => {
+    if (user?.id && ride) {
+      if (ride.userId && ride.userId !== user.id) {
+        setRide(null);
+        saveRide(null);
+        setSelectedId(null);
+      } else if (!ride.userId) {
+        const nextRide = { ...ride, userId: user.id };
+        setRide(nextRide);
+        saveRide(nextRide);
+      }
+    }
+  }, [user?.id, ride]);
+
   // Poll backend every 5s to check if admin force-ended the rental
   useEffect(() => {
     if (ride?.state !== 'riding' || !ride?.rentalId) return
@@ -194,15 +208,19 @@ export default function BookingPage() {
         
         const currentRental = history.find((r: any) => r.id === ride.rentalId)
         
-        if (currentRental && currentRental.status === 'COMPLETED') {
-          // Ride was ended by admin
-          setCompletedInfo({
-            rentalId: currentRental.id,
-            scooterName: ride.scooterName,
-            totalPrice: currentRental.totalPrice ?? 0,
-            endTime: currentRental.endTime,
-            startedAt: ride.startedAt,
-          })
+        // If rental doesn't exist for this user OR it's completed
+        if (!currentRental || currentRental.status === 'COMPLETED') {
+          if (currentRental) {
+            // Ride was ended by admin
+            setCompletedInfo({
+              rentalId: currentRental.id,
+              scooterName: ride.scooterName,
+              totalPrice: currentRental.totalPrice ?? 0,
+              endTime: currentRental.endTime,
+              startedAt: ride.startedAt,
+            })
+          }
+          // Clear ride
           setRide(null)
           saveRide(null)
           setSelectedId(null)
@@ -213,6 +231,7 @@ export default function BookingPage() {
       }
     }
 
+    pollBackend() // Call immediately on mount
     const interval = setInterval(pollBackend, 5000)
     return () => {
       alive = false
@@ -240,16 +259,13 @@ export default function BookingPage() {
       setGeoError('Browser does not support geolocation.')
       return
     }
-    setGeoLoading(true)
     setGeoError(null)
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setUserPos([pos.coords.latitude, pos.coords.longitude])
-        setGeoLoading(false)
       },
       (err) => {
         setGeoError(err.message || 'Failed to get location.')
-        setGeoLoading(false)
       },
       { enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 },
     )
@@ -308,7 +324,7 @@ export default function BookingPage() {
     setSelectedId(s.id)
     setActionError(null)
     if (!ride) {
-      const initRide: RideState = { state: 'selected', scooterId: s.id, scooterName: s.name || `#${s.id}` }
+      const initRide: RideState = { state: 'selected', scooterId: s.id, scooterName: s.name || `#${s.id}`, userId: user?.id ?? undefined }
       setRide(initRide)
       saveRide(initRide)
     }
@@ -328,6 +344,7 @@ export default function BookingPage() {
       reservedAt: Date.now(),
       scooterId: selectedScooter.id,
       scooterName: selectedScooter.name || `#${selectedScooter.id}`,
+      userId: user?.id ?? undefined,
     }
     setRide(reservedRide)
     saveRide(reservedRide)
@@ -405,435 +422,387 @@ export default function BookingPage() {
   const ridingMs = ride?.state === 'riding' && ride.startedAt ? now - ride.startedAt : 0
 
   return (
-    <div className="grid gap-6">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <SectionHeader
-          eyebrow="Booking"
-          title="Smart Mobility, Smart Living"
-          description="Find the nearest scooter, book - unlock - ride, and track battery life in real-time."
-        />
-        <div className="flex gap-2 flex-wrap">
-          <span
-            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md border text-sm font-semibold transition-colors
-              ${userPos 
-                ? 'text-cyan-soft border-cyan-soft/50 bg-[rgba(0,209,255,0.05)]' 
-                : 'text-[var(--warning)] border-[rgba(218,12,12,0.4)] bg-[rgba(255,179,71,0.08)]'
-              }`}
-          >
-            <Crosshair size={14} strokeWidth={1.9} />
-            {userPos ? 'Location available' : geoError ? 'Location error' : 'Location unavailable'}
-          </span>
+    <div className="flex gap-6 h-[calc(100vh-89px-4rem)] max-sm:h-[calc(100vh-89px-2.5rem)] max-sm:flex-col">
+      {/* ============== CỘT TRÁI: MAP (Console Style) ============== */}
+      <div className="flex-1 relative rounded-3xl overflow-hidden shadow-2xl border border-white/10 bg-slate-900 z-0">
+        <div className="absolute inset-0">
+          <MapContainer
+          center={mapCenter}
+          zoom={16}
+          minZoom={11}
+          maxZoom={18}
+          scrollWheelZoom
+          zoomControl={false}
+          className="w-full h-full"
+        >
+          <TileLayer
+            attribution='&copy; OpenStreetMap'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          <FlyTo center={mapCenter} />
 
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-semibold text-cyan-soft border border-cyan-soft/50 bg-[rgba(0,209,255,0.05)]">
-            <Zap size={14} strokeWidth={1.9} />
-            {visibleScooters.length} suitable scooters
-          </span>
+          {userPos && (
+            <>
+              <CircleMarker
+                center={userPos}
+                radius={8}
+                pathOptions={{ color: '#00E0A4', fillColor: '#00E0A4', fillOpacity: 0.9, weight: 2 }}
+              >
+                <Tooltip direction="top" offset={[0, -8]} permanent>You are here</Tooltip>
+              </CircleMarker>
+              {useRadius && (
+                <Circle
+                  center={userPos}
+                  radius={radiusKm * 1000}
+                  pathOptions={{ color: '#00D1FF', fillColor: '#00D1FF', fillOpacity: 0.06, weight: 1, dashArray: '6 6' }}
+                />
+              )}
+            </>
+          )}
+
+          {visibleScooters.map((s) => {
+            const style = statusStyles[s._status] || { color: '#8BA0C7', fillColor: '#8BA0C7' }
+            const isSel = s.id === selectedId
+            return (
+              <CircleMarker
+                key={s.id}
+                center={[s._lat, s._lng]}
+                radius={isSel ? 14 : 10}
+                pathOptions={{
+                  color: isSel ? '#fff' : style.color,
+                  fillColor: style.fillColor,
+                  fillOpacity: 0.9,
+                  weight: isSel ? 3 : 2,
+                }}
+                eventHandlers={{ click: () => handleSelect(s) }}
+              >
+                <Tooltip direction="top" offset={[0, -8]} permanent>
+                  {s.name || `#${s.id}`}
+                </Tooltip>
+                <Popup>
+                  <div className="grid gap-1.5 min-w-50 text-white">
+                    <strong>{s.name || `Scooter #${s.id}`}</strong>
+                    <p>Status: {statusLabel[s._status]}</p>
+                    <p>Battery: {formatBatteryLevel(s.batteryLevel) || '—'}</p>
+                    {s._distance != null && <p>Distance: {fmtKm(s._distance)}</p>}
+                  </div>
+                </Popup>
+              </CircleMarker>
+            )
+          })}
+        </MapContainer>
         </div>
+
+        {/* ============== FLOATING ALERTS (Trực tiếp trên Map) ============== */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-3 w-full max-w-lg pointer-events-none px-4">
+          {scootersError && <div className="pointer-events-auto w-full"><Alert tone="error">{scootersError}</Alert></div>}
+          {actionError && <div className="pointer-events-auto w-full"><Alert tone="error">{actionError}</Alert></div>}
+          {completedInfo && (
+            <div className="pointer-events-auto w-full">
+              <Alert tone="success">
+                <div className="flex items-center justify-between gap-2.5">
+                  <span>
+                    <Sparkles size={18} strokeWidth={1.8} className="inline mr-2" />
+                    Trip ended on <strong className="text-emerald-400">{completedInfo.scooterName}</strong> · Total fare: {' '}
+                    <strong className="text-emerald-400">{formatCurrency(completedInfo.totalPrice)}</strong>
+                  </span>
+                  <Button variant="secondary" onClick={dismissCompleted}>
+                    Close
+                  </Button>
+                </div>
+              </Alert>
+            </div>
+          )}
+        </div>
+
+        {/* ============== PANEL TOGGLE BUTTON (Trực tiếp trên Map) ============== */}
+        <button
+          onClick={() => setShowPanels(!showPanels)}
+          className="absolute top-4 right-4 z-20 inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border text-sm font-bold shadow-lg backdrop-blur-md transition-colors text-white border-white/10 bg-slate-900/80 hover:bg-slate-800/80 pointer-events-auto"
+        >
+          {showPanels ? <EyeOff size={16} strokeWidth={2} /> : <Eye size={16} strokeWidth={2} />}
+          {showPanels ? 'Hide Panels' : 'Show Panels'}
+        </button>
       </div>
 
-      {scootersError && <Alert tone="error">{scootersError}</Alert>}
-      {actionError && <Alert tone="error">{actionError}</Alert>}
-      {completedInfo && (
-        <Alert tone="success">
-          <div className="flex items-center justify-between gap-2.5">
-            <span>
-              <Sparkles size={18} strokeWidth={1.8} className="inline mr-2" />
-              Trip ended on <strong>{completedInfo.scooterName}</strong> · Total fare: {' '}
-              <strong>{formatCurrency(completedInfo.totalPrice)}</strong>
-            </span>
-            <Button variant="secondary" onClick={dismissCompleted}>
-              Close
-            </Button>
-          </div>
-        </Alert>
-      )}
-
-      <div className="grid gap-[1.2rem] items-start grid-cols-1 xl:grid-cols-[360px_minmax(0,1fr)_360px]">
-        {/* ============== CỘT TRÁI: BỘ LỌC + DANH SÁCH ============== */}
-        <Card>
-        <SectionHeader eyebrow="Scooter Filter" title="Find the Right Ride" description="Find scooters near you or filter by status." />
-          <form className="grid gap-[0.8rem] mb-4" onSubmit={(e) => e.preventDefault()}>
-            <TextField
-              label="Search by name / scooter ID"
-              name="q"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Example: VinFast"
-              leadingIcon={<Search size={18} strokeWidth={1.7} />}
-            />
-
-            <div>
-              <span className="block mb-1.5 font-bold">Status</span>
-              <select
-                className="w-full min-h-11 p-[0.7rem_1rem] border border-border rounded-xl bg-surface text-text-strong focus:outline-none focus:border-brand"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-              >
-                <option value="ALL">All</option>
-                {SCOOTER_STATUS_OPTIONS.map((s) => (
-                  <option key={s} value={s}>{statusLabel[s]}</option>
-                ))}
-              </select>
-            </div>
-
-            <label className="flex items-center gap-[0.6rem] text-base text-(--text) cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={useRadius}
-                onChange={(e) => setUseRadius(e.target.checked)}
-                className="w-4 h-4 accent-(--color-electric) cursor-pointer"
-              />
-              <span>
-                Show scooters within <strong className="font-bold">{radiusKm.toFixed(1)} km</strong> radius only
+      {/* ============== CỘT PHẢI: RIGHT SIDEBAR (ALL PANELS) ============== */}
+      <div className={cn("flex flex-col gap-4 overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-cyan-500/20 hover:[&::-webkit-scrollbar-thumb]:bg-cyan-500/40 transition-all duration-300 ease-in-out shrink-0", showPanels ? "w-[420px] max-xl:w-96 max-sm:w-full opacity-100 pr-2" : "w-0 opacity-0 overflow-hidden pr-0")}>
+        
+        {/* RIDE STATUS CARD */}
+        <div className="shrink-0 bg-slate-900/40 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl p-5 pointer-events-auto transition-all">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold text-white tracking-tight">Ride Status</h2>
+            {ride?.state === 'riding' && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-bold text-cyan-400 bg-cyan-400/10 border border-cyan-400/20 animate-pulse">
+                <Clock size={14} /> {fmtDuration(ridingMs)}
               </span>
-            </label>
-
-            <input
-              type="range"
-              className="w-full accent-(--color-electric)"
-              min="0.3" max="5" step="0.1"
-              value={radiusKm}
-              onChange={(e) => setRadiusKm(Number(e.target.value))}
-              disabled={!useRadius}
-            />
-
-            <div className="flex items-center gap-2">
-              <Button
-                variant="secondary"
-                onClick={requestLocation}
-                disabled={geoLoading}
-                leadingIcon={<Crosshair size={24} strokeWidth={1.8} />}
-              >
-                {geoLoading ? 'Locating...' : 'Update location'}
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => setRefreshKey((k) => k + 1)}
-                leadingIcon={<RefreshCcw size={24} strokeWidth={1.8} />}
-              >
-                Refresh scooters
-              </Button>
-            </div>
-
-            {geoError && <Alert tone="error">{geoError}</Alert>}
-          </form>
-
-          <div className="grid gap-1 max-h-[56vh] overflow-y-auto pr-0.5 max-xl:max-h-none [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-[rgba(0,209,255,0.25)] [&::-webkit-scrollbar-thumb]:rounded-full">
-            {scootersLoading && <p className="empty-state__text">Loading scooters...</p>}
-            {!scootersLoading && visibleScooters.length === 0 && (
-              <p className="empty-state__text">No scooters match your filters.</p>
             )}
-            {visibleScooters.map((s) => {
-              const isSelected = s.id === selectedId
-              const isLocked = s._status !== SCOOTER_STATUSES.AVAILABLE
-              
-              return (
-                <div
-                  key={s.id}
-                  className={cn(
-                    "relative grid gap-2 p-[0.95rem_1rem] rounded-[14px] border bg-surface-elevated cursor-pointer",
-                    "transition-all duration-200 ease-out hover:-translate-y-px",
-                    isSelected ? "border-brand bg-brand-soft/20" : "border-border",
-                    (isLocked && !isSelected) && "opacity-55"
-                  )}
-                  onClick={() => handleSelect(s)}
-                >
-                  {/* Hàng trên cùng: Tên xe và Trạng thái Pill */}
-                  <div className="flex items-start justify-between gap-2.5">
-                    <div>
-                      <p className="font-bold text-text-strong leading-tight">
-                        {s.name || `Scooter #${s.id}`}
-                      </p>
-                      <p className="text-text-muted text-sm">
-                        {formatCoordinates(Number(s._lat), Number(s._lng))}
-                      </p>
-                    </div>
-                    <span className={cn(
-                      "inline-flex items-center justify-center gap-[0.35rem] min-h-8",
-                      "px-[0.85rem] rounded-full text-[0.78rem] font-bold",
-                      "tracking-[0.04em] border border-transparent", 
-                      s._status === SCOOTER_STATUSES.AVAILABLE && "is-available",
-                      s._status === SCOOTER_STATUSES.IN_USE && "is-in-use",
-                      s._status !== SCOOTER_STATUSES.AVAILABLE && s._status !== SCOOTER_STATUSES.IN_USE && "is-maintenance"
-                    )}>
-                      {statusLabel[s._status] || s._status}
-                    </span>
-                  </div>
-
-                  {/* Hàng giữa: Các thông số (Pin, Nhiệt độ, Khoảng cách) */}
-                  <div className="flex gap-1.5 flex-wrap text-xs text-text-muted">
-                    <span className="inline-flex items-center gap-1 p-[0.22rem_0.55rem] rounded-full bg-surface-muted border border-border">
-                      <Battery size={12} strokeWidth={2} /> {formatBatteryLevel(s.batteryLevel) || '—'}
-                    </span>
-                    
-                    {Number.isFinite(Number(s.temperature)) && (
-                      <span className="inline-flex items-center gap-1 p-[0.22rem_0.55rem] rounded-full bg-surface-muted border border-border">
-                        <Thermometer size={12} strokeWidth={2} /> {Math.round(Number(s.temperature))}°C
-                      </span>
-                    )}
-                    
-                    {s._distance != null && (
-                      <span className="inline-flex items-center gap-1 p-[0.22rem_0.55rem] rounded-full bg-surface-muted border border-border">
-                        <MapPin size={12} strokeWidth={2} /> {fmtKm(s._distance)}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Hàng dưới cùng: Dòng nhắc nhở trạng thái và Nút bấm */}
-                  <div className="flex items-center justify-between mt-1">
-                    <span className="text-text-muted text-sm">
-                      {isSelected
-                        ? (ride?.state && ride.state !== 'idle' ? 'Selected' : 'Ready to book')
-                        : (isLocked ? 'Cannot book at the moment' : 'Click to select')}
-                    </span>
-                    
-                    {!isLocked && (
-                      <Button
-                        variant={isSelected ? 'primary' : 'secondary'}
-                        onClick={(e: React.MouseEvent) => { e.stopPropagation(); handleSelect(s) }}
-                      >
-                        {isSelected ? 'Selected' : 'Select'}
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
           </div>
-        </Card>
 
-        {/* ============== CỘT GIỮA: MAP ============== */}
-        <Card className="min-h-135">
-          <SectionHeader
-            eyebrow="Scooters Near You"
-            title="Select a Scooter on the Map"
-            description=""
-          />
-
-          <div className="flex items-center justify-between gap-2.5 mb-4">
-            <div className="flex flex-col items-start gap-2 mt-5 mb-5">
-              <span className="inline-flex items-center gap-2"><i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-[#00D1FF] text-[rgba(0,209,255,0.5)]" /> Available</span>
-              <span className="inline-flex items-center gap-2"><i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-[#0052FF] text-[rgba(0,82,255,0.5)]" /> In Use</span>
-              <span className="inline-flex items-center gap-2"><i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-danger text-[rgba(255,92,122,0.5)]" /> Maintenance</span>
+          {!selectedScooter ? (
+            <div className="flex flex-col items-center justify-center py-6 text-slate-400 bg-slate-800/20 rounded-2xl border border-white/5 border-dashed">
+              <Bike size={32} className="mb-2 opacity-50" />
+              <p className="text-sm">Select a scooter on the map</p>
             </div>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold text-cyan-soft border border-cyan-soft/50 bg-[rgba(0,209,255,0.05)]">
-              <Filter size={16} strokeWidth={1.9} />
-              Radius: {radiusKm.toFixed(1)} km
-            </span>
-          </div>
-
-          <div className="mt-3">
-            <MapContainer
-              center={mapCenter}
-              zoom={16}
-              minZoom={11}
-              maxZoom={18}
-              scrollWheelZoom
-              className="w-full h-150 rounded-2xl overflow-hidden border border-(--border-strong) shadow-(--shadow-soft)"
-            >
-              <TileLayer
-                attribution='&copy; OpenStreetMap'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-              <FlyTo center={mapCenter} />
-
-              {userPos && (
-                <>
-                  <CircleMarker
-                    center={userPos}
-                    radius={8}
-                    pathOptions={{ color: '#00E0A4', fillColor: '#00E0A4', fillOpacity: 0.9, weight: 2 }}
-                  >
-                    <Tooltip direction="top" offset={[0, -8]} permanent>You are here</Tooltip>
-                  </CircleMarker>
-                  {useRadius && (
-                    <Circle
-                      center={userPos}
-                      radius={radiusKm * 1000}
-                      pathOptions={{ color: '#00D1FF', fillColor: '#00D1FF', fillOpacity: 0.06, weight: 1, dashArray: '6 6' }}
-                    />
-                  )}
-                </>
-              )}
-
-              {visibleScooters.map((s) => {
-                const style = statusStyles[s._status] || { color: '#8BA0C7', fillColor: '#8BA0C7' }
-                const isSel = s.id === selectedId
-                return (
-                  <CircleMarker
-                    key={s.id}
-                    center={[s._lat, s._lng]}
-                    radius={isSel ? 14 : 10}
-                    pathOptions={{
-                      color: isSel ? '#fff' : style.color,
-                      fillColor: style.fillColor,
-                      fillOpacity: 0.9,
-                      weight: isSel ? 3 : 2,
-                    }}
-                    eventHandlers={{ click: () => handleSelect(s) }}
-                  >
-                    <Tooltip direction="top" offset={[0, -8]} permanent>
-                      {s.name || `#${s.id}`}
-                    </Tooltip>
-                    <Popup>
-                      <div className="grid gap-1.5 min-w-50 text-(--text)">
-                        <strong>{s.name || `Scooter #${s.id}`}</strong>
-                        <p>Status: {statusLabel[s._status]}</p>
-                        <p>Battery: {formatBatteryLevel(s.batteryLevel) || '—'}</p>
-                        {s._distance != null && <p>Distance: {fmtKm(s._distance)}</p>}
-                      </div>
-                    </Popup>
-                  </CircleMarker>
-                )
-              })}
-            </MapContainer>
-          </div>
-        </Card>
-
-        {/* ============== CỘT PHẢI: RIDE STATUS + ALERTS ============== */}
-        <div className="grid gap-5">
-          <Card>
-            <div className="flex items-center justify-between gap-[0.6rem] mb-[0.6rem]">
-              <SectionHeader eyebrow="Ride Status" title="" />
-              {ride?.state === 'riding' && (
-                <span className="inline-flex items-center p-2 rounded-full font-semibold tracking-[0.02em] text-cyan-soft border-(--border-glow) bg-[rgba(0,209,255,0.08)]">
-                  <Clock size={14} strokeWidth={1.9} /> {fmtDuration(ridingMs)}
-                </span>
-              )}
-            </div>
-
-            {!selectedScooter ? (
-              <p className="empty-state__text">Select an available scooter to start.</p>
-            ) : (
-              <>
-                <p className="text-(--text-strong) font-bold text-3xl">
+          ) : (
+            <>
+              <div className="mb-5">
+                <p className="text-2xl font-bold text-white mb-1">
                   {selectedScooter.name || `Scooter #${selectedScooter.id}`}
                 </p>
-                <p className="m-0 text-text-muted text-[0.88rem]">
-                  {formatCoordinates(selectedScooter._lat, selectedScooter._lng)}{' '}
-                  · Battery {formatBatteryLevel(selectedScooter.batteryLevel) || '—'}
-                  {selectedScooter._distance != null && <> · Distance: {fmtKm(selectedScooter._distance)}</>}
-                </p>
-
-                {ride?.state === 'riding' && (
-                  <div className="font-bold text-3xl text-text-strong">
-                    {fmtDuration(ridingMs)}
-                  </div>
-                )}
-
-                <div className="grid gap-2 my-3 mb-4 p-3 rounded-xl bg-[rgba(11,17,32,0.5)] border border-(--border)">
-                  <TimelineRow
-                    icon={<Zap size={16} strokeWidth={1.9} />}
-                    label="Book Scooter"
-                    value={ride?.reservedAt ? formatDateTime(ride.reservedAt) : '—'}
-                    done={Boolean(ride?.reservedAt)}
-                  />
-                  <TimelineRow
-                    icon={<Unlock size={16} strokeWidth={1.9} />}
-                    label="Unlock Scooter"
-                    value={ride?.unlockedAt ? formatDateTime(ride.unlockedAt) : '—'}
-                    done={Boolean(ride?.unlockedAt)}
-                  />
-                  <TimelineRow
-                    icon={<Play size={16} strokeWidth={1.9} />}
-                    label="Start Ride"
-                    value={ride?.startedAt ? formatDateTime(ride.startedAt) : '—'}
-                    done={Boolean(ride?.startedAt)}
-                  />
-                  <TimelineRow
-                    icon={<Square size={16} strokeWidth={1.9} />}
-                    label="End Ride"
-                    value={completedInfo?.endTime ? formatDateTime(completedInfo.endTime) : '—'}
-                    done={Boolean(completedInfo)}
-                  />
+                <div className="flex items-center gap-3 text-sm text-slate-400">
+                  <span className="flex items-center gap-1"><Battery size={14} className="text-emerald-400"/> {formatBatteryLevel(selectedScooter.batteryLevel) || '—'}</span>
+                  {selectedScooter._distance != null && <span className="flex items-center gap-1"><MapPin size={14} className="text-cyan-400"/> {fmtKm(selectedScooter._distance)}</span>}
                 </div>
+              </div>
 
-                <div className="grid grid-cols-2 gap-2">
-                  <Button
-                    onClick={handleReserve}
-                    disabled={!selectedScooter || ride?.state !== 'selected'}
-                    leadingIcon={<Zap size={16} strokeWidth={1.8} />}
-                  >
-                    Book Scooter
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    onClick={handleUnlock}
-                    disabled={ride?.state !== 'reserved'}
-                    leadingIcon={<Unlock size={16} strokeWidth={1.8} />}
-                  >
-                    Unlock Scooter
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    onClick={handleStart}
-                    disabled={ride?.state !== 'unlocked' || actionLoading}
-                    leadingIcon={<Play size={16} strokeWidth={1.8} />}
-                  >
-                    {actionLoading && ride?.state === 'unlocked' ? 'Starting...' : 'Start Ride'}
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={handleEnd}
-                    disabled={ride?.state !== 'riding' || actionLoading}
-                    leadingIcon={<Square size={16} strokeWidth={1.8} />}
-                  >
-                    {actionLoading && ride?.state === 'riding' ? 'Ending...' : 'End Ride'}
-                  </Button>
-                </div>
+              <div className="grid gap-2 mb-5 p-4 rounded-2xl bg-slate-950/40 border border-white/5">
+                <TimelineRow
+                  icon={<Zap size={14} />}
+                  label="Book Scooter"
+                  value={ride?.reservedAt ? formatDateTime(ride.reservedAt) : '—'}
+                  done={Boolean(ride?.reservedAt)}
+                />
+                <TimelineRow
+                  icon={<Unlock size={14} />}
+                  label="Unlock Scooter"
+                  value={ride?.unlockedAt ? formatDateTime(ride.unlockedAt) : '—'}
+                  done={Boolean(ride?.unlockedAt)}
+                />
+                <TimelineRow
+                  icon={<Play size={14} />}
+                  label="Start Ride"
+                  value={ride?.startedAt ? formatDateTime(ride.startedAt) : '—'}
+                  done={Boolean(ride?.startedAt)}
+                />
+                <TimelineRow
+                  icon={<Square size={14} />}
+                  label="End Ride"
+                  value={completedInfo?.endTime ? formatDateTime(completedInfo.endTime) : '—'}
+                  done={Boolean(completedInfo)}
+                />
+              </div>
 
-                {ride && ride.state !== 'riding' && ride.state !== 'idle' && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="mt-2 w-full"
-                    onClick={resetRide}
-                  >
-                    Cancel Scooter Selection
-                  </Button>
-                )}
-              </>
-            )}
-          </Card>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  className="rounded-xl h-11"
+                  onClick={handleReserve}
+                  disabled={!selectedScooter || ride?.state !== 'selected'}
+                  leadingIcon={<Zap size={16} />}
+                >
+                  Book
+                </Button>
+                <Button
+                  variant="secondary"
+                  className="rounded-xl h-11 bg-slate-800/60 border-white/10 hover:bg-slate-700/80"
+                  onClick={handleUnlock}
+                  disabled={ride?.state !== 'reserved'}
+                  leadingIcon={<Unlock size={16} />}
+                >
+                  Unlock
+                </Button>
+                <Button
+                  className="rounded-xl h-11 bg-emerald-500 hover:bg-emerald-600 text-white border-none shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                  onClick={handleStart}
+                  disabled={ride?.state !== 'unlocked' || actionLoading}
+                  leadingIcon={<Play size={16} />}
+                >
+                  {actionLoading && ride?.state === 'unlocked' ? 'Starting...' : 'Start'}
+                </Button>
+                <Button
+                  variant="destructive"
+                  className="rounded-xl h-11"
+                  onClick={handleEnd}
+                  disabled={ride?.state !== 'riding' || actionLoading}
+                  leadingIcon={<Square size={16} />}
+                >
+                  {actionLoading && ride?.state === 'riding' ? 'Ending...' : 'End'}
+                </Button>
+              </div>
 
-          <Card>
-            <SectionHeader
-              eyebrow="System Alert Simulation"
-              title="Report Scooter Issues"
-              description="Use this when the scooter encounters issues. The system will log and automatically end your current ride."
-            />
-            <div className="mt-2.5 grid gap-3">
+              {ride && ride.state !== 'riding' && ride.state !== 'idle' && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="mt-3 w-full rounded-xl text-slate-400 hover:text-white"
+                  onClick={resetRide}
+                >
+                  Cancel Booking
+                </Button>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* REPORT ISSUES CARD (Chỉ hiện khi có xe) */}
+        {selectedScooter && (
+          <div className="shrink-0 bg-slate-900/40 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl p-5 pointer-events-auto transition-all">
+            <h3 className="text-sm font-bold text-slate-300 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <ShieldAlert size={16} className="text-rose-400" /> Report Issue
+            </h3>
+            <div className="grid gap-2">
               <Button
                 variant="secondary"
+                className="justify-start bg-slate-800/40 border-white/5 hover:bg-slate-700/50 rounded-xl text-sm"
                 onClick={() => reportIssue('overheat')}
-                disabled={!selectedScooter}
-                leadingIcon={<Thermometer size={16} strokeWidth={1.8} />}
+                leadingIcon={<Thermometer size={16} className="text-rose-400" />}
               >
                 Battery overheating
               </Button>
-              
               <Button
                 variant="secondary"
+                className="justify-start bg-slate-800/40 border-white/5 hover:bg-slate-700/50 rounded-xl text-sm"
                 onClick={() => reportIssue('battery-drop')}
-                disabled={!selectedScooter}
-                leadingIcon={<Gauge size={16} strokeWidth={1.8} />}
+                leadingIcon={<Gauge size={16} className="text-amber-400" />}
               >
                 Rapid battery drain
               </Button>
-              
-              <Button
-                variant="ghost"
-                onClick={() => { setReports({}); saveReports({}) }}
-                leadingIcon={<ShieldAlert size={16} strokeWidth={1.8} />}
-              >
-                Delete local Reports
-              </Button>
             </div>
-            <p className="mt-2.5 text-[0.82rem]" >
-              Updating scooter status on the server requires admin privileges. This report is saved locally and
-              will automatically end your current ride (rental). The operations team will receive and process it.
-            </p>
-          </Card>
+          </div>
+        )}
+
+        {/* FIND THE RIGHT RIDE (FILTER + LIST) */}
+        <div className="flex-1 flex flex-col min-h-[400px] bg-slate-900/40 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden p-5 pointer-events-auto">
+          <div className="shrink-0">
+            <div className="flex items-center gap-2 mb-4">
+              <span
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold transition-colors
+                  ${userPos 
+                    ? 'text-cyan-400 border-cyan-500/20 bg-cyan-500/10' 
+                    : 'text-amber-400 border-amber-500/20 bg-amber-500/10'
+                  }`}
+              >
+                <Crosshair size={14} strokeWidth={2} />
+                {userPos ? 'Located' : geoError ? 'Location error' : 'No location'}
+              </span>
+
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-cyan-400 border border-cyan-500/20 bg-cyan-500/10">
+                <Zap size={14} strokeWidth={2} />
+                {visibleScooters.length} scooters
+              </span>
+            </div>
+
+            <h2 className="text-xl font-bold text-white tracking-tight mb-1">Find the Right Ride</h2>
+            <p className="text-slate-400 text-sm mb-4">Find scooters near you or filter by status.</p>
+            
+            <form className="grid gap-3" onSubmit={(e) => e.preventDefault()}>
+              <div className="relative">
+                <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search by name / ID..."
+                  className="w-full bg-slate-800/40 border border-white/10 text-white text-sm rounded-full pl-10 pr-4 py-2.5 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition-all placeholder:text-slate-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <select
+                  className="w-full bg-slate-800/40 border border-white/10 text-slate-200 text-sm rounded-full px-4 py-2.5 focus:outline-none focus:border-cyan-500/50 appearance-none"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  <option value="ALL">All Status</option>
+                  {SCOOTER_STATUS_OPTIONS.map((s) => (
+                    <option key={s} value={s}>{statusLabel[s]}</option>
+                  ))}
+                </select>
+
+                <Button
+                  variant="secondary"
+                  className="w-full rounded-full border-white/10 bg-slate-800/40 hover:bg-slate-700/50 justify-center h-auto py-2.5"
+                  onClick={() => setRefreshKey((k) => k + 1)}
+                >
+                  <RefreshCcw size={16} className="mr-2" /> Refresh
+                </Button>
+              </div>
+
+              <div className="px-1 py-1">
+                <label className="flex items-center justify-between text-sm text-slate-300 cursor-pointer select-none mb-2">
+                  <span className="flex items-center gap-2">
+                    <Filter size={14} className="text-cyan-400" />
+                    Radius: <strong className="text-white">{radiusKm.toFixed(1)} km</strong>
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={useRadius}
+                    onChange={(e) => setUseRadius(e.target.checked)}
+                    className="w-4 h-4 accent-cyan-500 rounded cursor-pointer"
+                  />
+                </label>
+                <input
+                  type="range"
+                  className="w-full accent-cyan-500"
+                  min="0.3" max="40" step="0.1"
+                  value={radiusKm}
+                  onChange={(e) => setRadiusKm(Number(e.target.value))}
+                  disabled={!useRadius}
+                />
+              </div>
+            </form>
+          </div>
+
+          <div className="flex-1 overflow-y-auto pr-2 -mr-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-cyan-500/20 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-cyan-500/40">
+            <div className="grid gap-3 pt-2">
+              {scootersLoading && <p className="text-slate-400 text-sm text-center py-4">Loading scooters...</p>}
+              {!scootersLoading && visibleScooters.length === 0 && (
+                <p className="text-slate-400 text-sm text-center py-4">No scooters match your filters.</p>
+              )}
+              {visibleScooters.map((s) => {
+                const isSelected = s.id === selectedId
+                const isLocked = s._status !== SCOOTER_STATUSES.AVAILABLE
+                
+                return (
+                  <div
+                    key={s.id}
+                    className={cn(
+                      "relative grid gap-3 p-4 rounded-2xl border cursor-pointer backdrop-blur-md",
+                      "transition-all duration-200 ease-out",
+                      isSelected 
+                        ? "border-cyan-500/50 bg-cyan-900/30 shadow-[0_0_15px_rgba(0,209,255,0.15)]" 
+                        : "border-white/5 bg-slate-800/30 hover:bg-slate-800/50 hover:border-white/10",
+                      (isLocked && !isSelected) && "opacity-60"
+                    )}
+                    onClick={() => handleSelect(s)}
+                  >
+                    <div className="flex items-start justify-between gap-2.5">
+                      <div>
+                        <p className="font-bold text-white leading-tight flex items-center gap-2">
+                          {s.name || `Scooter #${s.id}`}
+                          {isSelected && <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />}
+                        </p>
+                        <p className="text-slate-400 text-[0.8rem] mt-0.5">
+                          {formatCoordinates(Number(s._lat), Number(s._lng))}
+                        </p>
+                      </div>
+                      <span className={cn(
+                        "inline-flex items-center px-2.5 py-1 rounded-full text-[0.7rem] font-bold tracking-wider border",
+                        s._status === SCOOTER_STATUSES.AVAILABLE ? "text-cyan-400 border-cyan-400/30 bg-cyan-400/10" :
+                        s._status === SCOOTER_STATUSES.IN_USE ? "text-blue-400 border-blue-400/30 bg-blue-400/10" :
+                        "text-rose-400 border-rose-400/30 bg-rose-400/10"
+                      )}>
+                        {statusLabel[s._status] || s._status}
+                      </span>
+                    </div>
+
+                    <div className="flex gap-2 flex-wrap text-[0.75rem] font-medium">
+                      <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-slate-900/40 text-slate-300 border border-white/5">
+                        <Battery size={12} className={s.batteryLevel > 20 ? "text-emerald-400" : "text-rose-400"} /> 
+                        {formatBatteryLevel(s.batteryLevel) || '—'}
+                      </span>
+                      
+                      {s._distance != null && (
+                        <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-slate-900/40 text-slate-300 border border-white/5">
+                          <MapPin size={12} className="text-cyan-400" /> {fmtKm(s._distance)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -842,12 +811,14 @@ export default function BookingPage() {
 
 function TimelineRow({ icon, label, value, done }: TimelineRowProps) {
   return (
-    <div className={`flex items-center justify-between gap-2.5 text-xs group ${done ? 'is-done' : ''}`}>
-      <span className="inline-flex items-center gap-2 text-(--text-muted) group-[.is-done]:text-(--text) [&>svg]:text-(--text-faded) group-[.is-done]:[&>svg]:text-cyan-soft">
-        {icon} 
+    <div className={`flex items-center justify-between gap-3 text-sm group ${done ? 'is-done' : ''}`}>
+      <span className="inline-flex items-center gap-2.5 text-slate-500 group-[.is-done]:text-white transition-colors">
+        <span className="text-slate-600 group-[.is-done]:text-cyan-400 transition-colors">
+          {icon} 
+        </span>
         {label}
       </span>
-      <span className="text-(--text-muted) tabular-nums group-[.is-done]:text-(--text-strong) group-[.is-done]:font-semibold">
+      <span className="text-slate-500 tabular-nums font-mono text-xs group-[.is-done]:text-cyan-100 group-[.is-done]:font-semibold transition-colors">
         {value}
       </span>
     </div>

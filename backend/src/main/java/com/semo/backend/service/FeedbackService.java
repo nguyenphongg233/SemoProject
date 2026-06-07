@@ -62,6 +62,12 @@ public class FeedbackService {
         return mapToDTO(feedback);
     }
 
+    public java.util.List<FeedbackResponseDTO> getAllFeedbacks() {
+        return feedbackRepository.findAll().stream()
+                .map(this::mapToDTO)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
     private FeedbackResponseDTO mapToDTO(Feedback feedback) {
         FeedbackResponseDTO dto = new FeedbackResponseDTO();
         dto.setId(feedback.getId());

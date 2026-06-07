@@ -17,7 +17,7 @@ export default function Modal({ open, title, children, footer, onClose }: ModalP
 
   return (
     <div
-      className="fixed inset-0 z-50 grid place-items-center p-5 bg-bg-accent/72
+      className="fixed inset-0 z-[9999] grid place-items-center p-5 bg-bg-accent/72
                  backdrop-blur-[10px] animate-fade-in duration-180 ease-out"
       role="presentation"
       onMouseDown={onClose}

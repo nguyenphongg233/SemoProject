@@ -3,9 +3,11 @@ import { useEffect, useMemo, useState } from 'react'
 // FIX 1: Thêm type-only import cho các Event React
 import type { SyntheticEvent, ChangeEvent } from 'react'
 
+import { Download, Pencil } from 'lucide-react'
+
 import { SectionHeader,
   Alert, Button, Card, Modal, Table, TextField,
-  ScooterMap
+  ScooterMap, DropdownMenu
  } from '@/components'
 import { SCOOTER_STATUSES } from '@/constants'
 import { createScooter, getAllScooters, updateScooter } from '@/features/scooters'
@@ -99,14 +101,16 @@ export default function ScootersPage() {
 
   // FIX 6: Định nghĩa kiểu dữ liệu row cụ thể cho Table columns
   const columns = [
-    { key: 'id', label: 'ID' },
+    { key: 'id', label: 'ID', align: 'right' as const, isNumeric: true },
     { key: 'name', label: 'Scooter' },
-    { key: 'batteryLevel', label: 'Battery', render: (row: Scooter) => formatBatteryLevel(row.batteryLevel) },
+    { key: 'batteryLevel', label: 'Battery', align: 'right' as const, isNumeric: true, render: (row: Scooter) => formatBatteryLevel(row.batteryLevel) },
     { key: 'status', label: 'Status', render: (row: Scooter) => getStatusLabel(row.status) },
-    { key: 'cycleCount', label: 'Cycles' },
+    { key: 'cycleCount', label: 'Cycles', align: 'right' as const, isNumeric: true },
     {
       key: 'stateOfHealth',
       label: 'SOH',
+      align: 'right' as const,
+      isNumeric: true,
       render: (row: Scooter) => {
         const soh = row.stateOfHealth
         return soh != null ? `${soh.toFixed(2)}` : '-'
@@ -115,6 +119,8 @@ export default function ScootersPage() {
     {
       key: 'temperature',
       label: 'Temp (°C)',
+      align: 'right' as const,
+      isNumeric: true,
       render: (row: Scooter) => {
         const temperature = Number(row.temperature)
         return Number.isFinite(temperature) ? `${temperature.toFixed(1)}` : '-'
@@ -131,12 +137,11 @@ export default function ScootersPage() {
     {
       key: 'actions',
       label: 'Actions',
+      align: 'center' as const,
       render: (row: Scooter) => (
-        <div className="flex items-center gap-3">
-          <Button variant="secondary" onClick={() => openEdit(row)}>
-            Edit
-          </Button>
-        </div>
+        <DropdownMenu items={[
+          { label: 'Edit', icon: <Pencil size={14} />, onClick: () => openEdit(row) }
+        ]} />
       ),
     },
   ]
@@ -209,7 +214,19 @@ export default function ScootersPage() {
         eyebrow="Admin"
         title="Scooters"
         description="Create and update scooters, battery levels, and fleet status."
-        actions={<Button onClick={openCreate}>New scooter</Button>}
+        actions={
+          <div className="flex gap-2">
+            <Button 
+              variant="secondary"
+              title="Pending backend implementation"
+              onClick={() => alert("Chức năng Export CSV hiện đang chờ Backend API.")}
+              leadingIcon={<Download size={16} />}
+            >
+              Export CSV
+            </Button>
+            <Button onClick={openCreate}>New scooter</Button>
+          </div>
+        }
       />
 
       <div className="grid gap-[1.1rem] grid-cols-4 max-[980px]:grid-cols-2 max-sm:grid-cols-1">

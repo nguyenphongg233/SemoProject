@@ -42,6 +42,11 @@ export async function updateUser(id: number | string, request: any) {
   return data
 }
 
+export async function updateProfile(request: { fullName?: string; email?: string; phoneNumber?: string }) {
+  const { data } = await axiosClient.put('/api/users/update-profile', request)
+  return data
+}
+
 export async function deleteUser(id: number | string) {
   const { data } = await axiosClient.delete(`/api/users/${id}`)
   return data
@@ -69,5 +74,14 @@ export async function toggleUserStatus(id: number | string) {
 
 export async function getUserTransactions(id: number | string) {
   const { data } = await axiosClient.get(`/api/users/${id}/transactions`)
+  return data
+}
+
+export async function uploadAvatar(file: File) {
+  const formData = new FormData()
+  formData.append('file', file)
+  const { data } = await axiosClient.post('/api/upload/avatar', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
   return data
 }

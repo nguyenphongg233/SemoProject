@@ -1,0 +1,240 @@
+import { useEffect, useState } from 'react'
+import { Bike, Clock, Calendar, CheckCircle, MessageSquare, Star, Activity, Sparkles, Send } from 'lucide-react'
+import { SectionHeader, Card, Alert, Button, Modal, TextField } from '@/components'
+import { getRentalHistory } from '@/features/rentals'
+import { submitFeedback } from '@/features/feedback/api'
+import { formatCurrency, formatDateTime, getApiErrorMessage } from '@/utils'
+
+export default function MyRidesPage() {
+  const [rentals, setRentals] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [successMsg, setSuccessMsg] = useState('')
+
+  // Feedback Modal State
+  const [feedbackRentalId, setFeedbackRentalId] = useState<number | null>(null)
+  const [rating, setRating] = useState(5)
+  const [comment, setComment] = useState('')
+  const [submittingFeedback, setSubmittingFeedback] = useState(false)
+
+  useEffect(() => {
+    fetchRentals()
+  }, [])
+
+  const fetchRentals = async () => {
+    try {
+      setLoading(true)
+      setError('')
+      const data = await getRentalHistory()
+      // Sắp xếp mới nhất lên đầu
+      const sorted = [...data].sort((a: any, b: any) => 
+        new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime()
+      )
+      setRentals(sorted)
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Could not load your rides.'))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Lọc chỉ lấy những cuốc đã hoàn thành
+  const completedRentals = rentals.filter(r => r.status === 'COMPLETED')
+  const activeRentals = rentals.filter(r => r.status === 'ACTIVE')
+  
+  const totalRides = completedRentals.length
+  const totalSpent = completedRentals.reduce((sum, r) => sum + (r.totalPrice || 0), 0)
+
+  return (
+    <div className="max-w-5xl mx-auto space-y-6">
+      <SectionHeader
+        eyebrow="History"
+        title="My Rides"
+        description="View your past scooter rentals and trip details."
+        actions={<Bike size={24} strokeWidth={1.5} className="text-cyan-400" />}
+      />
+
+      {error && <Alert tone="error">{error}</Alert>}
+      {successMsg && <Alert tone="success">{successMsg}</Alert>}
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="rounded-3xl border-white/5 bg-slate-900/50 backdrop-blur-md p-6 flex items-center justify-between">
+          <div>
+            <p className="text-sm text-slate-400 font-medium mb-1">Total Completed Rides</p>
+            <div className="text-3xl font-bold text-white">{totalRides}</div>
+          </div>
+          <div className="w-12 h-12 rounded-2xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
+            <Activity size={24} />
+          </div>
+        </Card>
+        
+        <Card className="rounded-3xl border-white/5 bg-slate-900/50 backdrop-blur-md p-6 flex items-center justify-between">
+          <div>
+            <p className="text-sm text-slate-400 font-medium mb-1">Total Spent</p>
+            <div className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400">
+              {formatCurrency(totalSpent)}
+            </div>
+          </div>
+          <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+            <Sparkles size={24} />
+          </div>
+        </Card>
+      </div>
+
+      <div className="space-y-4 mt-8">
+        <h3 className="text-lg font-bold text-white flex items-center gap-2">
+          <Clock size={18} className="text-cyan-400" /> Recent Trips
+        </h3>
+        
+        {loading ? (
+          <p className="text-slate-400 text-sm text-center py-10">Loading your rides...</p>
+        ) : rentals.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-slate-400 bg-slate-800/20 rounded-3xl border border-white/5 border-dashed">
+            <Bike size={48} strokeWidth={1} className="mb-4 text-slate-500" />
+            <p className="text-base text-slate-300">You haven't taken any rides yet.</p>
+            <p className="text-sm mt-1">Book a scooter to get started!</p>
+          </div>
+        ) : (
+          <div className="grid gap-4">
+            {rentals.map((rental) => (
+              <Card key={rental.id} className="rounded-3xl border-white/5 bg-slate-900/40 hover:bg-slate-900/60 transition-colors p-5 overflow-hidden relative group">
+                {/* Active Indicator */}
+                {rental.status === 'ACTIVE' && (
+                  <div className="absolute top-0 right-0 p-3">
+                    <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-500/30 text-xs font-medium text-cyan-400 animate-pulse">
+                      <span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span> Riding Now
+                    </span>
+                  </div>
+                )}
+                
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 shrink-0 rounded-2xl bg-slate-800 flex items-center justify-center border border-white/5">
+                      <Bike size={24} className={rental.status === 'ACTIVE' ? "text-cyan-400" : "text-slate-400"} />
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                        {rental.scooterName || `Scooter #${rental.scooterId}`}
+                        {rental.status === 'COMPLETED' && <CheckCircle size={16} className="text-emerald-500" />}
+                      </h4>
+                      <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-slate-400">
+                        <span className="flex items-center gap-1">
+                          <Calendar size={12} /> {formatDateTime(rental.startedAt)}
+                        </span>
+                        {rental.endTime && (
+                          <>
+                            <span className="text-slate-600">•</span>
+                            <span className="flex items-center gap-1">
+                              <CheckCircle size={12} /> Ended at {formatDateTime(rental.endTime)}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 mt-2 text-xs text-slate-500 font-mono">
+                        Rental ID: #{rental.id}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col md:items-end justify-center pt-3 md:pt-0 border-t border-white/5 md:border-0 mt-2 md:mt-0 gap-2">
+                    <div className="text-right">
+                      <p className="text-xs uppercase tracking-widest text-slate-500 font-semibold mb-1">
+                        {rental.status === 'ACTIVE' ? 'Current Fare' : 'Total Fare'}
+                      </p>
+                      <div className={`text-2xl font-black ${rental.status === 'ACTIVE' ? 'text-cyan-400' : 'text-emerald-400'}`}>
+                        {formatCurrency(rental.totalPrice || 0)}
+                      </div>
+                    </div>
+                    {rental.status === 'COMPLETED' && (
+                      <Button 
+                        variant="secondary"
+                        leadingIcon={<MessageSquare size={14} />}
+                        onClick={() => {
+                          setFeedbackRentalId(rental.id)
+                          setRating(5)
+                          setComment('')
+                        }}
+                      >
+                        Feedback
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <Modal
+        open={!!feedbackRentalId}
+        onClose={() => setFeedbackRentalId(null)}
+        title="Rate Your Ride"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-slate-400">
+            How was your trip with Rental #{feedbackRentalId}? Your feedback helps us improve our service!
+          </p>
+
+          <div className="flex flex-col items-center gap-2 py-4">
+            <span className="text-sm font-semibold text-white">Select Rating</span>
+            <div className="flex items-center gap-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  onClick={() => setRating(star)}
+                  className="focus:outline-none transition-transform hover:scale-110"
+                >
+                  <Star 
+                    size={36} 
+                    fill={star <= rating ? "#22d3ee" : "transparent"} 
+                    className={star <= rating ? "text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]" : "text-slate-600"} 
+                    strokeWidth={1.5}
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid gap-2 mt-4">
+            <label className="text-sm font-semibold text-white">Additional Comments (Optional)</label>
+            <textarea
+              className="w-full min-h-[5rem] p-4 border border-white/10 rounded-[14px] bg-[rgba(11,17,32,0.65)] text-white focus:outline-none focus:border-cyan-400"
+              name="comment"
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Tell us what you liked or what could be better..."
+              rows={3}
+            />
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-white/10 mt-2">
+            <Button variant="secondary" onClick={() => setFeedbackRentalId(null)}>
+              Cancel
+            </Button>
+            <Button
+              className="bg-cyan-600 hover:bg-cyan-500 border-none text-white shadow-[0_0_15px_rgba(8,145,178,0.4)]"
+              disabled={submittingFeedback}
+              leadingIcon={<Send size={16} />}
+              onClick={async () => {
+                try {
+                  setSubmittingFeedback(true)
+                  await submitFeedback({ rentalId: feedbackRentalId, rating, comment })
+                  setSuccessMsg('Thank you for your feedback!')
+                  setFeedbackRentalId(null)
+                } catch (err) {
+                  setError(getApiErrorMessage(err, 'Could not submit feedback.'))
+                } finally {
+                  setSubmittingFeedback(false)
+                }
+              }}
+            >
+              {submittingFeedback ? 'Submitting...' : 'Submit Feedback'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  )
+}

@@ -5,8 +5,8 @@ import ProtectedRoute from './ProtectedRoute'
 import { ROUTES, ROLES } from '@/constants'
 import { useAuth } from '@/hooks/useAuth'
 import { 
-  Login, Register, DashboardPage, ProfilePage, BookingPage, 
-  AnalyticsPage, MaintenancePage, RentalsPage, ScootersPage, UsersPage 
+  Login, Register, DashboardPage, WalletPage, AccountPage, BookingPage, MyRidesPage,
+  AnalyticsPage, MaintenancePage, RentalsPage, ScootersPage, UsersPage, SettingsPage, TransactionsPage, FeedbacksPage 
 } from '@/pages'
 
 function RoleHomeRedirect() {
@@ -34,7 +34,9 @@ export default function AppRouter() {
             <Route path={ROUTES.HOME} element={<RoleHomeRedirect />} />
             <Route path={ROUTES.DASHBOARD} element={<RoleDashboardRoute />} />
             <Route path={ROUTES.BOOKING} element={<BookingPage />} />
-            <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
+            <Route path={ROUTES.MY_RIDES} element={<MyRidesPage />} />
+            <Route path={ROUTES.WALLET} element={<WalletPage />} />
+            <Route path={ROUTES.ACCOUNT} element={<AccountPage />} />
           </Route>
         </Route>
 
@@ -44,7 +46,10 @@ export default function AppRouter() {
             <Route path={ROUTES.SCOOTERS} element={<ScootersPage />} />
             <Route path={ROUTES.RENTALS} element={<RentalsPage />} />
             <Route path={ROUTES.MAINTENANCE} element={<MaintenancePage />} />
+            <Route path={ROUTES.TRANSACTIONS} element={<TransactionsPage />} />
+            <Route path={ROUTES.FEEDBACKS} element={<FeedbacksPage />} />
             <Route path={ROUTES.ANALYTICS} element={<AnalyticsPage />} />
+            <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
           </Route>
         </Route>
 

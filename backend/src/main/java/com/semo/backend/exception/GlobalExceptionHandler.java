@@ -41,7 +41,7 @@ public class GlobalExceptionHandler {
         // Trả về 500 Internal Server Error cho Frontend
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "Lỗi hệ thống nội bộ! Đội ngũ kỹ thuật đang xử lý."
+                "Lỗi hệ thống nội bộ: " + ex.getMessage() + " - " + ex.getClass().getName()
         );
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }

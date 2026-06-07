@@ -25,8 +25,8 @@
   /* ===== Văn bản ===== */
   --color-text: #E6EEFF;
   --color-text-strong: #FFFFFF;
-  --color-text-muted: #8BA0C7;
-  --color-text-faded: #5B7099;
+  --color-text-muted: #94A3B8; /* Equivalent to text-slate-400 */
+  --color-text-faded: #64748B; /* Equivalent to text-slate-500 for slight variation */
 
   /* ===== Thương hiệu & Trạng thái ===== */
   --color-brand: var(--color-electric);
@@ -70,7 +70,7 @@
   --radius-sm: 10px;
 
   /* ===== Định nghĩa Font chữ mặc định hệ thống ===== */
-  --font-sans: 'Be Vietnam Pro', 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-sans: 'Inter', 'Be Vietnam Pro', ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 
 html,
@@ -190,3 +190,171 @@ p {
     transform: translate(20px, -30px) scale(1.08);
   }
 }
+
+/* ================== LIGHT MODE OVERRIDES ================== */
+:root.light {
+  --color-scheme: light;
+
+  /* Tech Blue - Light Mode Palette */
+  --color-midnight: #F8FAFC;
+  --color-midnight-2: #FFFFFF;
+  --color-midnight-3: #F1F5F9;
+  
+  --color-bg: #F8FAFC;
+  --color-bg-accent: #E2E8F0;
+  --color-surface: rgba(255, 255, 255, 0.85);
+  --color-surface-strong: rgba(255, 255, 255, 0.98);
+  --color-surface-muted: rgba(0, 0, 0, 0.04);
+  --color-surface-elevated: rgba(255, 255, 255, 1);
+
+  --color-text: #1E293B;
+  --color-text-strong: #0F172A;
+  --color-text-muted: #64748B;
+  --color-text-faded: #94A3B8;
+
+  --color-border: rgba(0, 0, 0, 0.1);
+  --color-border-strong: rgba(0, 0, 0, 0.15);
+  --color-border-glow: rgba(0, 82, 255, 0.15);
+
+  --shadow-card: 0 10px 40px rgba(0, 0, 0, 0.05);
+  --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+:root.light body {
+  background:
+    radial-gradient(circle at 12% 8%, rgba(0, 82, 255, 0.05), transparent 36%),
+    radial-gradient(circle at 88% 12%, rgba(0, 209, 255, 0.04), transparent 40%),
+    radial-gradient(circle at 70% 95%, rgba(109, 93, 255, 0.05), transparent 50%),
+    linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 50%, #F8FAFC 100%);
+}
+
+:root.light .leaflet-container {
+  background: #E2E8F0 !important;
+}
+
+:root.light .leaflet-tile {
+  filter: none;
+}
+
+:root.light .leaflet-popup-content-wrapper,
+:root.light .leaflet-popup-tip {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #1E293B !important;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+:root.light .leaflet-tooltip {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #0F172A !important;
+  border: 1px solid rgba(0, 82, 255, 0.2) !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+}
+
+/* ================== LIGHT MODE COMPONENT OVERRIDES ================== */
+:root.light {
+  color: #1E293B;
+}
+
+/* Override utility text colors that get hidden in light mode */
+:root.light .text-white { color: #0F172A !important; }
+:root.light .text-text-strong { color: #0F172A !important; }
+:root.light .text-text-muted { color: #334155 !important; }
+:root.light .text-text-faded { color: #475569 !important; }
+
+/* Fix Sidebar */
+:root.light aside {
+  background: #F1F5F9 !important;
+  color: #0F172A !important;
+}
+:root.light aside nav a {
+  color: #334155 !important;
+  font-weight: 600 !important;
+}
+:root.light aside nav a.active, :root.light aside nav a[aria-current="page"] {
+  color: #0F172A !important;
+  font-weight: 700 !important;
+  background: rgba(0, 82, 255, 0.1) !important;
+  box-shadow: none !important;
+}
+:root.light aside nav a.active .text-white {
+  color: #0052FF !important;
+}
+:root.light aside nav a:hover {
+  color: #0F172A !important;
+}
+
+/* Fix Header */
+:root.light header {
+  background: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* Fix Stats Cards & Dashboard Numbers */
+:root.light section.relative {
+  background: #FFFFFF !important;
+  border-color: rgba(0,0,0,0.1) !important;
+}
+:root.light .bg-clip-text {
+  background: linear-gradient(135deg, #0F172A, #0052FF) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+}
+
+/* ===== FIX BROWSER AUTOFILL BACKGROUND ===== */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 50px rgba(11, 17, 32, 0.95) inset !important;
+  -webkit-text-fill-color: white !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Fix Table */
+:root.light .overflow-auto {
+  background: #FFFFFF !important;
+}
+:root.light table th {
+  background: #F1F5F9 !important;
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+:root.light table td {
+  color: #0F172A !important;
+  font-weight: 500 !important;
+}
+:root.light table tr:hover td {
+  background: rgba(0,0,0,0.02) !important;
+}
+
+/* Fix Selects/Inputs */
+:root.light select,
+:root.light input,
+:root.light textarea {
+  background: #FFFFFF !important;
+  color: #0F172A !important;
+  border-color: rgba(0,0,0,0.2) !important;
+}
+:root.light input:focus,
+:root.light select:focus,
+:root.light textarea:focus {
+  background: #FFFFFF !important;
+  border-color: #0052FF !important;
+  box-shadow: 0 0 0 4px rgba(0, 82, 255, 0.1) !important;
+}
+
+/* ================== FLAT DARK MODE OVERRIDES ================== */
+:root.dark aside {
+  background: #0F172A !important; /* Flat dark, no gradient */
+}
+:root.dark header {
+  background: rgba(15, 23, 42, 0.8) !important;
+}
+:root.dark body {
+  background: #0B1120 !important; /* Flat dark, no gradient */
+}
+
+/* ================== SEMO MODE (ORIGINAL THEME) ================== */
+/* Semo mode uses the default hardcoded gradients and styling present in the components.
+   No overrides needed. It will naturally fall back to the exact code from the commit! */

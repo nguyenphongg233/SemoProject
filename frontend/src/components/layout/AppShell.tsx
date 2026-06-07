@@ -8,8 +8,14 @@ import {
   Receipt,
   Wrench,
   BarChart3,
+  MessageSquare,
   LogOut,
   MapPinned,
+  Settings,
+  Bell,
+  Sun,
+  Moon,
+  Palette,
 } from 'lucide-react'
 import SemoIcon from '@/assets/semo-icon.svg?react';
 
@@ -17,6 +23,7 @@ import { ROUTES, ROLES } from '@/constants'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '../ui'
 import { cn } from '@/utils'; // Đường dẫn tới hàm cn của bạn
+import { useTheme } from '@/contexts/ThemeContext';
 
 
 // 1. Định nghĩa kiểu cho một phần tử menu
@@ -31,15 +38,20 @@ const ICON_PROPS = { size: 18, strokeWidth: 1.7 }
 const userNavItems: NavItem[] = [
   { label: 'Dashboard', to: ROUTES.DASHBOARD, icon: <LayoutDashboard {...ICON_PROPS} /> },
   { label: 'Ride booking', to: ROUTES.BOOKING, icon: <MapPinned      {...ICON_PROPS} /> },
-  { label: 'Account & Wallet', to: ROUTES.PROFILE, icon: <UserCircle     {...ICON_PROPS} /> },
+  { label: 'My Rides', to: ROUTES.MY_RIDES, icon: <Bike {...ICON_PROPS} /> },
+  { label: 'Wallet', to: ROUTES.WALLET, icon: <Receipt     {...ICON_PROPS} /> },
+  { label: 'Account', to: ROUTES.ACCOUNT, icon: <UserCircle     {...ICON_PROPS} /> },
 ]
 
 const adminNavItems: NavItem[] = [
   { label: 'Users', to: ROUTES.USERS, icon: <Users    {...ICON_PROPS} /> },
   { label: 'Scooters', to: ROUTES.SCOOTERS, icon: <Bike     {...ICON_PROPS} /> },
   { label: 'Rentals', to: ROUTES.RENTALS, icon: <Receipt  {...ICON_PROPS} /> },
+  { label: 'Transactions', to: ROUTES.TRANSACTIONS, icon: <Receipt {...ICON_PROPS} /> },
   { label: 'Maintenance', to: ROUTES.MAINTENANCE, icon: <Wrench   {...ICON_PROPS} /> },
+  { label: 'Feedbacks', to: ROUTES.FEEDBACKS, icon: <MessageSquare {...ICON_PROPS} /> },
   { label: 'Analytics', to: ROUTES.ANALYTICS, icon: <BarChart3 {...ICON_PROPS} /> },
+  { label: 'Settings', to: ROUTES.SETTINGS, icon: <Settings {...ICON_PROPS} /> },
 ]
 
 // 2. Định nghĩa Props cho component NavList
@@ -112,6 +124,7 @@ interface AppShellProps {
 export default function AppShell({ mode = 'user', children }: AppShellProps) {
   const navigate = useNavigate()
   const { user, logout } = useAuth() // Sẽ tự động nhận diện type từ AuthContextType
+  const { theme, toggleTheme } = useTheme()
 
   const isAdminMode = mode === 'admin'
   const navItems = isAdminMode ? adminNavItems : userNavItems
@@ -127,14 +140,17 @@ export default function AppShell({ mode = 'user', children }: AppShellProps) {
   const topbarTitle = isAdminMode ? 'Admin console' : 'Personal Console'
 
   return (
-    <div className="grid min-h-screen grid-cols-[280px_minmax(0,1fr)] max-sm:grid-cols-1">
+    <div className={cn(
+      "grid h-screen overflow-hidden grid-cols-[280px_minmax(0,1fr)] max-sm:grid-cols-1",
+      isAdminMode && "bg-slate-900"
+    )}>
       <aside className="flex flex-col gap-[1.6rem] p-[1.5rem_1.2rem] text-white
         bg-[linear-gradient(180deg,rgba(6,10,22,0.92),rgba(11,17,32,0.92)),var(--color-midnight)]
         border-r border-(--border) backdrop-blur-[18px] relative after:content-['']
         after:absolute after:inset-[0_0_0_auto] after:w-px
         after:bg-[linear-gradient(180deg,transparent,var(--color-cyan),transparent)]
         after:opacity-35 after:pointer-events-none sm:border-r max-sm:border-r-0
-        max-sm:border-b max-sm:border-(--border)"
+        max-sm:border-b max-sm:border-(--border) overflow-y-auto"
       >
         <div className="flex items-center justify-between">
           <Link
@@ -183,7 +199,7 @@ export default function AppShell({ mode = 'user', children }: AppShellProps) {
         </div>
       </aside>
 
-      <div className="grid grid-rows-[auto_1fr] min-w-0">
+      <div className="grid grid-rows-[auto_1fr] min-w-0 overflow-y-auto">
         <header className="flex items-center justify-between gap-4 px-8 py-6
           border-b border-border bg-[#0b1120]/55 backdrop-blur-[18px]
           max-sm:flex-col max-sm:items-start"
@@ -198,6 +214,19 @@ export default function AppShell({ mode = 'user', children }: AppShellProps) {
           </div>
 
           <div className="flex items-center flex-wrap">
+            {isAdminMode && (
+              <button className="relative p-2 mr-3 text-text-muted hover:text-cyan-soft transition-colors" title="Notifications (Pending API)">
+                <Bell size={20} strokeWidth={2} />
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[var(--danger)] animate-pulse"></span>
+              </button>
+            )}
+            <button 
+              onClick={toggleTheme}
+              className="relative p-2 mr-4 text-text-muted hover:text-cyan-soft transition-colors rounded-full hover:bg-[rgba(255,255,255,0.05)]" 
+              title={`Current Theme: ${theme}`}
+            >
+              {theme === 'light' ? <Sun size={20} strokeWidth={2} /> : theme === 'dark' ? <Moon size={20} strokeWidth={2} /> : <Palette size={20} strokeWidth={2} />}
+            </button>
             <span className="inline-flex items-center justify-center min-h-8 px-4
               rounded-full text-sm font-semibold tracking-wider
               bg-[rgba(0,209,255,0.12)] border border-[rgba(0,209,255,0.3)]

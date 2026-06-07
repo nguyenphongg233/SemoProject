@@ -10,5 +10,10 @@ export const ROUTES = {
   RENTALS: '/rentals',
   MAINTENANCE: '/maintenance',
   ANALYTICS: '/analytics',
-  PROFILE: '/profile',
+  TRANSACTIONS: '/admin/transactions',
+  FEEDBACKS: '/admin/feedbacks',
+  SETTINGS: '/settings',
+  WALLET: '/wallet',
+  ACCOUNT: '/account',
+  MY_RIDES: '/rides',
 }
