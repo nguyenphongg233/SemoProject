@@ -74,6 +74,10 @@ public class TransactionService {
         dto.setType(transaction.getType());
         dto.setDescription(transaction.getDescription());
         dto.setCreatedAt(transaction.getCreatedAt());
+        if (transaction.getUser() != null) {
+            dto.setUserId(transaction.getUser().getId());
+            dto.setUserName(transaction.getUser().getFullName() != null ? transaction.getUser().getFullName() : transaction.getUser().getEmail());
+        }
         return dto;
     }
 }

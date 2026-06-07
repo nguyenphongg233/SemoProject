@@ -14,13 +14,15 @@ interface TableProps<T> {
   rows: T[]
   rowKey: (row: T, index: number) => string | number
   emptyMessage?: string
+  emptyState?: ReactNode
 }
 
 export default function Table<T extends Record<string, any>>({
   columns,
   rows,
   rowKey,
-  emptyMessage = 'No data available yet.'
+  emptyMessage = 'No data available yet.',
+  emptyState
 }: TableProps<T>) {
   return (
     <div className="overflow-auto max-h-[500px] rounded-md border border-border bg-[#0b1120]/50 backdrop-blur-md">
@@ -45,9 +47,13 @@ export default function Table<T extends Record<string, any>>({
             <tr>
               <td
                 colSpan={columns.length}
-                className="p-[1.6rem]! text-center text-text-muted border-b border-border"
+                className="p-0 border-b border-border"
               >
-                {emptyMessage}
+                {emptyState ? emptyState : (
+                  <div className="p-[1.6rem]! text-center text-text-muted">
+                    {emptyMessage}
+                  </div>
+                )}
               </td>
             </tr>
           ) : (

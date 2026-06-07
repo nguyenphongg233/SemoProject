@@ -167,6 +167,7 @@ public class RentalService {
         RentalResponseDTO dto = new RentalResponseDTO();
         dto.setId(rental.getId());
         dto.setUserId(rental.getUser().getId());
+        dto.setUserName(rental.getUser().getFullName() != null ? rental.getUser().getFullName() : rental.getUser().getEmail());
         dto.setScooterId(rental.getScooter().getId());
         dto.setStartTime(rental.getStartTime());
         dto.setEndTime(rental.getEndTime());

@@ -7,5 +7,5 @@ export * from './rentals'
 export * from './scooters'
 export * from './statistics'
 export * from './transactions'
-export * from './upload'
+
 export * from './users'

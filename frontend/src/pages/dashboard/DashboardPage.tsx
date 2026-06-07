@@ -12,6 +12,7 @@ import {
   Gauge,
 } from 'lucide-react'
 
+import { TrendingUp, TrendingDown } from 'lucide-react'
 import { SectionHeader,
   Alert, Button, Card, Table,
   ScooterMap
@@ -100,24 +101,32 @@ export default function DashboardPage() {
       value: summary.total,
       note: 'All scooters in the system',
       icon: <Bike size={20} strokeWidth={1.7} />,
+      trend: '+12% this week',
+      trendPositive: true
     },
     {
       label: 'Available for Rent',
       value: summary.available,
       note: 'Scooters ready for rental',
       icon: <Sparkles size={20} strokeWidth={1.7} />,
+      trend: '+5% this week',
+      trendPositive: true
     },
     {
       label: 'Average Battery',
       value: `${summary.avgBattery}%`,
       note: 'Calculated across all scooters',
       icon: <BatteryFull size={20} strokeWidth={1.7} />,
+      trend: '-2% today',
+      trendPositive: false
     },
     {
       label: 'Under Maintenance',
       value: summary.maintenance,
       note: 'Temporarily unavailable',
       icon: <Wrench size={20} strokeWidth={1.7} />,
+      trend: '-1 from yesterday',
+      trendPositive: true
     },
   ]), [summary])
 
@@ -225,32 +234,27 @@ export default function DashboardPage() {
 
       <div className="grid gap-[1.1rem] grid-cols-4 max-[980px]:grid-cols-2 max-sm:grid-cols-1">
         {summaryCards.map((card) => (
-          <Card key={card.label} variant="glow">
-              <div className="flex items-center justify-between gap-[0.6rem]">
-                <p className="text-text-faded font-semibold text-sm
-                  uppercase tracking-[0.12em]"
-                >
+          <div key={card.label} className="rounded-xl bg-slate-800/80 backdrop-blur-md border border-white/5 p-5 relative overflow-hidden flex flex-col justify-between">
+              <div className="flex items-center justify-between gap-3 mb-2">
+                <p className="text-xs tracking-wider text-slate-400 uppercase font-semibold">
                   {card.label}
                 </p>
-                <span className="w-10 h-10 rounded-[12px] grid
-                  place-items-center bg-gradient-brand-soft border
-                  border-border-strong text-cyan-soft
-                  shadow-[inset_0_0_12px_rgba(0,209,255,0.18)]"
-                >
+                <span className="w-8 h-8 rounded-lg grid place-items-center bg-white/5 border border-white/10 text-cyan-400">
                   {card.icon}
                 </span>
               </div>
-              <div className="mt-[0.6rem] mr-0 mb-[0.4rem] ml-0 text-[2.2rem]
-                font-extrabold tracking-[-0.04em]
-                bg-[linear-gradient(135deg,#fff,var(--color-cyan-soft)_120%)]
-                bg-clip-text text-transparent leading-[1.1]"
-              >
-                {loading ? '—' : card.value}
+              
+              <div className="flex items-end justify-between mt-1">
+                <div className="text-3xl font-bold text-white">
+                  {loading ? '—' : card.value}
+                </div>
+                
+                <div className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${card.trendPositive ? 'text-emerald-400 bg-emerald-400/10' : 'text-rose-400 bg-rose-400/10'}`}>
+                  {card.trendPositive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                  {card.trend}
+                </div>
               </div>
-              <p className="m-0 text-sm text-text-muted">
-                {card.note}
-              </p>
-            </Card>
+            </div>
         ))}
       </div>
 

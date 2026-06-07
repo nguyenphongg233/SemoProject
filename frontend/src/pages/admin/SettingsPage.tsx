@@ -164,7 +164,7 @@ export default function SettingsPage() {
       render: (row) => (
         <div className="flex flex-col">
           <span className="font-mono text-cyan-soft font-medium">{row.value}</span>
-          {row.isDefault && <span className="text-xs text-text-faded italic mt-0.5">Chưa thiết lập (Dùng mặc định)</span>}
+          {row.isDefault && <span className="text-xs text-slate-400 italic mt-0.5">Chưa thiết lập (Dùng mặc định)</span>}
         </div>
       ),
     },

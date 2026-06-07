@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Star, Search, RefreshCw } from 'lucide-react'
-import { SectionHeader, Card, Table, Alert, TextField, Button } from '@/components'
+import { Star, Search, RefreshCw, Inbox } from 'lucide-react'
+import { SectionHeader, Card, Table, Alert, TextField, Button, EmptyState, UserCell } from '@/components'
 import { getAllFeedbacks } from '@/features/feedback/api'
 import { formatDateTime, getApiErrorMessage } from '@/utils'
 import type { TableColumn } from '@/components/ui/Table'
@@ -53,7 +53,7 @@ export default function FeedbacksPage() {
     {
       label: 'User',
       key: 'userName',
-      render: (f: any) => <span className="font-semibold text-white">{f.userName || `User #${f.userId}`}</span>
+      render: (f: any) => <UserCell userId={f.userId} userName={f.userName} />
     },
     {
       label: 'Rental ID',
@@ -116,9 +116,15 @@ export default function FeedbacksPage() {
         ) : (
           <Table 
             columns={columns} 
-            rows={filtered} 
-            rowKey={(row) => row.id}
-            emptyMessage="No feedbacks found."
+            rows={filtered}
+            rowKey={(row: any) => row.id}
+            emptyState={
+              <EmptyState
+                icon={<Inbox size={24} />}
+                title="No feedbacks found"
+                description="There are currently no customer feedbacks matching your criteria."
+              />
+            }
           />
         )}
       </Card>

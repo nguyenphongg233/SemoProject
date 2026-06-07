@@ -2,10 +2,10 @@
 import { useState, useEffect } from 'react'
 import type { SyntheticEvent, ChangeEvent } from 'react'
 import {
-  Wallet, Sparkles, Plus, Clock, ArrowUpRight, ArrowDownRight, Activity
+  Wallet, Sparkles, Plus, ArrowUpRight, ArrowDownRight, Activity, Inbox
 } from 'lucide-react'
 
-import { SectionHeader, Alert, Button, Card, TextField } from '@/components'
+import { SectionHeader, Alert, Button, Card, TextField, EmptyState } from '@/components'
 import { useAuth } from '@/hooks/useAuth'
 import { depositToWallet, getUserById } from '@/features/users'
 import { getMyTransactionHistory } from '@/features/transactions'
@@ -210,10 +210,12 @@ export default function WalletPage() {
               {loadingTx ? (
                 <p className="text-sm text-slate-400 py-4">Loading history...</p>
               ) : transactions.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-10 text-slate-400 bg-slate-800/20 rounded-2xl border border-white/5 border-dashed">
-                  <Clock size={32} className="mb-2 opacity-50" />
-                  <p className="text-sm">No transactions yet.</p>
-                </div>
+                <EmptyState
+                  icon={<Inbox size={24} />}
+                  title="No transactions yet"
+                  description="Your wallet top-ups and ride payments will appear here."
+                  className="bg-slate-800/20 rounded-2xl border border-white/5 border-dashed py-10"
+                />
               ) : (
                 <div className="grid gap-3">
                   {transactions.slice(0, 10).map((tx) => {

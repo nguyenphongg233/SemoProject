@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 
-import { SectionHeader, Alert, Button, Table, Modal, TextField, DropdownMenu } from '@/components'
-import { CheckCircle, Wrench, FileText, History } from 'lucide-react'
+import { SectionHeader, Alert, Button, Table, Modal, TextField, DropdownMenu, EmptyState } from '@/components'
+import { CheckCircle, Wrench, FileText, History, Inbox } from 'lucide-react'
 import { createMaintenanceLog, getMaintenanceLogsByScooterId, resolveMaintenance } from '@/features/maintenance'
 import { getAllScooters, getScootersByStatus, updateScooter } from '@/features/scooters'
 import { formatCurrency, formatDateTime, getApiErrorMessage, formatBatteryLevel } from '@/utils'
@@ -40,7 +40,7 @@ export default function MaintenancePage() {
   const [resolvingAll, setResolvingAll] = useState(false)
   
   // Modals state
-  const [resolvingId, setResolvingId] = useState<number | string | null>(null)
+  const [, setResolvingId] = useState<number | string | null>(null)
   
   const [createLogModalOpen, setCreateLogModalOpen] = useState(false)
   const [selectedScooterId, setSelectedScooterId] = useState<number | string | null>(null)
@@ -293,7 +293,13 @@ export default function MaintenancePage() {
           columns={columns}
           rows={filteredScooters}
           rowKey={(row) => row.id}
-          emptyMessage={loading ? 'Loading scooters...' : 'No scooters found.'}
+          emptyState={
+            <EmptyState
+              icon={<Inbox size={24} />}
+              title="No scooters found"
+              description="There are currently no scooters matching your criteria."
+            />
+          }
         />
       </div>
 
@@ -358,7 +364,13 @@ export default function MaintenancePage() {
             columns={logColumns}
             rows={logs}
             rowKey={(row) => row.id}
-            emptyMessage={logsLoading ? 'Loading logs...' : 'No maintenance logs found for this scooter.'}
+            emptyState={
+              <EmptyState
+                icon={<Inbox size={24} />}
+                title="No maintenance logs"
+                description="There are no maintenance records available."
+              />
+            }
           />
         </div>
       </Modal>

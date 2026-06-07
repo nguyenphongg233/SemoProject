@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Bike, Clock, Calendar, CheckCircle, MessageSquare, Star, Activity, Sparkles, Send } from 'lucide-react'
-import { SectionHeader, Card, Alert, Button, Modal, TextField } from '@/components'
+import { Bike, Clock, Calendar, CheckCircle, MessageSquare, Star, Activity, Sparkles, Send, TrendingUp, Search } from 'lucide-react'
+import { SectionHeader, Card, Alert, Button, Modal, EmptyState } from '@/components'
 import { getRentalHistory } from '@/features/rentals'
 import { submitFeedback } from '@/features/feedback/api'
 import { formatCurrency, formatDateTime, getApiErrorMessage } from '@/utils'
@@ -40,7 +40,6 @@ export default function MyRidesPage() {
 
   // Lọc chỉ lấy những cuốc đã hoàn thành
   const completedRentals = rentals.filter(r => r.status === 'COMPLETED')
-  const activeRentals = rentals.filter(r => r.status === 'ACTIVE')
   
   const totalRides = completedRentals.length
   const totalSpent = completedRentals.reduce((sum, r) => sum + (r.totalPrice || 0), 0)
@@ -59,27 +58,35 @@ export default function MyRidesPage() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="rounded-3xl border-white/5 bg-slate-900/50 backdrop-blur-md p-6 flex items-center justify-between">
-          <div>
-            <p className="text-sm text-slate-400 font-medium mb-1">Total Completed Rides</p>
+        <div className="rounded-xl bg-slate-800/80 backdrop-blur-md border border-white/5 p-5 relative overflow-hidden flex flex-col justify-between">
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <p className="text-xs tracking-wider text-slate-400 uppercase font-semibold">Total Completed Rides</p>
+            <span className="w-8 h-8 rounded-lg grid place-items-center bg-white/5 border border-white/10 text-cyan-400">
+              <Activity size={16} />
+            </span>
+          </div>
+          <div className="flex items-end justify-between mt-1">
             <div className="text-3xl font-bold text-white">{totalRides}</div>
+            <div className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full text-emerald-400 bg-emerald-400/10">
+              <TrendingUp size={12} />
+              Active user
+            </div>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
-            <Activity size={24} />
-          </div>
-        </Card>
+        </div>
         
-        <Card className="rounded-3xl border-white/5 bg-slate-900/50 backdrop-blur-md p-6 flex items-center justify-between">
-          <div>
-            <p className="text-sm text-slate-400 font-medium mb-1">Total Spent</p>
+        <div className="rounded-xl bg-slate-800/80 backdrop-blur-md border border-white/5 p-5 relative overflow-hidden flex flex-col justify-between">
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <p className="text-xs tracking-wider text-slate-400 uppercase font-semibold">Total Spent</p>
+            <span className="w-8 h-8 rounded-lg grid place-items-center bg-white/5 border border-white/10 text-emerald-400">
+              <Sparkles size={16} />
+            </span>
+          </div>
+          <div className="flex items-end justify-between mt-1">
             <div className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400">
               {formatCurrency(totalSpent)}
             </div>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-            <Sparkles size={24} />
-          </div>
-        </Card>
+        </div>
       </div>
 
       <div className="space-y-4 mt-8">
@@ -90,11 +97,12 @@ export default function MyRidesPage() {
         {loading ? (
           <p className="text-slate-400 text-sm text-center py-10">Loading your rides...</p>
         ) : rentals.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-slate-400 bg-slate-800/20 rounded-3xl border border-white/5 border-dashed">
-            <Bike size={48} strokeWidth={1} className="mb-4 text-slate-500" />
-            <p className="text-base text-slate-300">You haven't taken any rides yet.</p>
-            <p className="text-sm mt-1">Book a scooter to get started!</p>
-          </div>
+          <EmptyState
+            icon={<Search size={24} />}
+            title="No rides found"
+            description="You haven't taken any rides yet. Book a scooter to get started!"
+            className="bg-slate-800/20 rounded-xl border border-white/5 border-dashed py-12"
+          />
         ) : (
           <div className="grid gap-4">
             {rentals.map((rental) => (

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 
-import { SectionHeader, Alert, Button, Table, Modal, DropdownMenu } from '@/components'
-import { StopCircle } from 'lucide-react'
+import { SectionHeader, Alert, Button, Table, Modal, DropdownMenu, UserCell, EmptyState } from '@/components'
+import { StopCircle, Inbox } from 'lucide-react'
 import { getRentalHistory, endRental } from '@/features/rentals'
 import { formatDateTime, formatCurrency, getApiErrorMessage } from '@/utils'
 import type { TableColumn } from '@/components/ui/Table'
@@ -9,6 +9,7 @@ import type { TableColumn } from '@/components/ui/Table'
 interface RentalResult {
   id: number | string
   userId: number | string
+  userName?: string
   scooterId: number | string
   status: string
   startTime: string
@@ -79,7 +80,11 @@ export default function RentalsPage() {
 
   const columns: TableColumn<RentalResult>[] = [
     { key: 'id', label: 'ID', align: 'right' as const, isNumeric: true },
-    { key: 'userId', label: 'User ID', align: 'right' as const, isNumeric: true },
+    {
+      key: 'userId',
+      label: 'User',
+      render: (row) => <UserCell userId={row.userId} userName={row.userName} />
+    },
     { key: 'scooterId', label: 'Scooter ID', align: 'right' as const, isNumeric: true },
     {
       key: 'status',
@@ -126,6 +131,9 @@ export default function RentalsPage() {
     },
   ]
 
+  const hasActiveRentals = rentals.some(row => row.status === 'ACTIVE')
+  const finalColumns = hasActiveRentals ? columns : columns.filter(c => c.key !== 'actions')
+
   return (
     <div className="grid gap-6">
       <SectionHeader
@@ -160,10 +168,16 @@ export default function RentalsPage() {
           </div>
         )}
         <Table
-          columns={columns}
+          columns={finalColumns}
           rows={rentals}
           rowKey={(row) => row.id}
-          emptyMessage={loading ? 'Loading rentals...' : 'No rentals found.'}
+          emptyState={
+            <EmptyState
+              icon={<Inbox size={24} />}
+              title="No rentals found"
+              description="There are currently no rentals matching your criteria."
+            />
+          }
         />
       </div>
 
