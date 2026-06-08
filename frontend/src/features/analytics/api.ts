@@ -7,3 +7,10 @@ export async function getOptimalStations(k = 3) {
   })
   return data
 }
+
+export async function getOptimalStationsHDBSCAN(minClusterSize = 5) {
+  const { data } = await axiosClient.get('/api/analytics/optimal-stations-hdbscan', {
+    params: { minClusterSize },
+  })
+  return data
+}

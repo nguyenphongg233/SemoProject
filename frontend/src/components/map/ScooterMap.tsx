@@ -27,6 +27,18 @@ const statusLabels: Record<string, string> = {
   [SCOOTER_STATUSES.CHARGING]: 'Charging',
 }
 
+const CLUSTER_COLORS = [
+  '#FF5C7A', // Red
+  '#00D1FF', // Cyan
+  '#FFB800', // Yellow
+  '#6D5DFF', // Purple
+  '#00E5A3', // Green
+  '#FF8A00', // Orange
+  '#FF00D6', // Pink
+  '#0052FF', // Blue
+  '#A0FF00', // Lime
+]
+
 function resolveMarkerStyle(status: string) {
   return statusStyles[status] || { color: '#8BA0C7', fillColor: '#8BA0C7' }
 }
@@ -52,9 +64,10 @@ interface ScooterMapProps {
   zones?: any[];
   previewRadius?: number;
   onMapClick?: (pos: LatLngPos) => void;
+  clusterAssignments?: Record<number, number>;
 }
 
-export default function ScooterMap({ scooters = [], stations = [], zones = [], previewRadius, onMapClick }: ScooterMapProps) {
+export default function ScooterMap({ scooters = [], stations = [], zones = [], previewRadius, onMapClick, clusterAssignments }: ScooterMapProps) {
   const [preview, setPreview] = useState<LatLngPos | null>(null)
 
   const mappedScooters = useMemo(
@@ -163,7 +176,20 @@ export default function ScooterMap({ scooters = [], stations = [], zones = [], p
         {mappedScooters.map((scooter) => {
           const lat = Number(scooter.currentLat)
           const lng = Number(scooter.currentLng)
-          const markerStyle = resolveMarkerStyle(scooter.status)
+          
+          let color = '#8BA0C7';
+          let fillColor = '#8BA0C7';
+
+          if (clusterAssignments && clusterAssignments[scooter.id] !== undefined) {
+            const cIdx = clusterAssignments[scooter.id];
+            const paletteColor = CLUSTER_COLORS[cIdx % CLUSTER_COLORS.length];
+            color = paletteColor;
+            fillColor = paletteColor;
+          } else {
+            const markerStyle = resolveMarkerStyle(scooter.status)
+            color = markerStyle.color;
+            fillColor = markerStyle.fillColor;
+          }
 
           return (
             <CircleMarker
@@ -171,8 +197,8 @@ export default function ScooterMap({ scooters = [], stations = [], zones = [], p
               center={[lat, lng]}
               radius={10}
               pathOptions={{
-                color: markerStyle.color,
-                fillColor: markerStyle.fillColor,
+                color: color,
+                fillColor: fillColor,
                 fillOpacity: 0.85,
                 weight: 2,
               }}
@@ -228,18 +254,26 @@ export default function ScooterMap({ scooters = [], stations = [], zones = [], p
       </MapContainer>
 
       <div className="flex flex-wrap gap-10 text-lg ml-4 text-text-muted">
-        <span className="inline-flex items-center gap-2">
-          <i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-[#00D1FF] text-[rgba(0,209,255,0.5)]" /> Available
-        </span>
-        <span className="inline-flex items-center gap-2">
-          <i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-[#0052FF] text-[rgba(0,82,255,0.5)]" /> In Use
-        </span>
-        <span className="inline-flex items-center gap-2">
-          <i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-danger text-[rgba(255,92,122,0.5)]" /> Maintenance
-        </span>
-        <span className="inline-flex items-center gap-2">
-          <i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-[#FFB800] text-[rgba(255,184,0,0.5)]" /> Charging
-        </span>
+        {!clusterAssignments ? (
+          <>
+            <span className="inline-flex items-center gap-2">
+              <i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-[#00D1FF] text-[rgba(0,209,255,0.5)]" /> Available
+            </span>
+            <span className="inline-flex items-center gap-2">
+              <i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-[#0052FF] text-[rgba(0,82,255,0.5)]" /> In Use
+            </span>
+            <span className="inline-flex items-center gap-2">
+              <i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-danger text-[rgba(255,92,122,0.5)]" /> Maintenance
+            </span>
+            <span className="inline-flex items-center gap-2">
+              <i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-[#FFB800] text-[rgba(255,184,0,0.5)]" /> Charging
+            </span>
+          </>
+        ) : (
+          <span className="inline-flex items-center gap-2">
+            <i>🎨</i> Scooters colored by nearest cluster center
+          </span>
+        )}
       </div>
 
       {mappedScooters.length === 0 && (

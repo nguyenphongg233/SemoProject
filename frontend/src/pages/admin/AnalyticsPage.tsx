@@ -8,7 +8,7 @@ import { SectionHeader,
   ScooterMap
  } from '@/components'
 import { getAllScooters } from '@/features/scooters'
-import { getOptimalStations } from '@/features/analytics'
+import { getOptimalStations, getOptimalStationsHDBSCAN } from '@/features/analytics'
 import { getDashboardStats } from '@/features/statistics'
 import { getApiErrorMessage, formatCurrency } from '@/utils'
 
@@ -17,8 +17,11 @@ import type { Scooter, LatLngPos, DashboardStats } from '@/types/models'
 
 
 export default function AnalyticsPage() {
+  const [method, setMethod] = useState<'KMEANS' | 'HDBSCAN'>('KMEANS')
   const [k, setK] = useState<number>(3)
+  const [minClusterSize, setMinClusterSize] = useState<number>(5)
   const [points, setPoints] = useState<LatLngPos[]>([])
+  const [clusterAssignments, setClusterAssignments] = useState<Record<number, number>>({})
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
   
@@ -66,12 +69,34 @@ export default function AnalyticsPage() {
     setError('')
 
     try {
+      const fetchStations = method === 'KMEANS' ? getOptimalStations(k) : getOptimalStationsHDBSCAN(minClusterSize);
       const [data, scootersData] = await Promise.all([
-        getOptimalStations(k), 
+        fetchStations, 
         getAllScooters()
       ])
-      setPoints(Array.isArray(data) ? data : [])
-      setScooters(Array.isArray(scootersData) ? scootersData : [])
+      const newPoints = Array.isArray(data) ? data : [];
+      const newScooters = Array.isArray(scootersData) ? scootersData : [];
+      
+      setPoints(newPoints)
+      setScooters(newScooters)
+      
+      const assignments: Record<number, number> = {}
+      if (newPoints.length > 0) {
+        newScooters.forEach(scooter => {
+          if (scooter.currentLat == null || scooter.currentLng == null) return;
+          let minDistance = Infinity;
+          let closestIdx = -1;
+          newPoints.forEach((centroid, idx) => {
+            const dist = Math.pow(Number(scooter.currentLat) - centroid.lat, 2) + Math.pow(Number(scooter.currentLng) - centroid.lng, 2);
+            if (dist < minDistance) {
+              minDistance = dist;
+              closestIdx = idx;
+            }
+          });
+          assignments[scooter.id] = closestIdx;
+        });
+      }
+      setClusterAssignments(assignments)
     } catch (err) {
       setError(getApiErrorMessage(err, 'Unable to load optimal stations'))
       setPoints([])
@@ -135,21 +160,45 @@ export default function AnalyticsPage() {
       <SectionHeader 
         eyebrow="AI Insights"
         title="Optimal Charging Stations"
-        description="Run K-Means clustering algorithm on live fleet data to determine optimal locations for future charging stations."
+        description="Run clustering algorithms on live fleet data to determine optimal locations for future charging stations."
       />
 
       <Card>
-        <form className="grid gap-4 grid-cols-[minmax(0,1fr)_auto] items-end max-sm:grid-cols-1" onSubmit={handleSubmit}>
-          <TextField
-            label="Number of stations (k)"
-            type="number"
-            min="1"
-            name="k"
-            value={k}
-            // 4. Converted string value to number before saving to state
-            onChange={(event: ChangeEvent<HTMLInputElement>) => setK(Number(event.target.value))}
-            required
-          />
+        <form className="grid gap-4 grid-cols-1 sm:grid-cols-[1fr_2fr_auto] items-end" onSubmit={handleSubmit}>
+          <label className="grid gap-2">
+            <span className="text-sm font-semibold text-(--text)">Algorithm</span>
+            <select 
+              value={method} 
+              onChange={(e) => setMethod(e.target.value as 'KMEANS' | 'HDBSCAN')}
+              className="w-full min-h-13 p-4 border border-border rounded-[14px] bg-surface text-text-strong transition-[border-color,box-shadow,background] duration-200 ease-out focus:outline-none focus:border-brand focus:bg-surface-elevated focus:shadow-[0_0_0_4px_var(--color-brand-soft),0_0_24px_var(--color-brand-soft)] appearance-none cursor-pointer"
+            >
+              <option value="KMEANS">K-Means (Fixed K)</option>
+              <option value="HDBSCAN">HDBSCAN (Density-based)</option>
+            </select>
+          </label>
+          
+          {method === 'KMEANS' ? (
+            <TextField
+              label="Number of stations (k)"
+              type="number"
+              min="1"
+              name="k"
+              value={k}
+              onChange={(event: ChangeEvent<HTMLInputElement>) => setK(Number(event.target.value))}
+              required
+            />
+          ) : (
+            <TextField
+              label="Minimum Cluster Size"
+              type="number"
+              min="1"
+              name="minClusterSize"
+              value={minClusterSize}
+              onChange={(event: ChangeEvent<HTMLInputElement>) => setMinClusterSize(Number(event.target.value))}
+              required
+            />
+          )}
+
           <Button type="submit" disabled={loading}>
             {loading ? 'Calculating...' : 'Calculate'}
           </Button>
@@ -160,12 +209,12 @@ export default function AnalyticsPage() {
         <div>
           <ScooterMap
             scooters={scooters}
-            // 5. TypeScript now safely reads .lat and .lng from points array
             stations={points.map((p, i) => ({ lat: p.lat, lng: p.lng, name: `Station ${i + 1}` }))}
+            clusterAssignments={Object.keys(clusterAssignments).length > 0 ? clusterAssignments : undefined}
           />
         </div>
-        <p className="mt-2">
-          KMeans cluster centers shown on the map as stations.
+        <p className="mt-2 text-sm text-text-faded">
+          {method === 'KMEANS' ? 'KMeans cluster centers shown on the map as stations.' : 'HDBSCAN cluster centers shown on the map as stations.'}
         </p>
       </Card>
 

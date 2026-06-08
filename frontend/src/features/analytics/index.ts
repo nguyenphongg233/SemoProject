@@ -1,2 +1,2 @@
 // Barrel exports for analytics feature API helpers.
-export { getOptimalStations } from './api'
+export { getOptimalStations, getOptimalStationsHDBSCAN } from './api'
