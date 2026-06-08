@@ -11,6 +11,16 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+
+import org.tribuo.MutableDataset;
+import org.tribuo.clustering.ClusterID;
+import org.tribuo.clustering.ClusteringFactory;
+import org.tribuo.clustering.hdbscan.HdbscanTrainer;
+import org.tribuo.clustering.hdbscan.HdbscanModel;
+import org.tribuo.impl.ArrayExample;
+import org.tribuo.provenance.SimpleDataSourceProvenance;
 
 @Service
 public class AnalyticsService {
@@ -96,5 +106,55 @@ public class AnalyticsService {
             }
         }
         return minIndex;
+    }
+
+    public List<PointDTO> calculateOptimalChargingStationsHDBSCAN(int minClusterSize) {
+        if (minClusterSize <= 0)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tham số minClusterSize phải lớn hơn 0.");
+
+        List<Rental> rentals = rentalRepository.findByStatusOrderByStartTimeDesc("COMPLETED").stream()
+                .filter(r -> r.getEndLat() != null && r.getEndLng() != null)
+                .toList();
+
+        if (rentals.isEmpty())
+            return new ArrayList<>();
+        if (minClusterSize > rentals.size())
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "minClusterSize (" + minClusterSize + ") không được lớn hơn tổng số xe hiện có (" + rentals.size() + " xe)."
+            );
+
+        SimpleDataSourceProvenance prov = new SimpleDataSourceProvenance("HDBSCAN", new ClusteringFactory());
+        MutableDataset<ClusterID> dataset = new MutableDataset<ClusterID>(prov, new ClusteringFactory());
+        String[] featureNames = new String[]{"lat", "lng"};
+        for (Rental r : rentals) {
+            dataset.add(new ArrayExample<ClusterID>(new ClusterID(ClusterID.UNASSIGNED), featureNames, new double[]{r.getEndLat(), r.getEndLng()}));
+        }
+
+        HdbscanTrainer trainer = new HdbscanTrainer(minClusterSize, HdbscanTrainer.Distance.EUCLIDEAN, minClusterSize, 1);
+        HdbscanModel model = trainer.train(dataset);
+
+        List<Integer> labels = model.getClusterLabels();
+        
+        Map<Integer, double[]> clusterSums = new HashMap<>();
+        for (int i = 0; i < labels.size(); i++) {
+            int clusterId = labels.get(i);
+            if (clusterId <= 0) {
+                continue; 
+            }
+            clusterSums.putIfAbsent(clusterId, new double[]{0.0, 0.0, 0});
+            double[] sums = clusterSums.get(clusterId);
+            Rental r = rentals.get(i);
+            sums[0] += r.getEndLat();
+            sums[1] += r.getEndLng();
+            sums[2] += 1.0;
+        }
+
+        List<PointDTO> centroids = new ArrayList<>();
+        for (double[] sums : clusterSums.values()) {
+            centroids.add(new PointDTO(sums[0] / sums[2], sums[1] / sums[2]));
+        }
+
+        return centroids;
     }
 }

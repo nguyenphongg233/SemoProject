@@ -13,16 +13,9 @@ public class UserResponseDTO {
     private LocalDateTime updatedAt;
     private Double balance;
     private Boolean isActive;
+    private Boolean isVerified;
 
     public UserResponseDTO() {
-    }
-
-    public UserResponseDTO(Integer id, String email, String fullName, String phoneNumber, String role) {
-        this.id = id;
-        this.email = email;
-        this.fullName = fullName;
-        this.phoneNumber = phoneNumber;
-        this.role = role;
     }
 
     public Integer getId() {
@@ -95,5 +88,13 @@ public class UserResponseDTO {
 
     public void setIsActive(Boolean isActive) {
         this.isActive = isActive;
+    }
+
+    public Boolean getIsVerified() {
+        return isVerified;
+    }
+
+    public void setIsVerified(Boolean isVerified) {
+        this.isVerified = isVerified;
     }
 }

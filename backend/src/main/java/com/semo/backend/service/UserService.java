@@ -58,8 +58,10 @@ public class UserService {
                 "CUSTOMER",
                 0.0);
 
-        User savedUser = userRepository.save(user);
-        return mapToResponseDTO(savedUser);
+        user.setIsVerified(true);
+
+        user = userRepository.save(user);
+        return mapToResponseDTO(user);
     }
 
     /**
@@ -264,6 +266,7 @@ public class UserService {
         dto.setUpdatedAt(user.getUpdatedAt());
         dto.setBalance(user.getBalance());
         dto.setIsActive(user.getIsActive());
+        dto.setIsVerified(user.getIsVerified());
         return dto;
     }
 

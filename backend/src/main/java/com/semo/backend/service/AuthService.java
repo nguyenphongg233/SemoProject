@@ -55,7 +55,6 @@ public class AuthService {
                     requestDTO.getPhoneNumber(),
                     "CUSTOMER",
                     0.0);
-            user.setIsVerified(false);
             user.setVerificationCode(otp);
             user.setVerificationExpiry(LocalDateTime.now().plusMinutes(5));
         }
@@ -156,6 +155,7 @@ public class AuthService {
         responseDTO.setUpdatedAt(user.getUpdatedAt());
         responseDTO.setBalance(user.getBalance());
         responseDTO.setIsActive(user.getIsActive());
+        responseDTO.setIsVerified(user.getIsVerified());
         return responseDTO;
     }
 }
