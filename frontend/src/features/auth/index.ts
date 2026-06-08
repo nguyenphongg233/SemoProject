@@ -1,2 +1,2 @@
 // Barrel exports for auth API helpers.
-export { login, register } from './api'
+export { login, register, verifyEmail, resendOtp } from './api'

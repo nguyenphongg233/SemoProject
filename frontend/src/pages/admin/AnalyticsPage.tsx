@@ -8,13 +8,12 @@ import { SectionHeader,
   ScooterMap
  } from '@/components'
 import { getAllScooters } from '@/features/scooters'
-import { getRentalHistory } from '@/features/rentals'
-import { getAllMaintenanceLogs } from '@/features/maintenance'
 import { getOptimalStations } from '@/features/analytics'
+import { getDashboardStats } from '@/features/statistics'
 import { getApiErrorMessage, formatCurrency } from '@/utils'
 
 // FIX 2: Import đúng Type Scooter của dự án thay vì tự định nghĩa bừa
-import type { Scooter, LatLngPos } from '@/types/models'
+import type { Scooter, LatLngPos, DashboardStats } from '@/types/models'
 
 
 export default function AnalyticsPage() {
@@ -24,9 +23,8 @@ export default function AnalyticsPage() {
   const [error, setError] = useState<string>('')
   
   // Dashboard Metrics Data
+  const [stats, setStats] = useState<DashboardStats | null>(null)
   const [scooters, setScooters] = useState<Scooter[]>([])
-  const [rentals, setRentals] = useState<any[]>([])
-  const [maintenanceLogs, setMaintenanceLogs] = useState<any[]>([])
   const [dashboardLoading, setDashboardLoading] = useState(true)
 
   // Load Dashboard Data
@@ -35,15 +33,13 @@ export default function AnalyticsPage() {
     async function loadDashboard() {
       try {
         setDashboardLoading(true)
-        const [scooterData, rentalData, logsData] = await Promise.all([
-          getAllScooters().catch(() => []),
-          getRentalHistory('ALL').catch(() => []),
-          getAllMaintenanceLogs().catch(() => []) // Catching error since backend might not implement this yet
+        const [statsData, scooterData] = await Promise.all([
+          getDashboardStats().catch(() => null),
+          getAllScooters().catch(() => [])
         ])
         if (mounted) {
+          if (statsData) setStats(statsData)
           setScooters(Array.isArray(scooterData) ? scooterData : [])
-          setRentals(Array.isArray(rentalData) ? rentalData : [])
-          setMaintenanceLogs(Array.isArray(logsData) ? logsData : [])
         }
       } catch (err) {
         if (mounted) console.error('Failed to load dashboard metrics', err)
@@ -56,13 +52,13 @@ export default function AnalyticsPage() {
   }, [])
 
   // Calculate Metrics
-  const totalRevenue = rentals.reduce((sum, r) => sum + (Number(r.totalCost) || 0), 0)
-  const totalRides = rentals.length
+  const totalRevenue = stats?.totalRevenue || 0
+  const totalRides = stats?.totalCompletedRentals || 0
   
   const fleetTotal = scooters.length
-  const fleetAvailable = scooters.filter(s => s.status === 'AVAILABLE').length
+  const fleetAvailable = stats?.availableScooters || 0
   
-  const totalMaintenanceCost = maintenanceLogs.reduce((sum, log) => sum + (Number(log.cost) || 0), 0)
+  const totalMaintenanceCost = stats?.totalMaintenanceCost || 0
 
   async function handleSubmit(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault()

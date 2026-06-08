@@ -30,6 +30,7 @@ export interface Scooter {
 export interface Rental {
   id: number | string
   userId: number | string
+  userName?: string
   scooterId: number | string
   startTime: string
   endTime?: string | null
@@ -56,6 +57,8 @@ export interface Station {
 // --- DTOs cho các feature mới ---
 export interface TransactionRecord {
   id: number
+  userId: number
+  userName: string
   amount: number
   type: string
   description: string
@@ -84,4 +87,5 @@ export interface DashboardStats {
   activeRentals: number
   availableScooters: number
   maintenanceScooters: number
+  totalMaintenanceCost: number
 }

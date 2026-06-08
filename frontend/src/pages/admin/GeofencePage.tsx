@@ -88,7 +88,7 @@ export default function GeofencePage() {
       render: (row: GeofenceZone) => (
         <DropdownMenu items={[
           { label: 'Edit', icon: <Pencil size={14} />, onClick: () => openEdit(row) },
-          { label: 'Delete', icon: <Trash2 size={14} />, onClick: () => handleDelete(row.id as number), tone: 'destructive' }
+          { label: 'Delete', icon: <Trash2 size={14} />, onClick: () => handleDelete(row.id as number), danger: true }
         ]} />
       ),
     },

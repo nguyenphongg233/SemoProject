@@ -32,7 +32,7 @@ interface User {
   email: string
   phoneNumber: string
   role: string
-  status?: string
+  isActive?: boolean
   balance?: number
   createdAt?: string
   updatedAt?: string
@@ -136,11 +136,11 @@ export default function UsersPage() {
       label: 'Status',
       render: (row: User) => (
         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium tracking-wider ${
-          row.status === 'BANNED' 
+          row.isActive === false 
             ? 'bg-[rgba(218,12,12,0.1)] text-[var(--warning)] border border-[rgba(218,12,12,0.3)]'
             : 'bg-[rgba(0,224,164,0.1)] text-success border border-[rgba(0,224,164,0.3)]'
         }`}>
-          {row.status === 'BANNED' ? 'BANNED' : 'ACTIVE'}
+          {row.isActive === false ? 'BANNED' : 'ACTIVE'}
         </span>
       ),
     },
@@ -159,8 +159,8 @@ export default function UsersPage() {
         
         if (row.role !== ROLES.ADMIN) {
           items.push({
-            label: row.status === 'BANNED' ? 'Unban' : 'Ban',
-            icon: row.status === 'BANNED' ? <Unlock size={14} /> : <Ban size={14} />,
+            label: row.isActive === false ? 'Unban' : 'Ban',
+            icon: row.isActive === false ? <Unlock size={14} /> : <Ban size={14} />,
             onClick: () => handleToggleStatus(row)
           });
         }

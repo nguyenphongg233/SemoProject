@@ -16,3 +16,4 @@ postman/
 .postman/
 
 .DS_Store
+swagger.json

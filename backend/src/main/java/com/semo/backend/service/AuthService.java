@@ -80,7 +80,7 @@ public class AuthService {
             throw new RuntimeException("Mã xác nhận đã hết hạn. Vui lòng yêu cầu gửi lại mã mới.");
         }
 
-        if (!requestDTO.getOtp().equals(user.getVerificationCode())) {
+        if (!requestDTO.getOtp().trim().equals(user.getVerificationCode())) {
             throw new RuntimeException("Mã xác nhận không chính xác.");
         }
 

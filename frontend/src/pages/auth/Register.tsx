@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { ROUTES } from '@/constants'
 import { Alert, Button, Card, TextField, AuthShell } from '@/components'
 import { getApiErrorMessage } from '@/utils'
+import { verifyEmail, resendOtp } from '@/features/auth'
 
 export default function Register() {
   const navigate = useNavigate()
@@ -24,12 +25,18 @@ export default function Register() {
   const [showConfirmPwd, setShowConfirmPwd] = useState(false)
   // FIX 2: Khai báo rõ ràng state error được phép nhận chuỗi string
   const [error, setError] = useState<string | null>(null)
+  const [successMsg, setSuccessMsg] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  
+  const [step, setStep] = useState<'REGISTER' | 'OTP'>('REGISTER')
+  const [otp, setOtp] = useState('')
+  const [resending, setResending] = useState(false)
 
   // FIX 3: Định nghĩa SyntheticEvent cho e
   async function handleSubmit(e: SyntheticEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
+    setSuccessMsg(null)
 
     if (password !== confirmPassword) {
       setError('Passwords do not match.')
@@ -43,11 +50,41 @@ export default function Register() {
     setLoading(true)
     try {
       await register({ fullName, email, password, phoneNumber })
-      navigate(ROUTES.LOGIN, { replace: true })
+      setStep('OTP')
+      setSuccessMsg('Registration successful! Please check your email for the OTP.')
     } catch (err) {
       setError(getApiErrorMessage(err, 'Registration failed. Please check your information.'))
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function handleVerifyOtp(e: SyntheticEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setError(null)
+    setSuccessMsg(null)
+    setLoading(true)
+    try {
+      await verifyEmail({ email, otp: otp.replace(/\s/g, '') })
+      navigate(ROUTES.LOGIN, { replace: true })
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Invalid or expired OTP.'))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleResendOtp() {
+    setError(null)
+    setSuccessMsg(null)
+    setResending(true)
+    try {
+      await resendOtp({ email })
+      setSuccessMsg('A new OTP has been sent to your email.')
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Failed to resend OTP.'))
+    } finally {
+      setResending(false)
     }
   }
 
@@ -78,6 +115,7 @@ export default function Register() {
       description="Sign up to access the smart e-scooter network, manage your wallet, and rent history — all in one place."
     >
       <Card variant="glow">
+        {step === 'REGISTER' ? (
         <form className="grid gap-[1.1rem]" onSubmit={handleSubmit}>
           <div className="grid gap-2 mb-2">
             <h2 className="m-0 text-[2.1rem] tracking-[-0.03em] bg-linear-to-br from-white to-cyan-soft bg-clip-text text-transparent">
@@ -89,6 +127,7 @@ export default function Register() {
           </div>
 
           {error && <Alert tone="error">{error}</Alert>}
+          {successMsg && <Alert tone="success">{successMsg}</Alert>}
 
           <TextField
             label="Full Name"
@@ -167,6 +206,39 @@ export default function Register() {
             </p>
           </div>
         </form>
+        ) : (
+        <form className="grid gap-[1.1rem]" onSubmit={handleVerifyOtp}>
+          <div className="grid gap-2 mb-2">
+            <h2 className="m-0 text-[2.1rem] tracking-[-0.03em] bg-linear-to-br from-white to-cyan-soft bg-clip-text text-transparent">
+              Verify Email
+            </h2>
+            <p className="m-0 text-(--text-muted) leading-[1.6]">
+              Enter the OTP sent to <strong>{email}</strong>
+            </p>
+          </div>
+
+          {error && <Alert tone="error">{error}</Alert>}
+          {successMsg && <Alert tone="success">{successMsg}</Alert>}
+
+          <TextField
+            label="OTP Code"
+            name="otp"
+            value={otp}
+            onChange={(e) => setOtp(e.target.value)}
+            placeholder="Enter 6-digit OTP"
+            required
+          />
+
+          <div className="flex flex-col gap-[0.8rem]">
+            <Button type="submit" disabled={loading}>
+              {loading ? 'Verifying...' : 'Verify OTP'}
+            </Button>
+            <Button type="button" variant="secondary" onClick={handleResendOtp} disabled={resending}>
+              {resending ? 'Resending...' : 'Resend OTP'}
+            </Button>
+          </div>
+        </form>
+        )}
       </Card>
     </AuthShell>
   )
