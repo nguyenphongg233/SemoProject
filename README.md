@@ -42,6 +42,15 @@ Before starting the backend, make sure the following environment variables are c
 
 The backend is expected to run on `http://localhost:8888` by default.
 
+## Map Data (GraphHopper) Setup
+
+The backend uses GraphHopper and the A* algorithm for scooter routing, which requires a local map dataset.
+
+1. Navigate to the Geofabrik download server: [https://download.geofabrik.de/asia/vietnam.html](https://download.geofabrik.de/asia/vietnam.html)
+2. Download the `.osm.pbf` file (e.g., `vietnam-latest.osm.pbf`).
+3. Place the downloaded file inside the `backend/data/` directory. Ensure the file name exactly matches `vietnam-latest.osm.pbf`.
+4. Upon starting the backend for the first time, GraphHopper will parse this map file and create a `vietnam-gh` cache folder. *This initial import process may take 1-2 minutes. Subsequent startups will be fast.*
+
 ## Frontend Setup
 
 Open a terminal in `frontend/` and install the dependencies:
