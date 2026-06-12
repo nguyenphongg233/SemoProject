@@ -40,6 +40,7 @@ public class SecurityConfig {
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/error").permitAll()
 
                         // Users
                         // Admin-only endpoints for user management
@@ -61,6 +62,7 @@ public class SecurityConfig {
 
                         // Scooters: allow public GETs, admin for create/update
                         .requestMatchers(HttpMethod.GET, "/api/scooters/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/routing/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/scooters").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/scooters/**").hasRole("ADMIN")
 
