@@ -1,16 +1,21 @@
 package com.semo.backend.service;
 
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.semo.backend.dto.*;
+import com.semo.backend.dto.LoginRequestDTO;
+import com.semo.backend.dto.LoginResponseDTO;
+import com.semo.backend.dto.ResendOtpRequestDTO;
+import com.semo.backend.dto.UserRequestDTO;
+import com.semo.backend.dto.UserResponseDTO;
+import com.semo.backend.dto.VerifyEmailRequestDTO;
 import com.semo.backend.entity.User;
 import com.semo.backend.repository.UserRepository;
 import com.semo.backend.util.JwtTokenProvider;
-
-import java.security.SecureRandom;
-import java.time.LocalDateTime;
 
 @Service
 public class AuthService {
@@ -92,7 +97,12 @@ public class AuthService {
 
     private String generateOtp() {
         // Hardcoded for testing purposes
-        return "000000";
+        SecureRandom secureRandom = new SecureRandom();
+        int otp = secureRandom.nextInt(1000000);
+
+        return String.format("%06d", otp);
+
+        // return "000000";
     }
 
     public LoginResponseDTO login(LoginRequestDTO requestDTO) {
@@ -104,11 +114,13 @@ public class AuthService {
         }
 
         if (Boolean.FALSE.equals(user.getIsVerified())) {
-            throw new RuntimeException("Tài khoản chưa được xác thực. Vui lòng kiểm tra hộp thư email của bạn để lấy mã OTP.");
+            throw new RuntimeException(
+                    "Tài khoản chưa được xác thực. Vui lòng kiểm tra hộp thư email của bạn để lấy mã OTP.");
         }
 
         if (Boolean.FALSE.equals(user.getIsActive())) {
-            throw new RuntimeException("Tài khoản của bạn đã bị khóa do vi phạm chính sách. Vui lòng liên hệ Quản trị viên để được hỗ trợ!");
+            throw new RuntimeException(
+                    "Tài khoản của bạn đã bị khóa do vi phạm chính sách. Vui lòng liên hệ Quản trị viên để được hỗ trợ!");
         }
 
         String token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());

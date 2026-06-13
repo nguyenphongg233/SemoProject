@@ -1,7 +1,6 @@
 package com.semo.backend.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 
 @Entity
 @Table(name = "geofence_zones")

@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.lang.NonNull;
 
 import java.util.List;
 
@@ -30,7 +31,7 @@ public class RentalController {
 
     // 2. API Kết thúc thuê xe (Trả xe)
     @PutMapping("/{id}/end")
-    public ResponseEntity<RentalResponseDTO> endRental(@PathVariable Integer id) {
+    public ResponseEntity<RentalResponseDTO> endRental(@PathVariable @NonNull Integer id) {
         RentalResponseDTO responseDTO = rentalService.endRental(id);
         return ResponseEntity.ok(responseDTO);
     }

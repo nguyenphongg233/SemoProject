@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import org.springframework.lang.NonNull;
 
 @RestController
 @RequestMapping("/api/charging")
@@ -28,7 +29,7 @@ public class ChargingController {
     }
 
     @PostMapping("/{id}/complete")
-    public ResponseEntity<ScooterResponseDTO> completeCharging(@PathVariable("id") Integer scooterId) {
+    public ResponseEntity<ScooterResponseDTO> completeCharging(@PathVariable("id") @NonNull Integer scooterId) {
         ScooterResponseDTO result = chargingService.completeCharging(scooterId);
         return ResponseEntity.ok(result);
     }

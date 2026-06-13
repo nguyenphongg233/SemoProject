@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.lang.NonNull;
 
 import com.semo.backend.dto.MaintenanceLogRequestDTO;
 import com.semo.backend.dto.MaintenanceLogResponseDTO;
@@ -37,13 +38,13 @@ public class MaintenanceLogController {
 
     @GetMapping("/scooter/{scooterId}")
     public ResponseEntity<List<MaintenanceLogResponseDTO>> getMaintenanceLogsByScooterId(
-            @PathVariable Integer scooterId) {
+            @PathVariable @NonNull Integer scooterId) {
         List<MaintenanceLogResponseDTO> logs = maintenanceLogService.getMaintenanceLogsByScooterId(scooterId);
         return ResponseEntity.ok(logs);
     }
 
     @PostMapping("/{scooterId}/resolve")
-    public ResponseEntity<String> resolveEntity(@PathVariable Integer scooterId,
+    public ResponseEntity<String> resolveEntity(@PathVariable @NonNull Integer scooterId,
                                                 @RequestBody @Valid ResolveMaintenanceRequestDTO requestDTO) {
         maintenanceLogService.resolveMaintenance(scooterId, requestDTO);
 

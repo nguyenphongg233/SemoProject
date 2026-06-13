@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,7 +41,8 @@ public class RentalService {
     public RentalResponseDTO startRental(RentalRequestDTO requestDTO) {
         User user = authUtil.requireActiveAuthenticatedUser();
 
-        Scooter scooter = scooterRepository.findById(requestDTO.getScooterId())
+        if (requestDTO.getScooterId() == null) throw new IllegalArgumentException("ID xe không hợp lệ");
+        Scooter scooter = scooterRepository.findById(java.util.Objects.requireNonNull(requestDTO.getScooterId()))
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Xe"));
 
         if (!"ADMIN".equals(user.getRole())) {
@@ -82,7 +84,7 @@ public class RentalService {
     }
 
     @Transactional
-    public RentalResponseDTO endRental(Integer rentalId) {
+    public RentalResponseDTO endRental(@NonNull Integer rentalId) {
         User loggedInUser = authUtil.requireActiveAuthenticatedUser();
 
         Rental rental = rentalRepository.findById(rentalId)

@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.lang.NonNull;
 
 import java.util.List;
 
@@ -33,14 +34,14 @@ public class GeofenceZoneController {
 
     @PutMapping("/{id}")
     public ResponseEntity<GeofenceZoneResponseDTO> updateZone(
-            @PathVariable Integer id,
+            @PathVariable @NonNull Integer id,
             @Valid @RequestBody GeofenceZoneRequestDTO requestDTO) {
         GeofenceZoneResponseDTO responseDTO = geofenceZoneService.updateZone(id, requestDTO);
         return ResponseEntity.ok(responseDTO);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteZone(@PathVariable Integer id) {
+    public ResponseEntity<String> deleteZone(@PathVariable @NonNull Integer id) {
         geofenceZoneService.deleteZone(id);
         return ResponseEntity.ok("Đã xóa khu vực an toàn thành công!");
     }

@@ -14,6 +14,9 @@ import com.semo.backend.entity.Scooter;
 import com.semo.backend.repository.MaintenanceLogRepository;
 import com.semo.backend.repository.ScooterRepository;
 
+import org.springframework.lang.NonNull;
+
+
 @Service
 public class MaintenanceLogService {
 
@@ -28,7 +31,10 @@ public class MaintenanceLogService {
 
     @Transactional
     public MaintenanceLogResponseDTO createMaintenanceLog(MaintenanceLogRequestDTO requestDTO) {
-        Scooter scooter = scooterRepository.findById(requestDTO.getScooterId())
+        if (requestDTO.getScooterId() == null) {
+            throw new IllegalArgumentException("ID xe không hợp lệ.");
+        }
+        Scooter scooter = scooterRepository.findById(java.util.Objects.requireNonNull(requestDTO.getScooterId()))
                 .orElseThrow(() -> new RuntimeException("ID xe không tồn tại"));
 
         scooter.setStatus("MAINTENANCE");
@@ -43,9 +49,10 @@ public class MaintenanceLogService {
         return mapToResponseDTO(maintenanceLog);
     }
 
-    public List<MaintenanceLogResponseDTO> getMaintenanceLogsByScooterId(Integer scooterId) {
-        Scooter scooter = scooterRepository.findById(scooterId)
-                .orElseThrow(() -> new RuntimeException("ID xe không tồn tại"));
+    public List<MaintenanceLogResponseDTO> getMaintenanceLogsByScooterId(@NonNull Integer scooterId) {
+        if (!scooterRepository.existsById(scooterId)) {
+            throw new RuntimeException("ID xe không tồn tại");
+        }
 
         List<MaintenanceLog> logs = maintenanceLogRepository.findByScooterId(scooterId);
         List<MaintenanceLogResponseDTO> responseDTOs = new ArrayList<>();
@@ -68,7 +75,7 @@ public class MaintenanceLogService {
     }
 
     @Transactional
-    public void resolveMaintenance(Integer scooterId, ResolveMaintenanceRequestDTO requestDTO) {
+    public void resolveMaintenance(@NonNull Integer scooterId, ResolveMaintenanceRequestDTO requestDTO) {
         Scooter scooter = scooterRepository.findById(scooterId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy xe với ID: " + scooterId));
 

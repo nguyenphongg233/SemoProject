@@ -10,6 +10,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.lang.NonNull;
+
+
 @Service
 public class GeofenceZoneService {
 
@@ -42,7 +45,7 @@ public class GeofenceZoneService {
     }
 
     @Transactional
-    public GeofenceZoneResponseDTO updateZone(Integer id, GeofenceZoneRequestDTO requestDTO) {
+    public GeofenceZoneResponseDTO updateZone(@NonNull Integer id, GeofenceZoneRequestDTO requestDTO) {
         GeofenceZone zone = geofenceZoneRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khu vực với ID: " + id));
 
@@ -55,7 +58,7 @@ public class GeofenceZoneService {
     }
 
     @Transactional
-    public void deleteZone(Integer id) {
+    public void deleteZone(@NonNull Integer id) {
         if (!geofenceZoneRepository.existsById(id)) {
             throw new RuntimeException("Không tìm thấy khu vực với ID: " + id);
         }

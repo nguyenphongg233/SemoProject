@@ -5,9 +5,6 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.lang.NonNull;
 
 import com.semo.backend.dto.*;
 import com.semo.backend.service.UserService;
@@ -48,7 +46,7 @@ public class UserController {
      * GET /api/users/{id}
      */
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Integer id) {
+    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable @NonNull Integer id) {
         UserResponseDTO responseDTO = userService.getUserById(id);
         return ResponseEntity.ok(responseDTO);
     }
@@ -89,7 +87,7 @@ public class UserController {
      */
     @PutMapping("/{id}")
     public ResponseEntity<UserResponseDTO> updateUser(
-            @PathVariable Integer id,
+            @PathVariable @NonNull Integer id,
             @Valid @RequestBody UserUpdateRequestDTO requestDTO) {
         UserResponseDTO responseDTO = userService.updateUser(id, requestDTO);
         return ResponseEntity.ok(responseDTO);
@@ -100,7 +98,7 @@ public class UserController {
      * DELETE /api/users/{id}
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Integer id) {
+    public ResponseEntity<Void> deleteUser(@PathVariable @NonNull Integer id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
@@ -121,7 +119,7 @@ public class UserController {
      */
     @PostMapping("/{id}/reset-password")
     public ResponseEntity<Map<String, String>> resetPassword(
-            @PathVariable Integer id,
+            @PathVariable @NonNull Integer id,
             @Valid @RequestBody AdminResetPasswordRequestDTO requestDTO) {
 
         String newPassword = userService.adminResetPassword(id, requestDTO.getNewPassword());
@@ -148,7 +146,7 @@ public class UserController {
 
     // API Khóa/Mở khóa tài khoản (Chỉ ADMIN)
     @PutMapping("/{id}/toggle-status")
-    public ResponseEntity<UserResponseDTO> toggleUserStatus(@PathVariable Integer id) {
+    public ResponseEntity<UserResponseDTO> toggleUserStatus(@PathVariable @NonNull Integer id) {
         UserResponseDTO updatedUser = userService.toggleUserStatus(id);
         return ResponseEntity.ok(updatedUser);
     }

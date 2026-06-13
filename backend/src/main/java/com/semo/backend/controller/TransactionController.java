@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.lang.NonNull;
 
 import java.util.List;
 
@@ -34,18 +35,18 @@ public class TransactionController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<TransactionResponseDTO>> getTransactionsByUserId(@PathVariable Integer userId) {
+    public ResponseEntity<List<TransactionResponseDTO>> getTransactionsByUserId(@PathVariable @NonNull Integer userId) {
         List<TransactionResponseDTO> history = transactionService.getTransactionsByUserId(userId);
         return ResponseEntity.ok(history);
     }
 
     @org.springframework.web.bind.annotation.PutMapping("/{id}/approve")
-    public ResponseEntity<TransactionResponseDTO> approveTransaction(@PathVariable Integer id) {
+    public ResponseEntity<TransactionResponseDTO> approveTransaction(@PathVariable @NonNull Integer id) {
         return ResponseEntity.ok(transactionService.approveTransaction(id));
     }
 
     @org.springframework.web.bind.annotation.PutMapping("/{id}/reject")
-    public ResponseEntity<TransactionResponseDTO> rejectTransaction(@PathVariable Integer id) {
+    public ResponseEntity<TransactionResponseDTO> rejectTransaction(@PathVariable @NonNull Integer id) {
         return ResponseEntity.ok(transactionService.rejectTransaction(id));
     }
 }

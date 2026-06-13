@@ -7,6 +7,7 @@ import com.semo.backend.repository.TransactionRepository;
 import com.semo.backend.repository.UserRepository;
 import com.semo.backend.util.AuthUtil;
 
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,7 +46,7 @@ public class TransactionService {
     }
 
     @Transactional(readOnly = true)
-    public List<TransactionResponseDTO> getTransactionsByUserId(Integer userId) {
+    public List<TransactionResponseDTO> getTransactionsByUserId(@NonNull Integer userId) {
         authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
 
         userRepository.findById(userId)
@@ -55,7 +56,7 @@ public class TransactionService {
         return transactions.stream().map(this::mapToDTO).collect(Collectors.toList());
     }
     @Transactional
-    public TransactionResponseDTO approveTransaction(Integer id) {
+    public TransactionResponseDTO approveTransaction(@NonNull Integer id) {
         authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
         Transaction transaction = transactionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy giao dịch"));
@@ -80,7 +81,7 @@ public class TransactionService {
     }
 
     @Transactional
-    public TransactionResponseDTO rejectTransaction(Integer id) {
+    public TransactionResponseDTO rejectTransaction(@NonNull Integer id) {
         authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
         Transaction transaction = transactionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy giao dịch"));

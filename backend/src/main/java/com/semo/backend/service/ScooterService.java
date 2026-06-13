@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -75,14 +76,14 @@ public class ScooterService {
     }
 
     @Transactional(readOnly = true)
-    public ScooterResponseDTO getScooterById(Integer id) {
+    public ScooterResponseDTO getScooterById(@NonNull Integer id) {
         Scooter scooter = scooterRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy xe với ID: " + id));
         return mapToResponseDTO(scooter);
     }
 
     @Transactional
-    public ScooterResponseDTO updateScooter(Integer id, ScooterRequestDTO requestDTO) {
+    public ScooterResponseDTO updateScooter(@NonNull Integer id, ScooterRequestDTO requestDTO) {
         authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được phép thực hiện hành động này!");
 
         Scooter scooter = scooterRepository.findById(id)
@@ -103,7 +104,7 @@ public class ScooterService {
     }
 
     @Transactional
-    public void deleteScooter(Integer id) {
+    public void deleteScooter(@NonNull Integer id) {
         if (!scooterRepository.existsById(id)) {
             throw new RuntimeException("Không tìm thấy xe với ID: " + id);
         }
