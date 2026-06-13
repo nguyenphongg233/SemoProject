@@ -10,6 +10,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // https://vite.dev/config/
 export default defineConfig({
+  define: {
+    global: 'window',
+  },
   server: {
     allowedHosts: true,
   },
