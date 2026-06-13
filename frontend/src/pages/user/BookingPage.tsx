@@ -13,7 +13,7 @@
 // Có dùng geolocation của trình duyệt + Haversine để hiện xe trong bán kính.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import 'leaflet/dist/leaflet.css'
-import { CircleMarker, MapContainer, Popup, TileLayer, Tooltip, Circle, useMap } from 'react-leaflet'
+import { CircleMarker, MapContainer, Popup, TileLayer, Tooltip, Circle, useMap, Polyline } from 'react-leaflet'
 import type { LatLngTuple } from 'leaflet'
 import {
   Search, Filter, MapPin, RefreshCcw, Crosshair, Zap, Unlock, Play, Square,
@@ -23,6 +23,7 @@ import {
 import { Alert, Button } from '@/components'
 import { getAllScooters } from '@/features/scooters'
 import { startRental, endRental, getRentalHistory } from '@/features/rentals'
+import { getRouteToScooter } from '@/features/routing'
 import { useAuth } from '@/hooks/useAuth'
 import { SCOOTER_STATUSES, SCOOTER_STATUS_OPTIONS } from '@/constants'
 import { formatBatteryLevel, formatCoordinates, formatCurrency,
@@ -31,7 +32,7 @@ import { formatBatteryLevel, formatCoordinates, formatCurrency,
 
 
 // ----- Interfaces & Types -----
-import type { Scooter } from '@/types/models'
+import type { Scooter, RoutingResponse } from '@/types/models'
 
 // Đối với EnrichedScooter, kế thừa trực tiếp từ core Scooter:
 interface EnrichedScooter extends Scooter {
@@ -169,6 +170,10 @@ export default function BookingPage() {
   const [actionError, setActionError] = useState<string | null>(null)
   const [completedInfo, setCompletedInfo] = useState<CompletedInfo | null>(null)
   const [reports, setReports] = useState<ReportsMap>(() => loadReports())
+  
+  // Routing state
+  const [routeData, setRouteData] = useState<RoutingResponse | null>(null)
+  const [routeLoading, setRouteLoading] = useState<boolean>(false)
 
   // Tick timer mỗi giây khi đang riding
   const [now, setNow] = useState<number>(Date.now())
@@ -315,6 +320,32 @@ export default function BookingPage() {
     [enrichedScooters, selectedId],
   )
 
+  // Fetch route when selectedScooter or userPos changes
+  useEffect(() => {
+    let alive = true
+    
+    // Clear route if no scooter is selected, or if user has unlocked/started the ride
+    if (!selectedScooter || !userPos || ride?.state === 'unlocked' || ride?.state === 'riding') {
+      setRouteData(null)
+      return
+    }
+
+    setRouteLoading(true)
+    getRouteToScooter(selectedScooter.id, userPos[0], userPos[1])
+      .then(data => {
+        if (alive) setRouteData(data)
+      })
+      .catch(err => {
+        console.error("Failed to load route to scooter", err)
+        if (alive) setRouteData(null)
+      })
+      .finally(() => {
+        if (alive) setRouteLoading(false)
+      })
+
+    return () => { alive = false }
+  }, [selectedScooter?.id, userPos, ride?.state])
+
   function handleSelect(s: EnrichedScooter) {
     if (ride && ride.state !== 'idle' && ride.scooterId !== s.id) {
       setActionError('You have an active ride. Please end it before selecting another scooter.')
@@ -460,6 +491,13 @@ export default function BookingPage() {
             </>
           )}
 
+          {routeData && routeData.points && routeData.points.length > 0 && (
+            <Polyline 
+              positions={routeData.points} 
+              pathOptions={{ color: 'var(--color-brand)', weight: 4, opacity: 0.8, dashArray: '10 10', lineCap: 'round', lineJoin: 'round' }} 
+            />
+          )}
+
           {visibleScooters.map((s) => {
             const style = statusStyles[s._status] || { color: '#8BA0C7', fillColor: '#8BA0C7' }
             const isSel = s.id === selectedId
@@ -550,9 +588,19 @@ export default function BookingPage() {
                 <p className="text-2xl font-bold text-text-strong mb-1">
                   {selectedScooter.name || `Scooter #${selectedScooter.id}`}
                 </p>
-                <div className="flex items-center gap-3 text-sm text-text-muted">
+                <div className="flex items-center gap-3 text-sm text-text-muted mt-2">
                   <span className="flex items-center gap-1"><Battery size={14} className="text-brand"/> {formatBatteryLevel(selectedScooter.batteryLevel) || '—'}</span>
-                  {selectedScooter._distance != null && <span className="flex items-center gap-1"><MapPin size={14} className="text-brand"/> {fmtKm(selectedScooter._distance)}</span>}
+                  
+                  {routeLoading ? (
+                    <span className="text-xs text-brand animate-pulse">Calculating route...</span>
+                  ) : routeData ? (
+                    <>
+                      <span className="flex items-center gap-1"><MapPin size={14} className="text-brand"/> {fmtKm(routeData.distance / 1000)} path</span>
+                      <span className="flex items-center gap-1"><Clock size={14} className="text-brand"/> {Math.ceil(routeData.time / 60000)} min walk</span>
+                    </>
+                  ) : selectedScooter._distance != null ? (
+                    <span className="flex items-center gap-1"><MapPin size={14} className="text-brand"/> {fmtKm(selectedScooter._distance)} straight</span>
+                  ) : null}
                 </div>
               </div>
 

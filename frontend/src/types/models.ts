@@ -90,3 +90,9 @@ export interface DashboardStats {
   maintenanceScooters: number
   totalMaintenanceCost: number
 }
+
+export interface RoutingResponse {
+  distance: number
+  time: number
+  points: [number, number][]
+}
