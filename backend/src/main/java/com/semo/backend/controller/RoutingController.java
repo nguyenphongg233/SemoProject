@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.lang.NonNull;
 
 import com.semo.backend.dto.RoutingResponseDTO;
 import com.semo.backend.dto.ScooterResponseDTO;
@@ -26,7 +27,7 @@ public class RoutingController {
 
     @GetMapping("/scooter/{scooterId}")
     public ResponseEntity<RoutingResponseDTO> getRouteToScooter(
-            @PathVariable Integer scooterId,
+            @PathVariable @NonNull Integer scooterId,
             @RequestParam double userLat,
             @RequestParam double userLng) {
 

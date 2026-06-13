@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import com.semo.backend.repository.FeedbackRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -70,7 +71,7 @@ public class UserService {
      * @param id User ID
      * @return UserResponseDTO
      */
-    public UserResponseDTO getUserById(Integer id) {
+    public UserResponseDTO getUserById(@NonNull Integer id) {
         authUtil.requireAdminOrSelfAccess(id, "Lỗi phân quyền: Bạn không có quyền xem thông tin user này!");
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy User với ID: " + id));
@@ -125,7 +126,7 @@ public class UserService {
      * @return UserResponseDTO
      */
     @Transactional
-    public UserResponseDTO updateUser(Integer id, UserUpdateRequestDTO requestDTO) {
+    public UserResponseDTO updateUser(@NonNull Integer id, UserUpdateRequestDTO requestDTO) {
         authUtil.requireAdminOrSelfAccess(id, "Lỗi phân quyền: Bạn không có quyền xem thông tin user này!");
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy User với ID: " + id));
@@ -146,7 +147,7 @@ public class UserService {
             existingUser.setPhoneNumber(requestDTO.getPhoneNumber());
         }
 
-        User updatedUser = userRepository.save(existingUser);
+        User updatedUser = userRepository.save(java.util.Objects.requireNonNull(existingUser));
         return mapToResponseDTO(updatedUser);
     }
 
@@ -156,7 +157,7 @@ public class UserService {
      * @param id User ID
      */
     @Transactional
-    public void deleteUser(Integer id) {
+    public void deleteUser(@NonNull Integer id) {
         authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy User với ID: " + id));
@@ -164,7 +165,7 @@ public class UserService {
         feedbackRepository.deleteByUserId(id);
         transactionRepository.deleteByUserId(id);
         rentalRepository.deleteByUserId(id);
-        userRepository.delete(user);
+        userRepository.delete(java.util.Objects.requireNonNull(user));
     }
 
     /**
@@ -184,7 +185,7 @@ public class UserService {
      * the user.
      */
     @Transactional
-    public String adminResetPassword(Integer id, String newPassword) {
+    public String adminResetPassword(@NonNull Integer id, String newPassword) {
         authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy User với ID: " + id));
@@ -244,7 +245,7 @@ public class UserService {
      * @param id User ID
      * @return User entity
      */
-    public User getUserEntityById(Integer id) {
+    public User getUserEntityById(@NonNull Integer id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy User với ID: " + id));
     }
@@ -288,7 +289,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponseDTO toggleUserStatus(Integer targetUserId) {
+    public UserResponseDTO toggleUserStatus(@NonNull Integer targetUserId) {
         User admin = authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
 
 

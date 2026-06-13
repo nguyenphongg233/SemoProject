@@ -8,9 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.lang.NonNull;
 import jakarta.validation.Valid;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/configs")
@@ -33,7 +32,7 @@ public class SystemConfigController {
     // CẬP NHẬT (PUT /api/admin/configs/{key})
     @PutMapping("/{key}")
     public ResponseEntity<SystemConfigResponseDTO> updateConfig(
-            @PathVariable String key,
+            @PathVariable @NonNull String key,
             @Valid @RequestBody SystemConfigUpdateRequestDTO requestDTO) {
 
         SystemConfigResponseDTO responseDTO = configService.updateConfig(key, requestDTO);
@@ -43,7 +42,7 @@ public class SystemConfigController {
 
     // XÓA (DELETE /api/admin/configs/{key})
     @DeleteMapping("/{key}")
-    public ResponseEntity<Void> deleteConfig(@PathVariable String key) {
+    public ResponseEntity<Void> deleteConfig(@PathVariable @NonNull String key) {
         configService.deleteConfig(key);
 
         return ResponseEntity.noContent().build();
@@ -57,7 +56,7 @@ public class SystemConfigController {
 
     // LẤY CHI TIẾT THEO KEY (GET /api/admin/configs/{key})
     @GetMapping("/{key}")
-    public ResponseEntity<SystemConfigResponseDTO> getConfigByKey(@PathVariable String key) {
+    public ResponseEntity<SystemConfigResponseDTO> getConfigByKey(@PathVariable @NonNull String key) {
         return ResponseEntity.ok(configService.getConfigByKey(key));
     }
 }

@@ -1,16 +1,16 @@
 package com.semo.backend.service;
 
-import com.semo.backend.dto.FeedbackRequestDTO;
-import com.semo.backend.dto.FeedbackResponseDTO;
-import com.semo.backend.entity.Rental;
-import com.semo.backend.entity.User;
-import com.semo.backend.entity.Feedback;
-import com.semo.backend.repository.RentalRepository;
-import com.semo.backend.repository.FeedbackRepository;
-import com.semo.backend.util.AuthUtil;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.semo.backend.dto.FeedbackRequestDTO;
+import com.semo.backend.dto.FeedbackResponseDTO;
+import com.semo.backend.entity.Feedback;
+import com.semo.backend.entity.Rental;
+import com.semo.backend.entity.User;
+import com.semo.backend.repository.FeedbackRepository;
+import com.semo.backend.repository.RentalRepository;
+import com.semo.backend.util.AuthUtil;
 
 @Service
 public class FeedbackService {
@@ -29,7 +29,11 @@ public class FeedbackService {
     public FeedbackResponseDTO submitFeedback(FeedbackRequestDTO requestDTO) {
         User user = authUtil.requireActiveAuthenticatedUser();
 
-        Rental rental = rentalRepository.findById(requestDTO.getRentalId())
+        if (requestDTO.getRentalId() == null) {
+            throw new IllegalArgumentException("ID chuyến đi không hợp lệ.");
+        }
+
+        Rental rental = rentalRepository.findById(java.util.Objects.requireNonNull(requestDTO.getRentalId()))
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy chuyến đi"));
 
         if (!rental.getUser().getId().equals(user.getId())) {
@@ -69,8 +73,6 @@ public class FeedbackService {
                 .map(this::mapToDTO)
                 .collect(java.util.stream.Collectors.toList());
     }
-
-
 
     private FeedbackResponseDTO mapToDTO(Feedback feedback) {
         FeedbackResponseDTO dto = new FeedbackResponseDTO();

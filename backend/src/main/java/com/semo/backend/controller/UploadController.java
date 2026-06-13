@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.lang.NonNull;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.semo.backend.dto.UploadResponseDTO;
@@ -61,7 +62,7 @@ public class UploadController {
      */
     @PostMapping("/scooter/{scooterId}")
     public ResponseEntity<UploadResponseDTO> uploadScooterImage(
-            @PathVariable Integer scooterId,
+            @PathVariable @NonNull Integer scooterId,
             @RequestParam("file") MultipartFile file) {
         try {
             String fileUrl = fileService.uploadFile(file, "scooters");

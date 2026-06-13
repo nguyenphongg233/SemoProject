@@ -108,6 +108,7 @@ public class AnalyticsService {
         return minIndex;
     }
 
+    @SuppressWarnings("deprecation")
     public List<PointDTO> calculateOptimalChargingStationsHDBSCAN(int minClusterSize) {
         if (minClusterSize <= 0)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tham số minClusterSize phải lớn hơn 0.");

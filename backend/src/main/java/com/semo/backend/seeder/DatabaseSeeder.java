@@ -56,6 +56,22 @@ public class DatabaseSeeder implements CommandLineRunner {
             System.out.println("   Customer: customer@semo.com / Customer@123");
         }
 
+        // Seed bot users
+        for (int i = 1; i <= 3; i++) {
+            String botEmail = "bot" + i + "@semo.com";
+            if (!userRepository.existsByEmail(botEmail)) {
+                User bot = new User(
+                        botEmail,
+                        passwordEncoder.encode("Bot@123"),
+                        "[BOT] User " + i,
+                        "090000000" + i,
+                        "CUSTOMER",
+                        200000.0);
+                userRepository.save(bot);
+                System.out.println("✅ Đã tạo tài khoản " + botEmail + " thành công!");
+            }
+        }
+
         // Seed scooters
         if (scooterRepository.count() == 0) {
             Scooter s1 = createScooter("VinFast Feliz S", 100, "AVAILABLE", 21.00555, 105.84335);
@@ -67,7 +83,7 @@ public class DatabaseSeeder implements CommandLineRunner {
             Scooter s7 = createScooter("Segway Ninebot S", 30, "IN_USE", 21.00396, 105.84308);
             Scooter s8 = createScooter("Super Soco CUx", 15, "MAINTENANCE", 21.00577, 105.84442);
 
-            scooterRepository.saveAll(Arrays.asList(s1, s2, s3, s4, s5, s6, s7, s8));
+            scooterRepository.saveAll(java.util.Objects.requireNonNull(Arrays.asList(s1, s2, s3, s4, s5, s6, s7, s8)));
             System.out.println("✅ Đã bơm dữ liệu mẫu cho bảng Scooters thành công!");
         }
 
@@ -95,7 +111,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         }
 
         if (updated) {
-            scooterRepository.saveAll(scooters);
+            scooterRepository.saveAll(java.util.Objects.requireNonNull(scooters));
             System.out.println("✅ Đã bổ sung tọa độ cho các scooter chưa có vị trí.");
         }
     }

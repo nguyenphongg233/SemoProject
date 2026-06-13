@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.lang.NonNull;
 
 import com.semo.backend.dto.ScooterRequestDTO;
 import com.semo.backend.dto.ScooterResponseDTO;
@@ -60,14 +61,14 @@ public class ScooterController {
 
     // Endpoint: GET /api/scooters/{id}
     @GetMapping("/{id}")
-    public ResponseEntity<ScooterResponseDTO> getScooterById(@PathVariable Integer id) {
+    public ResponseEntity<ScooterResponseDTO> getScooterById(@PathVariable @NonNull Integer id) {
         ScooterResponseDTO scooter = scooterService.getScooterById(id);
         return ResponseEntity.ok(scooter);
     }
 
     // Endpoint: PUT /api/scooters/{id}
     @PutMapping("/{id}")
-    public ResponseEntity<ScooterResponseDTO> updateScooter(@PathVariable Integer id,
+    public ResponseEntity<ScooterResponseDTO> updateScooter(@PathVariable @NonNull Integer id,
             @Valid @RequestBody ScooterRequestDTO requestDTO) {
         ScooterResponseDTO responseDTO = scooterService.updateScooter(id, requestDTO);
         return ResponseEntity.ok(responseDTO);
@@ -75,7 +76,7 @@ public class ScooterController {
 
     // Endpoint: DELETE /api/scooters/{id}
     @org.springframework.web.bind.annotation.DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteScooter(@PathVariable Integer id) {
+    public ResponseEntity<String> deleteScooter(@PathVariable @NonNull Integer id) {
         scooterService.deleteScooter(id);
         return ResponseEntity.ok("Đã xóa thành công xe với ID: " + id);
     }

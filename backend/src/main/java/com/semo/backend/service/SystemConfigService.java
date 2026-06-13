@@ -9,6 +9,7 @@ import com.semo.backend.dto.SystemConfigUpdateRequestDTO;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +25,7 @@ public class SystemConfigService {
     }
 
     @Cacheable(value = "system_configs", key = "#key")
-    public String getConfigValue(String key, String defaultValue) {
+    public String getConfigValue(@NonNull String key, String defaultValue) {
         return configRepository.findById(key)
                 .map(SystemConfig::getConfigValue)
                 .orElse(defaultValue);
@@ -38,7 +39,7 @@ public class SystemConfigService {
     }
 
     @Cacheable(value = "system_configs", key = "#key")
-    public SystemConfigResponseDTO getConfigByKey(String key) {
+    public SystemConfigResponseDTO getConfigByKey(@NonNull String key) {
         SystemConfig config = configRepository.findById(key)
                 .orElseThrow(() -> new RuntimeException("Khóa cấu hình '" + key + "' không tồn tại!"));
         return mapToResponseDTO(config);
@@ -50,6 +51,10 @@ public class SystemConfigService {
         String key = requestDTO.getKey();
         String value = requestDTO.getValue();
         String description = requestDTO.getDescription();
+
+        if (key == null || key.isBlank()) {
+            throw new IllegalArgumentException("Khóa cấu hình không được để trống!");
+        }
 
         if (configRepository.existsById(key)) {
             throw new RuntimeException("Khóa cấu hình '" + key + "' đã tồn tại!");
@@ -66,7 +71,7 @@ public class SystemConfigService {
             @CacheEvict(value = "system_configs", key = "#key"),
             @CacheEvict(value = "system_configs", key = "'all_configs'")
     })
-    public SystemConfigResponseDTO updateConfig(String key, SystemConfigUpdateRequestDTO requestDTO) {
+    public SystemConfigResponseDTO updateConfig(@NonNull String key, SystemConfigUpdateRequestDTO requestDTO) {
         SystemConfig config = configRepository.findById(key)
                 .orElseThrow(() -> new RuntimeException("Khóa cấu hình '" + key + "' không tồn tại!"));
 
@@ -88,14 +93,14 @@ public class SystemConfigService {
             @CacheEvict(value = "system_configs", key = "#key"),
             @CacheEvict(value = "system_configs", key = "'all_configs'")
     })
-    public void deleteConfig(String key) {
+    public void deleteConfig(@NonNull String key) {
         if (!configRepository.existsById(key)) {
             throw new RuntimeException("Khóa cấu hình '" + key + "' không tồn tại!");
         }
         configRepository.deleteById(key);
     }
 
-    public double getConfigAsDouble(String key, double defaultValue) {
+    public double getConfigAsDouble(@NonNull String key, double defaultValue) {
         try {
             return Double.parseDouble(getConfigValue(key, String.valueOf(defaultValue)));
         } catch (NumberFormatException e) {

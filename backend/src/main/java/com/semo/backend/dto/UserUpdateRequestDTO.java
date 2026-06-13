@@ -1,7 +1,6 @@
 package com.semo.backend.dto;
 
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Size;
 
 public class UserUpdateRequestDTO {
     @Email(message = "Email không hợp lệ")
