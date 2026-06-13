@@ -13,8 +13,11 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class ScooterSimulationService {
@@ -25,6 +28,15 @@ public class ScooterSimulationService {
     private final SimpMessagingTemplate messagingTemplate;
 
     private final Random random = new Random();
+    private final Map<Integer, List<double[]>> activeRoutes = new ConcurrentHashMap<>();
+
+    public void assignRoute(Integer scooterId, List<double[]> path) {
+        activeRoutes.put(scooterId, new ArrayList<>(path));
+    }
+
+    public boolean hasArrived(Integer scooterId) {
+        return !activeRoutes.containsKey(scooterId);
+    }
 
     public ScooterSimulationService(ScooterRepository scooterRepository,
                                     MaintenanceLogRepository maintenanceLogRepository,
@@ -58,9 +70,30 @@ public class ScooterSimulationService {
     }
 
     private void simulateMovementAndSensors(Scooter scooter) {
-        if (scooter.getCurrentLat() != null && scooter.getCurrentLng() != null) {
-            scooter.setCurrentLat(scooter.getCurrentLat() + (random.nextDouble() - 0.5) * 0.0002);
-            scooter.setCurrentLng(scooter.getCurrentLng() + (random.nextDouble() - 0.5) * 0.0002);
+        Integer sId = scooter.getId();
+        if (activeRoutes.containsKey(sId)) {
+            List<double[]> path = activeRoutes.get(sId);
+            if (path.isEmpty()) {
+                activeRoutes.remove(sId);
+            } else {
+                double[] target = path.get(0);
+                double dLat = target[0] - scooter.getCurrentLat();
+                double dLng = target[1] - scooter.getCurrentLng();
+                double dist = Math.sqrt(dLat * dLat + dLng * dLng);
+                double step = 0.0005; // speed per 5 seconds
+
+                if (dist <= step) {
+                    scooter.setCurrentLat(target[0]);
+                    scooter.setCurrentLng(target[1]);
+                    path.remove(0);
+                    if (path.isEmpty()) {
+                        activeRoutes.remove(sId);
+                    }
+                } else {
+                    scooter.setCurrentLat(scooter.getCurrentLat() + (dLat / dist) * step);
+                    scooter.setCurrentLng(scooter.getCurrentLng() + (dLng / dist) * step);
+                }
+            }
         }
 
         int batteryDrop = random.nextInt(2);

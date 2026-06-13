@@ -56,6 +56,22 @@ public class DatabaseSeeder implements CommandLineRunner {
             System.out.println("   Customer: customer@semo.com / Customer@123");
         }
 
+        // Seed bot users
+        for (int i = 1; i <= 3; i++) {
+            String botEmail = "bot" + i + "@semo.com";
+            if (!userRepository.existsByEmail(botEmail)) {
+                User bot = new User(
+                        botEmail,
+                        passwordEncoder.encode("Bot@123"),
+                        "[BOT] User " + i,
+                        "090000000" + i,
+                        "CUSTOMER",
+                        200000.0);
+                userRepository.save(bot);
+                System.out.println("✅ Đã tạo tài khoản " + botEmail + " thành công!");
+            }
+        }
+
         // Seed scooters
         if (scooterRepository.count() == 0) {
             Scooter s1 = createScooter("VinFast Feliz S", 100, "AVAILABLE", 21.00555, 105.84335);
