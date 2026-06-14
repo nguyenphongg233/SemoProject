@@ -3,6 +3,7 @@ package com.semo.backend.repository;
 import com.semo.backend.entity.Rental;
 import com.semo.backend.entity.User;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,6 +12,8 @@ import java.util.List;
 
 public interface RentalRepository extends JpaRepository<Rental, Integer> {
     void deleteByUserId(Integer userId);
+    
+    @EntityGraph(attributePaths = {"user", "scooter"})
     List<Rental> findByUserAndStatusOrderByStartTimeDesc(User user, String status);
     List<Rental> findByUserOrderByStartTimeDesc(User user);
     List<Rental> findByStatusOrderByStartTimeDesc(String status);

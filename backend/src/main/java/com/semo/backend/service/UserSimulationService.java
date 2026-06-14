@@ -64,7 +64,7 @@ public class UserSimulationService {
         this.scooterSimulationService = scooterSimulationService;
     }
 
-    @Scheduled(fixedRate = 60000) // Chạy mỗi 1 phút
+    @Scheduled(fixedRate = 15000) // Chạy mỗi 15 giây để dễ test
     public void simulateBotBehaviors() {
         // Lấy danh sách bots (được đánh dấu bởi email có chữ bot và role CUSTOMER)
         List<User> bots = userRepository.findAll().stream()
@@ -75,7 +75,7 @@ public class UserSimulationService {
 
         for (User bot : bots) {
             // Kiểm tra xem bot có chuyến đi nào đang diễn ra không
-            List<Rental> activeRentals = rentalRepository.findByUserAndStatusOrderByStartTimeDesc(bot, "IN_USE");
+            List<Rental> activeRentals = rentalRepository.findByUserAndStatusOrderByStartTimeDesc(bot, "ACTIVE");
 
             try {
                 mockAuthentication(bot);
@@ -87,8 +87,8 @@ public class UserSimulationService {
                         topUpBalance(bot, 200000.0);
                         System.out.println("🤖 Bot " + bot.getEmail() + " đã tự động nạp thêm tiền.");
                     } else {
-                        // 2. Có 30% tỷ lệ bắt đầu thuê xe mới
-                        if (random.nextInt(100) < 30) {
+                        // Có 100% tỷ lệ bắt đầu thuê xe mới để dễ quan sát
+                        if (random.nextInt(100) < 100) {
                             startRandomRental(bot);
                         }
                     }
