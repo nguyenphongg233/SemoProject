@@ -69,13 +69,29 @@ interface ScooterMapProps {
 
 export default function ScooterMap({ scooters = [], stations = [], zones = [], previewRadius, onMapClick, clusterAssignments }: ScooterMapProps) {
   const [preview, setPreview] = useState<LatLngPos | null>(null)
+  
+  const [visibleStatuses, setVisibleStatuses] = useState<Set<string>>(
+    new Set(Object.values(SCOOTER_STATUSES))
+  )
+
+  const toggleStatus = (status: string) => {
+    setVisibleStatuses(prev => {
+      const next = new Set(prev)
+      if (next.has(status)) {
+        next.delete(status)
+      } else {
+        next.add(status)
+      }
+      return next
+    })
+  }
 
   const mappedScooters = useMemo(
     () =>
       scooters.filter(
-        (s) => s.currentLat !== null && s.currentLng !== null && Number.isFinite(Number(s.currentLat)) && Number.isFinite(Number(s.currentLng)),
+        (s) => s.currentLat !== null && s.currentLng !== null && Number.isFinite(Number(s.currentLat)) && Number.isFinite(Number(s.currentLng)) && visibleStatuses.has(s.status)
       ),
-    [scooters],
+    [scooters, visibleStatuses],
   )
 
   return (
@@ -256,18 +272,30 @@ export default function ScooterMap({ scooters = [], stations = [], zones = [], p
       <div className="flex flex-wrap gap-10 text-lg ml-4 text-text-muted">
         {!clusterAssignments ? (
           <>
-            <span className="inline-flex items-center gap-2">
+            <button 
+              onClick={() => toggleStatus(SCOOTER_STATUSES.AVAILABLE)}
+              className={`inline-flex items-center gap-2 cursor-pointer transition-opacity hover:opacity-80 ${!visibleStatuses.has(SCOOTER_STATUSES.AVAILABLE) ? 'opacity-40 grayscale' : ''}`}
+            >
               <i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-[#00D1FF] text-[rgba(0,209,255,0.5)]" /> Available
-            </span>
-            <span className="inline-flex items-center gap-2">
+            </button>
+            <button 
+              onClick={() => toggleStatus(SCOOTER_STATUSES.IN_USE)}
+              className={`inline-flex items-center gap-2 cursor-pointer transition-opacity hover:opacity-80 ${!visibleStatuses.has(SCOOTER_STATUSES.IN_USE) ? 'opacity-40 grayscale' : ''}`}
+            >
               <i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-[#0052FF] text-[rgba(0,82,255,0.5)]" /> In Use
-            </span>
-            <span className="inline-flex items-center gap-2">
+            </button>
+            <button 
+              onClick={() => toggleStatus(SCOOTER_STATUSES.MAINTENANCE)}
+              className={`inline-flex items-center gap-2 cursor-pointer transition-opacity hover:opacity-80 ${!visibleStatuses.has(SCOOTER_STATUSES.MAINTENANCE) ? 'opacity-40 grayscale' : ''}`}
+            >
               <i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-danger text-[rgba(255,92,122,0.5)]" /> Maintenance
-            </span>
-            <span className="inline-flex items-center gap-2">
+            </button>
+            <button 
+              onClick={() => toggleStatus(SCOOTER_STATUSES.CHARGING)}
+              className={`inline-flex items-center gap-2 cursor-pointer transition-opacity hover:opacity-80 ${!visibleStatuses.has(SCOOTER_STATUSES.CHARGING) ? 'opacity-40 grayscale' : ''}`}
+            >
               <i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-[#FFB800] text-[rgba(255,184,0,0.5)]" /> Charging
-            </span>
+            </button>
           </>
         ) : (
           <span className="inline-flex items-center gap-2">

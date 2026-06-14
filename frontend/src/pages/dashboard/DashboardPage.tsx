@@ -1,6 +1,9 @@
 // Dashboard người dùng — Tech Blue Luxury (phong cách cockpit phi thuyền / EV).
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Client } from '@stomp/stompjs'
+import SockJS from 'sockjs-client'
+import { APP_ENV } from '@/config/env'
 import {
   Bike,
   BatteryFull,
@@ -79,6 +82,35 @@ export default function DashboardPage() {
     loadScooters()
     return () => { isActive = false }
   }, [refreshKey])
+
+  useEffect(() => {
+    const client = new Client({
+      webSocketFactory: () => new SockJS(`${APP_ENV.apiUrl}/ws`),
+      debug: (str) => console.log(str),
+      onConnect: () => {
+        client.subscribe('/topic/scooters', (msg) => {
+          if (msg.body) {
+            const activeScooters: Scooter[] = JSON.parse(msg.body);
+            setScooters((prev) => {
+              // Update only the scooters that are passed in the WebSocket message (usually IN_USE scooters)
+              const map = new Map(activeScooters.map(s => [s.id, s]));
+              return prev.map(s => map.has(s.id) ? { ...s, ...map.get(s.id) } : s);
+            });
+          }
+        });
+      },
+      onStompError: (frame) => {
+        console.error('Broker reported error: ' + frame.headers['message']);
+        console.error('Additional details: ' + frame.body);
+      },
+    });
+
+    client.activate();
+
+    return () => {
+      client.deactivate();
+    };
+  }, []);
 
   const summary = useMemo(() => {
     const total = scooters.length

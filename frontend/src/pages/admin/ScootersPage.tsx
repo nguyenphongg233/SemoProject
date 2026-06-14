@@ -2,6 +2,9 @@
 import { useEffect, useMemo, useState } from 'react'
 // FIX 1: Thêm type-only import cho các Event React
 import type { SyntheticEvent, ChangeEvent } from 'react'
+import { Client } from '@stomp/stompjs'
+import SockJS from 'sockjs-client'
+import { APP_ENV } from '@/config/env'
 
 import { Download, Pencil, LayoutGrid, CheckCircle2, PlayCircle, Wrench, Zap } from 'lucide-react'
 
@@ -85,6 +88,30 @@ export default function ScootersPage() {
       clearInterval(interval)
     }
   }, [])
+
+  useEffect(() => {
+    const client = new Client({
+      webSocketFactory: () => new SockJS(`${APP_ENV.apiUrl}/ws`),
+      debug: (str) => console.log(str),
+      onConnect: () => {
+        client.subscribe('/topic/scooters', (msg) => {
+          if (msg.body) {
+            const activeScooters: Scooter[] = JSON.parse(msg.body);
+            setScooters((prev) => {
+              const map = new Map(activeScooters.map(s => [s.id, s]));
+              return prev.map(s => map.has(s.id) ? { ...s, ...map.get(s.id) } : s);
+            });
+          }
+        });
+      },
+    });
+
+    client.activate();
+
+    return () => {
+      client.deactivate();
+    };
+  }, []);
 
   const summary = useMemo(() => {
     const total = scooters.length

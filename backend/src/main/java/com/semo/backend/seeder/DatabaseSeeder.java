@@ -38,8 +38,6 @@ public class DatabaseSeeder implements CommandLineRunner {
                     "ADMIN",
                     0.0);
             userRepository.save(admin);
-            System.out.println("✅ Đã tạo tài khoản Admin thành công!");
-            System.out.println("   Admin: admin@semo.com / Admin@123");
         }
 
         // Seed customer user
@@ -76,15 +74,25 @@ public class DatabaseSeeder implements CommandLineRunner {
         if (scooterRepository.count() == 0) {
             Scooter s1 = createScooter("VinFast Feliz S", 100, "AVAILABLE", 21.00555, 105.84335);
             Scooter s2 = createScooter("Honda Vision 2023", 45, "IN_USE", 21.00498, 105.84292);
-            Scooter s3 = createScooter("Yamaha Grande", 12, "MAINTENANCE", 21.00521, 105.84411);
-            Scooter s4 = createScooter("DatBike Weaver++", 88, "AVAILABLE", 21.00618, 105.84378);
-            Scooter s5 = createScooter("Yadea Xmen Neo", 5, "MAINTENANCE", 21.00441, 105.84366);
-            Scooter s6 = createScooter("Gogoro 2 Series", 60, "AVAILABLE", 21.00592, 105.84248);
+            Scooter s3 = createScooter("Yamaha Janus", 80, "AVAILABLE", 21.00621, 105.84567);
+            Scooter s4 = createScooter("Piaggio Liberty", 20, "CHARGING", 21.00311, 105.84122);
+            Scooter s5 = createScooter("Pega Aura", 60, "AVAILABLE", 21.00755, 105.84688);
+            Scooter s6 = createScooter("Dat Bike Weaver", 95, "AVAILABLE", 21.00288, 105.84711);
             Scooter s7 = createScooter("Segway Ninebot S", 30, "IN_USE", 21.00396, 105.84308);
             Scooter s8 = createScooter("Super Soco CUx", 15, "MAINTENANCE", 21.00577, 105.84442);
 
             scooterRepository.saveAll(java.util.Objects.requireNonNull(Arrays.asList(s1, s2, s3, s4, s5, s6, s7, s8)));
             System.out.println("✅ Đã bơm dữ liệu mẫu cho bảng Scooters thành công!");
+        }
+
+        // Tự động Migrate các Scooter từ ACTIVE về lại IN_USE
+        List<Scooter> legacyScooters = scooterRepository.findByStatus("ACTIVE");
+        if (legacyScooters != null && !legacyScooters.isEmpty()) {
+            for (Scooter s : legacyScooters) {
+                s.setStatus("IN_USE");
+            }
+            scooterRepository.saveAll(legacyScooters);
+            System.out.println("✅ Đã migrate " + legacyScooters.size() + " xe từ ACTIVE sang IN_USE trong Database!");
         }
 
         List<Scooter> scooters = scooterRepository.findAll();
