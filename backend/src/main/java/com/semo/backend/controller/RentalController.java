@@ -3,6 +3,7 @@ package com.semo.backend.controller;
 import com.semo.backend.dto.RentalRequestDTO;
 import com.semo.backend.dto.RentalResponseDTO;
 import com.semo.backend.service.RentalService;
+import com.semo.backend.service.UserSimulationService;
 
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -17,9 +18,11 @@ import java.util.List;
 public class RentalController {
 
     private final RentalService rentalService;
+    private final UserSimulationService userSimulationService;
 
-    public RentalController(RentalService rentalService) {
+    public RentalController(RentalService rentalService, UserSimulationService userSimulationService) {
         this.rentalService = rentalService;
+        this.userSimulationService = userSimulationService;
     }
 
     // 1. API Bắt đầu thuê xe
@@ -46,6 +49,8 @@ public class RentalController {
     // 4. API Force end all rentals (ADMIN only)
     @PutMapping("/force-end-all")
     public ResponseEntity<Void> forceEndAllRentals() {
+        // Tự động tắt bot để ngăn bot tiếp tục thuê xe sau khi force-end
+        userSimulationService.setBotEnabled(false);
         rentalService.forceEndAllRentals();
         return ResponseEntity.ok().build();
     }

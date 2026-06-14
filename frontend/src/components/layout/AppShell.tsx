@@ -171,12 +171,12 @@ function BotToggleButton() {
       className={cn(
         "relative flex items-center justify-center gap-2 min-h-8 px-4 mr-4 rounded-full text-sm font-semibold tracking-wider transition-all",
         botEnabled 
-          ? "bg-[rgba(0,209,255,0.12)] border border-[rgba(0,209,255,0.3)] text-cyan-soft hover:bg-[rgba(0,209,255,0.2)]" 
-          : "bg-surface-elevated border border-border text-text-muted hover:text-white"
+          ? "bg-brand/10 border border-brand/30 text-brand hover:bg-brand/20" 
+          : "bg-surface-elevated border border-border text-text-strong hover:bg-surface-elevated/80"
       )}
       title="Toggle simulation bots"
     >
-      <div className={cn("w-2 h-2 rounded-full", botEnabled ? "bg-cyan-soft animate-pulse" : "bg-text-muted")} />
+      <div className={cn("w-2 h-2 rounded-full", botEnabled ? "bg-brand animate-pulse" : "bg-text-muted")} />
       {botEnabled ? 'Bot: ON' : 'Bot: OFF'}
     </button>
   )
