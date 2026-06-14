@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { type ReactNode, useEffect, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard,
@@ -26,6 +26,8 @@ import { Button } from '../ui'
 import { cn } from '@/utils'; // Đường dẫn tới hàm cn của bạn
 import { useTheme } from '@/contexts/ThemeContext';
 
+
+import { getBotStatus, toggleBotStatus } from '@/features/bot'
 
 // 1. Định nghĩa kiểu cho một phần tử menu
 interface NavItem {
@@ -116,6 +118,68 @@ function getInitials(name = '', email = '') {
   const parts = source.split(/\s+/).filter(Boolean)
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+}
+
+function BotToggleButton() {
+  const [botEnabled, setBotEnabled] = useState<boolean>(false)
+  const [loading, setLoading] = useState<boolean>(false)
+
+  // Fetch status định kỳ 5s để đồng bộ giữa nhiều admin
+  useEffect(() => {
+    let isActive = true
+    
+    const fetchStatus = async () => {
+      try {
+        const status = await getBotStatus()
+        if (isActive && !loading) {
+          setBotEnabled(status.enabled)
+        }
+      } catch (err) {
+        console.error('Failed to get bot status', err)
+      }
+    }
+
+    fetchStatus()
+    const interval = setInterval(fetchStatus, 5000)
+    
+    return () => {
+      isActive = false
+      clearInterval(interval)
+    }
+  }, [loading])
+
+  const handleToggle = async () => {
+    try {
+      setLoading(true)
+      // Optimistic update
+      setBotEnabled(!botEnabled)
+      const res = await toggleBotStatus()
+      setBotEnabled(res.enabled)
+    } catch (err) {
+      console.error('Failed to toggle bot', err)
+      // Revert if error
+      setBotEnabled(!botEnabled)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <button
+      onClick={handleToggle}
+      disabled={loading}
+      className={cn(
+        "relative flex items-center justify-center gap-2 min-h-8 px-4 mr-4 rounded-full text-sm font-semibold tracking-wider transition-all",
+        botEnabled 
+          ? "bg-[rgba(0,209,255,0.12)] border border-[rgba(0,209,255,0.3)] text-cyan-soft hover:bg-[rgba(0,209,255,0.2)]" 
+          : "bg-surface-elevated border border-border text-text-muted hover:text-white"
+      )}
+      title="Toggle simulation bots"
+    >
+      <div className={cn("w-2 h-2 rounded-full", botEnabled ? "bg-cyan-soft animate-pulse" : "bg-text-muted")} />
+      {botEnabled ? 'Bot: ON' : 'Bot: OFF'}
+    </button>
+  )
 }
 
 // 3. Định nghĩa Props cho component AppShell
@@ -218,10 +282,13 @@ export default function AppShell({ mode = 'user', children }: AppShellProps) {
 
           <div className="flex items-center flex-wrap">
             {isAdminMode && (
-              <button className="relative p-2 mr-3 text-text-muted hover:text-cyan-soft transition-colors" title="Notifications (Pending API)">
-                <Bell size={20} strokeWidth={2} />
-                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[var(--danger)] animate-pulse"></span>
-              </button>
+              <>
+                <BotToggleButton />
+                <button className="relative p-2 mr-3 text-text-muted hover:text-cyan-soft transition-colors" title="Notifications (Pending API)">
+                  <Bell size={20} strokeWidth={2} />
+                  <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[var(--danger)] animate-pulse"></span>
+                </button>
+              </>
             )}
             <button 
               onClick={toggleTheme}

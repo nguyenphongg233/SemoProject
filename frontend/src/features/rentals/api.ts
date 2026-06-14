@@ -16,3 +16,9 @@ export async function getRentalHistory(status?: string) {
   })
   return data
 }
+
+export async function forceEndAllRentals() {
+  const { data } = await axiosClient.put('/api/rentals/force-end-all')
+  return data
+}
+

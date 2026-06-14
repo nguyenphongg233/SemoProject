@@ -11,18 +11,22 @@ import com.semo.backend.entity.Scooter;
 import com.semo.backend.entity.User;
 import com.semo.backend.repository.ScooterRepository;
 import com.semo.backend.repository.UserRepository;
+import com.semo.backend.repository.RentalRepository;
+import com.semo.backend.entity.Rental;
 
 @Component
 public class DatabaseSeeder implements CommandLineRunner {
 
     private final ScooterRepository scooterRepository;
     private final UserRepository userRepository;
+    private final RentalRepository rentalRepository;
     private final PasswordEncoder passwordEncoder;
 
     public DatabaseSeeder(ScooterRepository scooterRepository, UserRepository userRepository,
-            PasswordEncoder passwordEncoder) {
+            RentalRepository rentalRepository, PasswordEncoder passwordEncoder) {
         this.scooterRepository = scooterRepository;
         this.userRepository = userRepository;
+        this.rentalRepository = rentalRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -73,12 +77,12 @@ public class DatabaseSeeder implements CommandLineRunner {
         // Seed scooters
         if (scooterRepository.count() == 0) {
             Scooter s1 = createScooter("VinFast Feliz S", 100, "AVAILABLE", 21.00555, 105.84335);
-            Scooter s2 = createScooter("Honda Vision 2023", 45, "IN_USE", 21.00498, 105.84292);
+            Scooter s2 = createScooter("Honda Vision 2023", 45, "AVAILABLE", 21.00498, 105.84292);
             Scooter s3 = createScooter("Yamaha Janus", 80, "AVAILABLE", 21.00621, 105.84567);
             Scooter s4 = createScooter("Piaggio Liberty", 20, "CHARGING", 21.00311, 105.84122);
             Scooter s5 = createScooter("Pega Aura", 60, "AVAILABLE", 21.00755, 105.84688);
             Scooter s6 = createScooter("Dat Bike Weaver", 95, "AVAILABLE", 21.00288, 105.84711);
-            Scooter s7 = createScooter("Segway Ninebot S", 30, "IN_USE", 21.00396, 105.84308);
+            Scooter s7 = createScooter("Segway Ninebot S", 30, "AVAILABLE", 21.00396, 105.84308);
             Scooter s8 = createScooter("Super Soco CUx", 15, "MAINTENANCE", 21.00577, 105.84442);
 
             scooterRepository.saveAll(java.util.Objects.requireNonNull(Arrays.asList(s1, s2, s3, s4, s5, s6, s7, s8)));
@@ -93,6 +97,16 @@ public class DatabaseSeeder implements CommandLineRunner {
             }
             scooterRepository.saveAll(legacyScooters);
             System.out.println("✅ Đã migrate " + legacyScooters.size() + " xe từ ACTIVE sang IN_USE trong Database!");
+        }
+
+        // Tự động Migrate các Rental từ ACTIVE sang IN_USE
+        List<Rental> legacyRentals = rentalRepository.findByStatusOrderByStartTimeDesc("ACTIVE");
+        if (legacyRentals != null && !legacyRentals.isEmpty()) {
+            for (Rental r : legacyRentals) {
+                r.setStatus("IN_USE");
+            }
+            rentalRepository.saveAll(legacyRentals);
+            System.out.println("✅ Đã migrate " + legacyRentals.size() + " chuyến đi từ ACTIVE sang IN_USE trong Database!");
         }
 
         List<Scooter> scooters = scooterRepository.findAll();

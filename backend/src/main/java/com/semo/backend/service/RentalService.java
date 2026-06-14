@@ -26,7 +26,7 @@ public class RentalService {
     private final ScooterRepository scooterRepository;
     private final TransactionRepository transactionRepository;
     private final AuthUtil authUtil;
-    private static final List<String> VALID_STATUSES = List.of("ALL", "ACTIVE", "COMPLETED");
+    private static final List<String> VALID_STATUSES = List.of("ALL", "IN_USE", "COMPLETED");
 
     public RentalService(RentalRepository rentalRepository, ScooterRepository scooterRepository,
             TransactionRepository transactionRepository,
@@ -116,7 +116,9 @@ public class RentalService {
         rental.setTotalPrice(amount);
         rental.setStatus("COMPLETED");
 
-        scooter.setStatus("AVAILABLE");
+        if ("IN_USE".equals(scooter.getStatus())) {
+            scooter.setStatus("AVAILABLE");
+        }
 
         if (!"ADMIN".equals(rentalOwner.getRole())) {
             double diff = amount - 50000.0;
@@ -168,6 +170,19 @@ public class RentalService {
         return rentals.stream()
                 .map(this::mapToDTO)
                 .toList();
+    }
+
+    @Transactional
+    public void forceEndAllRentals() {
+        User loggedInUser = authUtil.requireActiveAuthenticatedUser();
+        if (!"ADMIN".equals(loggedInUser.getRole())) {
+            throw new RuntimeException("Lỗi bảo mật: Chỉ ADMIN mới có quyền thực hiện chức năng này!");
+        }
+        
+        List<Rental> activeRentals = rentalRepository.findByStatusOrderByStartTimeDesc("IN_USE");
+        for (Rental rental : activeRentals) {
+            endRental(rental.getId());
+        }
     }
 
     private RentalResponseDTO mapToDTO(Rental rental) {

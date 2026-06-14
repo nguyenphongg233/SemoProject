@@ -42,4 +42,11 @@ public class RentalController {
         List<RentalResponseDTO> history = rentalService.getRentalHistory(status);
         return ResponseEntity.ok(history);
     }
+
+    // 4. API Force end all rentals (ADMIN only)
+    @PutMapping("/force-end-all")
+    public ResponseEntity<Void> forceEndAllRentals() {
+        rentalService.forceEndAllRentals();
+        return ResponseEntity.ok().build();
+    }
 }

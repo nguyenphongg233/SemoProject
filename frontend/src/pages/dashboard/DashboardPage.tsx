@@ -13,6 +13,7 @@ import {
   Navigation,
   RefreshCcw,
   Gauge,
+  Power,
 } from 'lucide-react'
 
 import { TrendingUp, TrendingDown } from 'lucide-react'
@@ -21,6 +22,7 @@ import { SectionHeader,
   ScooterMap
 } from '@/components'
 import { getAllScooters } from '@/features/scooters'
+import { forceEndAllRentals } from '@/features/rentals'
 import { SCOOTER_STATUSES, ROUTES } from '@/constants'
 import { useAuth } from '@/hooks/useAuth'
 import { formatBatteryLevel, formatDateTime, getApiErrorMessage, cn } from '@/utils'
@@ -82,6 +84,19 @@ export default function DashboardPage() {
     loadScooters()
     return () => { isActive = false }
   }, [refreshKey])
+
+  const handleForceEndAll = async () => {
+    if (!window.confirm("Are you sure you want to forcefully end all active rentals?")) return;
+    try {
+      setLoading(true);
+      setError(null);
+      await forceEndAllRentals();
+      setRefreshKey(k => k + 1);
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Failed to force end all rentals.'));
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
     const client = new Client({
@@ -260,6 +275,15 @@ export default function DashboardPage() {
                 Manage Wallet
               </Button>
             </Link>
+            {user?.role === 'ADMIN' && (
+              <Button
+                variant="destructive"
+                onClick={handleForceEndAll}
+                leadingIcon={<Power size={16} strokeWidth={1.8} />}
+              >
+                Force End All
+              </Button>
+            )}
           </div>
         </div>
       </section>

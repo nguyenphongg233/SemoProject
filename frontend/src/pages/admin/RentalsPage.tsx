@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 
 import { SectionHeader, Alert, Button, Table, Modal, DropdownMenu, UserCell, EmptyState } from '@/components'
 import { StopCircle, Inbox } from 'lucide-react'
-import { getRentalHistory, endRental } from '@/features/rentals'
+import { getRentalHistory, endRental, forceEndAllRentals } from '@/features/rentals'
 import { formatDateTime, formatCurrency, getApiErrorMessage } from '@/utils'
 import type { TableColumn } from '@/components/ui/Table'
 
@@ -17,7 +17,7 @@ interface RentalResult {
   totalPrice: number
 }
 
-type TabStatus = 'ALL' | 'ACTIVE' | 'COMPLETED'
+type TabStatus = 'ALL' | 'IN_USE' | 'COMPLETED'
 
 export default function RentalsPage() {
   const [rentals, setRentals] = useState<RentalResult[]>([])
@@ -30,6 +30,7 @@ export default function RentalsPage() {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   const [selectedRentalId, setSelectedRentalId] = useState<number | string | null>(null)
   const [ending, setEnding] = useState(false)
+  const [endingAll, setEndingAll] = useState(false)
 
   useEffect(() => {
     fetchRentals(statusTab, true)
@@ -78,6 +79,22 @@ export default function RentalsPage() {
     }
   }
 
+  async function handleForceEndAll() {
+    if (!window.confirm("Are you sure you want to force-end ALL active rentals?")) return;
+    setEndingAll(true);
+    setError('');
+    setSuccess('');
+    try {
+      await forceEndAllRentals();
+      setSuccess('All active rentals have been forcefully ended.');
+      fetchRentals(statusTab);
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Unable to force end all rentals'));
+    } finally {
+      setEndingAll(false);
+    }
+  }
+
   const columns: TableColumn<RentalResult>[] = [
     { key: 'id', label: 'ID', align: 'right' as const, isNumeric: true },
     {
@@ -92,7 +109,7 @@ export default function RentalsPage() {
       render: (row) => (
         <span
           className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium uppercase tracking-wider ${
-            row.status === 'ACTIVE'
+            row.status === 'IN_USE'
               ? 'bg-[rgba(0,209,255,0.12)] text-cyan-soft border border-[rgba(0,209,255,0.3)]'
               : 'bg-surface-elevated text-text-muted border border-border'
           }`}
@@ -123,7 +140,7 @@ export default function RentalsPage() {
       label: 'Actions',
       align: 'center' as const,
       render: (row) =>
-        row.status === 'ACTIVE' ? (
+        row.status === 'IN_USE' ? (
           <DropdownMenu items={[
             { label: 'Force End', icon: <StopCircle size={14} />, danger: true, onClick: () => handleOpenConfirm(row.id) }
           ]} />
@@ -131,7 +148,7 @@ export default function RentalsPage() {
     },
   ]
 
-  const hasActiveRentals = rentals.some(row => row.status === 'ACTIVE')
+  const hasActiveRentals = rentals.some(row => row.status === 'IN_USE')
   const finalColumns = hasActiveRentals ? columns : columns.filter(c => c.key !== 'actions')
 
   return (
@@ -140,13 +157,23 @@ export default function RentalsPage() {
         eyebrow="Fleet Operations"
         title="Rentals Management"
         description="Monitor active rides, view rental history, and force-end stuck trips."
+        actions={
+          <Button 
+            variant="destructive" 
+            leadingIcon={<StopCircle size={16} />} 
+            onClick={handleForceEndAll}
+            disabled={endingAll}
+          >
+            {endingAll ? 'Ending All...' : 'Force End All'}
+          </Button>
+        }
       />
 
       {error && <Alert tone="error">{error}</Alert>}
       {success && <Alert tone="success">{success}</Alert>}
 
       <div className="flex items-center gap-2 border-b border-border pb-4">
-        {(['ALL', 'ACTIVE', 'COMPLETED'] as TabStatus[]).map((tab) => (
+        {(['ALL', 'IN_USE', 'COMPLETED'] as TabStatus[]).map((tab) => (
           <button
             key={tab}
             className={`px-4 py-2 text-sm font-semibold rounded-t-lg transition-colors border-b-2 ${

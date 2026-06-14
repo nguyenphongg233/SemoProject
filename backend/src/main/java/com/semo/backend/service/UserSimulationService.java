@@ -64,8 +64,20 @@ public class UserSimulationService {
         this.scooterSimulationService = scooterSimulationService;
     }
 
+    private boolean isBotEnabled = true;
+
+    public void setBotEnabled(boolean enabled) {
+        this.isBotEnabled = enabled;
+    }
+
+    public boolean isBotEnabled() {
+        return this.isBotEnabled;
+    }
+
     @Scheduled(fixedRate = 15000) // Chạy mỗi 15 giây để dễ test
     public void simulateBotBehaviors() {
+        if (!isBotEnabled) return;
+
         // Lấy danh sách bots (được đánh dấu bởi email có chữ bot và role CUSTOMER)
         List<User> bots = userRepository.findAll().stream()
                 .filter(u -> u.getEmail().startsWith("bot") && "CUSTOMER".equals(u.getRole()))
@@ -75,7 +87,7 @@ public class UserSimulationService {
 
         for (User bot : bots) {
             // Kiểm tra xem bot có chuyến đi nào đang diễn ra không
-            List<Rental> activeRentals = rentalRepository.findByUserAndStatusOrderByStartTimeDesc(bot, "ACTIVE");
+            List<Rental> activeRentals = rentalRepository.findByUserAndStatusOrderByStartTimeDesc(bot, "IN_USE");
 
             try {
                 mockAuthentication(bot);
@@ -95,8 +107,12 @@ public class UserSimulationService {
                 } else {
                     // Kịch bản: Đang thuê xe
                     Rental rentalToFinish = activeRentals.get(0);
-                    // Chỉ kết thúc khi xe đã đến đích (hết lộ trình)
-                    if (scooterSimulationService.hasArrived(rentalToFinish.getScooter().getId())) {
+                    Integer scooterId = rentalToFinish.getScooter().getId();
+                    boolean hasArrived = scooterSimulationService.hasArrived(scooterId);
+                    boolean isBroken = "MAINTENANCE".equals(rentalToFinish.getScooter().getStatus());
+                    
+                    // Kết thúc chuyến nếu xe đã đến đích hoặc xe bị khóa (bảo trì) giữa đường
+                    if (hasArrived || isBroken) {
                         finishRentalAndLeaveFeedback(rentalToFinish);
                     }
                 }

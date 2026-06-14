@@ -49,7 +49,6 @@ public class ScooterSimulationService {
     }
 
     @Scheduled(fixedRate = 5000)
-    @Transactional
     public void simulateScooterData() {
         List<Scooter> activeScooters = scooterRepository.findByStatus("IN_USE");
 
@@ -63,6 +62,7 @@ public class ScooterSimulationService {
             simulateMovementAndSensors(scooter);
             checkGeofencing(scooter, allowedZones);
             checkAutoMaintenance(scooter);
+            scooterRepository.save(scooter);
         }
 
         messagingTemplate.convertAndSend("/topic/scooters", activeScooters);
