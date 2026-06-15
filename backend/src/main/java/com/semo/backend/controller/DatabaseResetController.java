@@ -31,7 +31,6 @@ public class DatabaseResetController {
     private final GeofenceZoneRepository geofenceZoneRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-
     public DatabaseResetController(JdbcTemplate jdbcTemplate,
             ScooterRepository scooterRepository,
             GeofenceZoneRepository geofenceZoneRepository,
