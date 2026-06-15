@@ -17,25 +17,26 @@ public class Scooter {
     private Integer id;
 
     @Column(name = "code_name")
-    private String codeName;
+    private String name;
 
+    // status: ("MAINTENANCE", "AVAILABLE", "IN_USE")
     private String status;
 
     @Column(name = "battery_level")
     private Integer batteryLevel;
 
     @Column(name = "cycle_count")
-    private Integer cycleCount;
+    private Integer cycleCount = 0;
 
     @Column(name = "state_of_health")
-    private Double stateOfHealth;
+    private Double stateOfHealth = 100.0;
 
-    private Double temperature;
+    private Double temperature = 25.0;
 
-    @Column(name = "current_lat")
+    @Column(name = "current_lat", nullable = false)
     private Double currentLat;
 
-    @Column(name = "current_lng")
+    @Column(name = "current_lng", nullable = false)
     private Double currentLng;
 
     @CreatedDate
@@ -46,11 +47,14 @@ public class Scooter {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Version
+    private Integer version;
+
     public Scooter() {
     }
 
     public Scooter(String codeName, Integer batteryLevel, String status ) {
-        this.codeName = codeName;
+        this.name = codeName;
         this.batteryLevel = batteryLevel;
         this.status = status;
     }
@@ -58,8 +62,8 @@ public class Scooter {
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
 
-    public String getCodeName() { return codeName; }
-    public void setCodeName(String codeName) { this.codeName = codeName; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
@@ -87,4 +91,7 @@ public class Scooter {
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public Integer getVersion() { return version; }
+    public void setVersion(Integer version) { this.version = version; }
 }

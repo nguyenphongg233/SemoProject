@@ -38,7 +38,6 @@ public class MaintenanceLog {
         this.description = description;
         this.cost = cost;
         this.scooter = scooter;
-        this.createdAt = LocalDateTime.now(); // Tự động lấy thời gian hiện tại khi tạo log
     }
 
     public Integer getId() {

@@ -1,0 +1,549 @@
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-scheme: dark;
+
+  /* ===== Bảng màu Tech Blue chủ đạo ===== */
+  --color-midnight: #0B1120;
+  --color-midnight-2: #0F172A;
+  --color-midnight-3: #111c34;
+  --color-electric: #0052FF;
+  --color-electric-soft: #2563ff;
+  --color-cyan: #00D1FF;
+  --color-cyan-soft: #38ddff;
+  --color-violet: #6D5DFF;
+
+  /* ===== Bề mặt & Nền ===== */
+  --color-bg: var(--color-midnight);
+  --color-bg-accent: #060a16;
+  --color-surface: rgba(17, 28, 52, 0.55);
+  --color-surface-strong: rgba(17, 28, 52, 0.85);
+  --color-surface-muted: rgba(255, 255, 255, 0.04);
+  --color-surface-elevated: rgba(255, 255, 255, 0.07);
+
+  /* ===== Văn bản ===== */
+  --color-text: #E6EEFF; 
+  --color-text-strong: #FFFFFF;
+  --color-text-muted: #94A3B8; 
+  --color-text-faded: #64748B; 
+  --text-glow-semo: 0 0 12px rgba(0, 209, 255, 0.15); /* Soft, subtle glow to prevent blur */
+  --text-shadow-hust: none;
+
+  /* ===== Thương hiệu & Trạng thái ===== */
+  --color-brand: var(--color-electric);
+  --color-brand-dark: #0040c8;
+  --color-brand-soft: rgba(0, 82, 255, 0.16);
+  --color-accent: var(--color-cyan);
+  --color-success: #00E0A4;
+  --color-warning: #FF9F43;
+  /* 💡 ĐÃ ĐỔI: Màu cam cảnh báo chuẩn Tech */
+  --color-danger: #FF5C7A;
+
+  /* ===== Văn bản trạng thái (Dành cho Alert, Badge pastel) ===== */
+  --color-text-success: #bbf7d0;
+  --color-text-warning: #fed7aa;
+  --color-text-danger: #fecdd3;
+  --color-text-info: #bfdbfe;
+
+  /* ===== Viền ===== */
+  --color-border: rgba(120, 160, 230, 0.16);
+  --color-border-strong: rgba(120, 160, 230, 0.28);
+  --color-border-glow: rgba(0, 209, 255, 0.45);
+
+  /* ===== Đổ bóng & Hiệu ứng phát sáng ===== */
+  --shadow-card: 0 24px 80px rgba(2, 10, 30, 0.55);
+  --shadow-soft: 0 16px 40px rgba(2, 10, 30, 0.45);
+  --shadow-glow-blue: 0 0 24px rgba(0, 82, 255, 0.45), 0 0 56px rgba(0, 82, 255, 0.18);
+  --shadow-glow-cyan: 0 0 24px rgba(0, 209, 255, 0.45), 0 0 64px rgba(0, 209, 255, 0.18);
+
+  /* ===== Gradients ===== */
+  --background-image-gradient-brand: linear-gradient(135deg, #0052FF 0%, #00D1FF 50%, #0052FF 100%);
+  --background-image-gradient-brand-soft: linear-gradient(135deg, rgba(0, 82, 255, 0.2), rgba(0, 209, 255, 0.2));
+  --background-image-gradient-border: linear-gradient(135deg, rgba(0, 209, 255, 0.6), rgba(0, 82, 255, 0.2) 60%, rgba(109, 93, 255, 0.5));
+  --background-image-gradient-hero: radial-gradient(circle at 20% 0%, rgba(0, 209, 255, 0.18), transparent 45%),
+    radial-gradient(circle at 100% 20%, rgba(0, 82, 255, 0.22), transparent 50%),
+    radial-gradient(circle at 50% 100%, rgba(109, 93, 255, 0.18), transparent 55%);
+
+  /* ===== Bo góc ===== */
+  --radius-xl: 32px;
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --radius-sm: 10px;
+
+  /* ===== Định nghĩa Font chữ mặc định hệ thống ===== */
+  --font-sans: 'Inter', 'Be Vietnam Pro', ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-attachment: fixed;
+
+  /* Sử dụng @apply để đưa các thuộc tính chữ và tối ưu hóa font của Tailwind vào */
+  @apply font-sans font-normal antialiased text-text leading-[1.65];
+
+  /* Giữ nguyên phần background gradient nghệ thuật này bằng CSS thuần */
+  background:
+    radial-gradient(circle at 12% 8%, rgba(0, 82, 255, 0.18), transparent 36%),
+    radial-gradient(circle at 88% 12%, rgba(0, 209, 255, 0.14), transparent 40%),
+    radial-gradient(circle at 70% 95%, rgba(109, 93, 255, 0.16), transparent 50%),
+    linear-gradient(180deg, #060a16 0%, var(--color-midnight) 50%, #060a16 100%);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  letter-spacing: 0.01em;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+  color: var(--color-text-strong);
+  letter-spacing: -0.02em;
+  font-weight: 700; /* Trả về 700 để chữ ko bị biến dạng */
+  line-height: 1.25;
+  text-shadow: var(--text-glow-semo);
+}
+
+p {
+  line-height: 1.7;
+}
+
+
+
+
+
+.leaflet-container {
+  background: var(--color-midnight-2) !important;
+  font-family: inherit;
+}
+
+.leaflet-tile {
+  filter: invert(0.92) hue-rotate(180deg) brightness(0.95) contrast(0.95) saturate(0.7);
+}
+
+.leaflet-control-attribution {
+  background: rgba(11, 17, 32, 0.7) !important;
+  color: var(--text-muted) !important;
+  font-size: 0.7rem !important;
+}
+
+.leaflet-control-attribution a {
+  color: var(--color-cyan-soft) !important;
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: rgba(17, 28, 52, 0.95) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-soft) !important;
+}
+
+.leaflet-popup-content {
+  font-family: inherit;
+}
+
+.leaflet-tooltip {
+  background: rgba(11, 17, 32, 0.85) !important;
+  color: var(--text-strong) !important;
+  border: 1px solid var(--border-glow) !important;
+  border-radius: 8px !important;
+  font-family: inherit;
+  font-weight: 600;
+  box-shadow: 0 0 16px rgba(0, 82, 255, 0.35) !important;
+}
+
+.leaflet-tooltip-top:before,
+.leaflet-tooltip-bottom:before,
+.leaflet-tooltip-left:before,
+.leaflet-tooltip-right:before {
+  display: none;
+}
+
+
+
+/* ================== AUTH SHELL ================== */
+
+@keyframes floatOrb {
+
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate(20px, -30px) scale(1.08);
+  }
+}
+
+/* ================== LIGHT MODE OVERRIDES ================== */
+:root.light {
+  --color-scheme: light;
+
+  /* Tech Blue - Light Mode Palette */
+  --color-midnight: #F8FAFC;
+  --color-midnight-2: #FFFFFF;
+  --color-midnight-3: #F1F5F9;
+  
+  --color-bg: #F8FAFC;
+  --color-bg-accent: #E2E8F0;
+  --color-surface: rgba(255, 255, 255, 0.85);
+  --color-surface-strong: rgba(255, 255, 255, 0.98);
+  --color-surface-muted: rgba(0, 0, 0, 0.04);
+  --color-surface-elevated: rgba(255, 255, 255, 1);
+
+  --color-text: #1E293B;
+  --color-text-strong: #0F172A;
+  --color-text-muted: #64748B;
+  --color-text-faded: #94A3B8;
+
+  --color-border: rgba(0, 0, 0, 0.1);
+  --color-border-strong: rgba(0, 0, 0, 0.15);
+  --color-border-glow: rgba(0, 82, 255, 0.15);
+
+  --shadow-card: 0 10px 40px rgba(0, 0, 0, 0.05);
+  --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+:root.light body {
+  background:
+    radial-gradient(circle at 12% 8%, rgba(0, 82, 255, 0.05), transparent 36%),
+    radial-gradient(circle at 88% 12%, rgba(0, 209, 255, 0.04), transparent 40%),
+    radial-gradient(circle at 70% 95%, rgba(109, 93, 255, 0.05), transparent 50%),
+    linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 50%, #F8FAFC 100%);
+}
+
+:root.light .leaflet-container {
+  background: #E2E8F0 !important;
+}
+
+:root.light .leaflet-tile {
+  filter: none;
+}
+
+:root.light .leaflet-popup-content-wrapper,
+:root.light .leaflet-popup-tip {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #1E293B !important;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+:root.light .leaflet-tooltip {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #0F172A !important;
+  border: 1px solid rgba(0, 82, 255, 0.2) !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+}
+
+/* ================== LIGHT MODE COMPONENT OVERRIDES ================== */
+:root.light {
+  color: #1E293B;
+}
+
+/* Override utility text colors that get hidden in light mode */
+:root.light .text-white { color: #0F172A !important; }
+:root.light .text-text-strong { color: #0F172A !important; }
+:root.light .text-text-muted { color: #334155 !important; }
+:root.light .text-text-faded { color: #475569 !important; }
+
+/* Fix Sidebar */
+:root.light aside {
+  background: #F1F5F9 !important;
+  color: #0F172A !important;
+}
+:root.light aside nav a {
+  color: #334155 !important;
+  font-weight: 600 !important;
+}
+:root.light aside nav a.active, :root.light aside nav a[aria-current="page"] {
+  color: #0F172A !important;
+  font-weight: 700 !important;
+  background: rgba(0, 82, 255, 0.1) !important;
+  box-shadow: none !important;
+}
+:root.light aside nav a.active .text-white {
+  color: #0052FF !important;
+}
+:root.light aside nav a:hover {
+  color: #0F172A !important;
+}
+
+/* Fix Header */
+:root.light header {
+  background: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* Fix Stats Cards & Dashboard Numbers */
+:root.light section.relative {
+  background: #FFFFFF !important;
+  border-color: rgba(0,0,0,0.1) !important;
+}
+:root.light .bg-clip-text {
+  background: linear-gradient(135deg, #0F172A, #0052FF) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+}
+
+/* ===== FIX BROWSER AUTOFILL BACKGROUND ===== */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 50px rgba(11, 17, 32, 0.95) inset !important;
+  -webkit-text-fill-color: white !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Fix Table */
+:root.light .overflow-auto {
+  background: #FFFFFF !important;
+}
+:root.light table th {
+  background: #F1F5F9 !important;
+  color: #0F172A !important;
+  font-weight: 800 !important;
+}
+:root.light table td {
+  color: #0F172A !important;
+  font-weight: 500 !important;
+}
+:root.light table tr:hover td {
+  background: rgba(0,0,0,0.02) !important;
+}
+
+/* Fix Selects/Inputs */
+:root.light select,
+:root.light input,
+:root.light textarea {
+  background: #FFFFFF !important;
+  color: #0F172A !important;
+  border-color: rgba(0,0,0,0.2) !important;
+}
+:root.light input:focus,
+:root.light select:focus,
+:root.light textarea:focus {
+  background: #FFFFFF !important;
+  border-color: #0052FF !important;
+  box-shadow: 0 0 0 4px rgba(0, 82, 255, 0.1) !important;
+}
+
+/* ================== FLAT DARK MODE OVERRIDES ================== */
+:root.dark aside {
+  background: #0F172A !important; /* Flat dark, no gradient */
+}
+:root.dark header {
+  background: rgba(15, 23, 42, 0.8) !important;
+}
+:root.dark body {
+  background: #0B1120 !important; /* Flat dark, no gradient */
+}
+
+/* ================== SEMO MODE (ORIGINAL THEME) ================== */
+/* Semo mode uses the default hardcoded gradients and styling present in the components.
+   No overrides needed. It will naturally fall back to the exact code from the commit! */
+
+/* ================== HUST MODE OVERRIDES ================== */
+:root.hust {
+  --color-scheme: light;
+
+  /* HUST Red & White - Light Mode Palette */
+  --color-midnight: #FFFFFF;
+  --color-midnight-2: #F8FAFC;
+  --color-midnight-3: #F1F5F9;
+  
+  --color-bg: #FFFFFF;
+  --color-bg-accent: #F1F5F9;
+  --color-surface: rgba(255, 255, 255, 0.85);
+  --color-surface-strong: rgba(255, 255, 255, 0.98);
+  --color-surface-muted: rgba(0, 0, 0, 0.04);
+  --color-surface-elevated: rgba(255, 255, 255, 1);
+
+  --color-text: #1E293B;
+  --color-text-strong: #ce1628; /* HUST Red */
+  --color-text-muted: #64748B;
+  --color-text-faded: #94A3B8;
+  
+  --text-glow-semo: none;
+  --text-shadow-hust: 1px 2px 4px rgba(206, 22, 40, 0.15), 0px 1px 2px rgba(0, 0, 0, 0.1);
+
+  --color-electric: #ce1628; /* Override electric with HUST red */
+  --color-electric-soft: #e53e4f;
+  --color-cyan: #f9a826; /* Gold */
+  --color-cyan-soft: #fbbf24;
+
+  --color-brand: #ce1628;
+  --color-brand-dark: #a8111e;
+  --color-brand-soft: rgba(206, 22, 40, 0.12);
+
+  --color-border: rgba(206, 22, 40, 0.15);
+  --color-border-strong: rgba(206, 22, 40, 0.3);
+  --color-border-glow: rgba(206, 22, 40, 0.2);
+
+  --shadow-card: 0 10px 40px rgba(206, 22, 40, 0.08);
+  --shadow-soft: 0 4px 20px rgba(206, 22, 40, 0.05);
+  --shadow-glow-blue: 0 0 24px rgba(206, 22, 40, 0.45);
+  --shadow-glow-cyan: 0 0 24px rgba(249, 168, 38, 0.45);
+
+  --background-image-gradient-brand: linear-gradient(135deg, #ce1628 0%, #a8111e 100%);
+  --background-image-gradient-brand-soft: linear-gradient(135deg, rgba(206, 22, 40, 0.15), rgba(249, 168, 38, 0.15));
+}
+
+:root.hust body {
+  font-weight: 500;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(206, 22, 40, 0.08), transparent 36%),
+    radial-gradient(circle at 88% 12%, rgba(249, 168, 38, 0.06), transparent 40%),
+    radial-gradient(circle at 70% 95%, rgba(206, 22, 40, 0.05), transparent 50%),
+    linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+}
+
+:root.hust .leaflet-container {
+  background: #F1F5F9 !important;
+}
+
+:root.hust .leaflet-tile {
+  filter: none;
+}
+
+:root.hust .leaflet-popup-content-wrapper,
+:root.hust .leaflet-popup-tip {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #1E293B !important;
+  border: 1px solid rgba(206,22,40,0.2);
+}
+
+:root.hust .leaflet-tooltip {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #1E293B !important;
+  border: 1px solid rgba(206,22,40,0.2) !important;
+  box-shadow: 0 4px 12px rgba(206, 22, 40, 0.1) !important;
+}
+
+/* Override utility text colors that get hidden in light mode */
+:root.hust .text-text-strong { color: #020617 !important; text-shadow: var(--text-shadow-hust); }
+:root.hust h1, :root.hust h2, :root.hust h3, :root.hust h4, :root.hust h5 {
+  text-shadow: var(--text-shadow-hust);
+  font-weight: 700;
+}
+:root.hust .text-text-muted { color: #1E293B !important; }
+
+/* Override hardcoded Tailwind Slate text colors so they are legible in light mode */
+:root.hust .text-slate-100,
+:root.hust .text-slate-200,
+:root.hust .text-slate-300 {
+  color: #0f172a !important;
+}
+
+:root.hust .text-slate-400,
+:root.hust .text-slate-500 {
+  color: #334155 !important;
+  font-weight: 600 !important; /* Làm đậm ID và các text mờ */
+}
+
+:root.hust .text-slate-600 {
+  color: #64748b !important;
+}
+:root.hust .text-text-faded { color: #334155 !important; }
+:root.hust .text-cyan-400, :root.hust .text-cyan-soft { color: #ce1628 !important; }
+:root.hust .text-cyan-300 { color: #ce1628 !important; }
+:root.hust .text-cyan-500 { color: #a8111e !important; }
+:root.hust .bg-cyan-500 { background-color: #ce1628 !important; }
+:root.hust .bg-cyan-600 { background-color: #a8111e !important; }
+:root.hust .bg-slate-800, :root.hust .bg-slate-800\/80, :root.hust .bg-slate-800\/20, :root.hust .bg-slate-800\/50 { background-color: #FFFFFF !important; border: 1px solid rgba(206,22,40,0.1); }
+:root.hust .bg-slate-900, :root.hust .bg-slate-900\/50, :root.hust .bg-slate-900\/40 { background-color: #F8FAFC !important; border: 1px solid rgba(206,22,40,0.1); }
+:root.hust .border-white\/5 { border-color: rgba(206,22,40,0.1) !important; }
+:root.hust .border-white\/10 { border-color: rgba(206,22,40,0.15) !important; }
+:root.hust .border-white\/20 { border-color: rgba(206,22,40,0.2) !important; }
+
+/* Fix Sidebar */
+:root.hust aside {
+  background: #FFFFFF !important;
+  color: #1E293B !important;
+  border-right: 1px solid rgba(206,22,40,0.15);
+}
+:root.hust aside nav a {
+  color: #475569 !important;
+  font-weight: 600 !important;
+}
+:root.hust aside nav a.active, :root.hust aside nav a[aria-current="page"] {
+  color: #ce1628 !important;
+  font-weight: 700 !important;
+  background: rgba(206, 22, 40, 0.08) !important;
+  border-right: 3px solid #ce1628;
+}
+:root.hust aside nav a:hover {
+  color: #ce1628 !important;
+  background: rgba(206, 22, 40, 0.04) !important;
+}
+
+/* Fix Header */
+:root.hust header {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border-bottom: 1px solid rgba(206,22,40,0.15);
+}
+
+/* Fix Stats Cards & Dashboard Numbers */
+:root.hust .bg-clip-text {
+  background: linear-gradient(135deg, #ce1628, #f9a826) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+:root.hust table th {
+  background: #F8FAFC !important;
+  color: #ce1628 !important;
+  border-bottom: 2px solid rgba(206,22,40,0.1) !important;
+}
+:root.hust table td {
+  border-bottom: 1px solid rgba(206,22,40,0.05) !important;
+}
+:root.hust table tr:hover td {
+  background: rgba(206,22,40,0.02) !important;
+}
+
+:root.hust select,
+:root.hust input,
+:root.hust textarea {
+  background: #FFFFFF !important;
+  color: #1E293B !important;
+  border: 1px solid rgba(206,22,40,0.2) !important;
+}
+
+:root.hust input:focus,
+:root.hust select:focus,
+:root.hust textarea:focus {
+  border-color: #ce1628 !important;
+  box-shadow: 0 0 0 3px rgba(206, 22, 40, 0.1) !important;
+}
+
+/* Fix autofill for HUST mode */
+:root.hust input:-webkit-autofill,
+:root.hust input:-webkit-autofill:hover, 
+:root.hust input:-webkit-autofill:focus, 
+:root.hust input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 50px #FFFFFF inset !important;
+  -webkit-text-fill-color: #1E293B !important;
+}

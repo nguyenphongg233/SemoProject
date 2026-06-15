@@ -62,14 +62,14 @@ public class FeedbackService {
     public java.util.List<FeedbackResponseDTO> getAllFeedbacks() {
         authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
 
-        return feedbackRepository.findAll().stream()
+        return feedbackRepository.findAllWithDetails().stream()
                 .map(this::mapToDTO)
                 .collect(java.util.stream.Collectors.toList());
     }
 
     public java.util.List<FeedbackResponseDTO> getMyFeedbacks() {
         User user = authUtil.requireActiveAuthenticatedUser();
-        return feedbackRepository.findByUser(user).stream()
+        return feedbackRepository.findByUserWithDetails(user).stream()
                 .map(this::mapToDTO)
                 .collect(java.util.stream.Collectors.toList());
     }

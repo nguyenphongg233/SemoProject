@@ -35,9 +35,24 @@ public class Rental {
     @Column(name = "total_price")
     private Double totalPrice;
 
-    // Trạng thái chuyến đi: ACTIVE (Đang thuê), COMPLETED (Đã trả)
+    // Trạng thái chuyến đi: IN_USE (Đang thuê), COMPLETED (Đã trả)
     @Column(nullable = false)
-    private String status = "ACTIVE";
+    private String status = "IN_USE";
+
+    @Column(name = "start_lat", nullable = false)
+    private Double startLat;
+
+    @Column(name = "start_lng", nullable = false)
+    private Double startLng;
+
+    @Column(name = "end_lat", nullable = true)
+    private Double endLat;
+
+    @Column(name = "end_lng", nullable = true)
+    private Double endLng;
+
+    @Version
+    private Integer version;
 
     // Các hàm Constructor
     public Rental() {
@@ -46,7 +61,7 @@ public class Rental {
     public Rental(User user, Scooter scooter) {
         this.user = user;
         this.scooter = scooter;
-        this.status = "ACTIVE";
+        this.status = "IN_USE";
         this.startTime = LocalDateTime.now(); // Tự động lấy thời gian hiện tại khi tạo rental
     }
 
@@ -105,5 +120,45 @@ public class Rental {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Double getStartLat() {
+        return startLat;
+    }
+
+    public void setStartLat(Double startLat) {
+        this.startLat = startLat;
+    }
+
+    public Double getStartLng() {
+        return startLng;
+    }
+
+    public void setStartLng(Double startLng) {
+        this.startLng = startLng;
+    }
+
+    public Double getEndLat() {
+        return endLat;
+    }
+
+    public void setEndLat(Double endLat) {
+        this.endLat = endLat;
+    }
+
+    public Double getEndLng() {
+        return endLng;
+    }
+
+    public void setEndLng(Double endLng) {
+        this.endLng = endLng;
+    }
+
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
     }
 }

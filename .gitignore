@@ -11,8 +11,10 @@
 # Log files
 *.log
 .vscode/
+.codegraph/
 postman/
 .postman/
 
 .DS_Store
-**/.DS_Store
+swagger.json
+.github

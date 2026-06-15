@@ -162,6 +162,15 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy User với ID: " + id));
 
+        List<com.semo.backend.entity.Rental> userRentals = rentalRepository.findByUserOrderByStartTimeDesc(user);
+        if (userRentals != null) {
+            for (com.semo.backend.entity.Rental r : userRentals) {
+                if ("IN_USE".equals(r.getStatus()) || "ACTIVE".equals(r.getStatus())) {
+                    throw new RuntimeException("Không thể xóa người dùng đang có chuyến đi chưa hoàn tất!");
+                }
+            }
+        }
+
         feedbackRepository.deleteByUserId(id);
         transactionRepository.deleteByUserId(id);
         rentalRepository.deleteByUserId(id);

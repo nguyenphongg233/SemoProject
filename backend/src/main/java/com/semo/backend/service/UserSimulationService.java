@@ -1,5 +1,17 @@
 package com.semo.backend.service;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+
 import com.semo.backend.dto.FeedbackRequestDTO;
 import com.semo.backend.dto.RentalRequestDTO;
 import com.semo.backend.dto.RoutingResponseDTO;
@@ -11,19 +23,6 @@ import com.semo.backend.repository.RentalRepository;
 import com.semo.backend.repository.ScooterRepository;
 import com.semo.backend.repository.TransactionRepository;
 import com.semo.backend.repository.UserRepository;
-
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
 
 @Service
 public class UserSimulationService {
@@ -39,6 +38,12 @@ public class UserSimulationService {
     private final ScooterSimulationService scooterSimulationService;
     
     private final Random random = new Random();
+    
+    private boolean botEnabled = false;
+
+    public void setBotEnabled(boolean botEnabled) {
+        this.botEnabled = botEnabled;
+    }
 
     private final List<String> FEEDBACK_COMMENTS = Arrays.asList(
         "Xe đi rất mượt, cảm ơn Semo!",
@@ -64,8 +69,11 @@ public class UserSimulationService {
         this.scooterSimulationService = scooterSimulationService;
     }
 
-    @Scheduled(fixedRate = 60000) // Chạy mỗi 1 phút
+    // @Scheduled(fixedRate = 15000) // Tạm thời tắt hẳn chức năng bot theo yêu cầu
+    
     public void simulateBotBehaviors() {
+        if (!botEnabled) return;
+
         // Lấy danh sách bots (được đánh dấu bởi email có chữ bot và role CUSTOMER)
         List<User> bots = userRepository.findAll().stream()
                 .filter(u -> u.getEmail().startsWith("bot") && "CUSTOMER".equals(u.getRole()))
@@ -87,16 +95,17 @@ public class UserSimulationService {
                         topUpBalance(bot, 200000.0);
                         System.out.println("🤖 Bot " + bot.getEmail() + " đã tự động nạp thêm tiền.");
                     } else {
-                        // 2. Có 30% tỷ lệ bắt đầu thuê xe mới
-                        if (random.nextInt(100) < 30) {
+                        // Có 100% tỷ lệ bắt đầu thuê xe mới để dễ quan sát
+                        if (random.nextInt(100) < 100) {
                             startRandomRental(bot);
                         }
                     }
                 } else {
                     // Kịch bản: Đang thuê xe
                     Rental rentalToFinish = activeRentals.get(0);
-                    // Chỉ kết thúc khi xe đã đến đích (hết lộ trình)
-                    if (scooterSimulationService.hasArrived(rentalToFinish.getScooter().getId())) {
+                    // Chỉ kết thúc khi xe đã đến đích (hết lộ trình) HOẶC xe gặp sự cố/bảo trì
+                    if (scooterSimulationService.hasArrived(rentalToFinish.getScooter().getId()) ||
+                        !"IN_USE".equals(rentalToFinish.getScooter().getStatus())) {
                         finishRentalAndLeaveFeedback(rentalToFinish);
                     }
                 }
