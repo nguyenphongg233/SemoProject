@@ -15,7 +15,6 @@ import {
   getAllConfigs,
   createConfig,
   updateConfig,
-  deleteConfig,
   type SystemConfig,
 } from '@/features/system-config'
 import { formatDateTime, getApiErrorMessage } from '@/utils'
@@ -87,15 +86,7 @@ export default function SettingsPage() {
     }
   }, [refreshKey])
 
-  const openCreateModal = () => {
-    setModalMode('create')
-    setIsEditingDefault(false)
-    setFormKey('')
-    setFormValue('')
-    setFormDescription('')
-    setFormError(null)
-    setIsModalOpen(true)
-  }
+  // Removed openCreateModal since creation is restricted
 
   const openEditModal = (config: DisplayConfig) => {
     setModalMode('edit')
@@ -118,8 +109,8 @@ export default function SettingsPage() {
     setFormError(null)
 
     try {
-      // Nếu là tạo mới hoặc đang edit nhưng bản chất là Default (chưa có trong DB) -> gọi CREATE API
       if (modalMode === 'create' || isEditingDefault) {
+        // Fallback for first time save: DB requires CREATE if it doesn't exist
         await createConfig({
           key: formKey.trim().toUpperCase(),
           value: formValue.trim(),
@@ -140,17 +131,7 @@ export default function SettingsPage() {
     }
   }
 
-  const handleDelete = async (row: DisplayConfig) => {
-    if (row.isDefault) return // Cannot delete default ones from DB, they aren't there anyway
-    if (!window.confirm(`Are you sure you want to delete configuration: ${row.key}?`)) return
-    
-    try {
-      await deleteConfig(row.key)
-      setRefreshKey((k) => k + 1)
-    } catch (err) {
-      alert(getApiErrorMessage(err, 'Failed to delete configuration.'))
-    }
-  }
+  // Delete functionality removed as requested.
 
   const columns: TableColumn<DisplayConfig>[] = [
     {
@@ -185,9 +166,6 @@ export default function SettingsPage() {
         const items: DropdownMenuItem[] = [
           { label: 'Edit', icon: <Edit2 size={14} />, onClick: () => openEditModal(row) }
         ];
-        if (!row.isDefault) {
-          items.push({ label: 'Delete', icon: <Trash2 size={14} />, danger: true, onClick: () => handleDelete(row) });
-        }
         return <DropdownMenu items={items} />;
       },
     },
@@ -204,9 +182,6 @@ export default function SettingsPage() {
         <div className="flex gap-2">
           <Button variant="secondary" onClick={() => setRefreshKey(k => k + 1)} leadingIcon={<RefreshCw size={18} />}>
             Refresh
-          </Button>
-          <Button variant="primary" onClick={openCreateModal} leadingIcon={<Plus size={18} />}>
-            New Config
           </Button>
         </div>
       </div>

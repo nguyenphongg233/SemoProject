@@ -3,6 +3,7 @@ package com.semo.backend.service;
 import com.semo.backend.dto.ScooterResponseDTO;
 import com.semo.backend.entity.Scooter;
 import com.semo.backend.repository.ScooterRepository;
+import com.semo.backend.repository.SystemConfigRepository;
 import com.semo.backend.util.AuthUtil;
 
 import org.springframework.data.domain.PageRequest;
@@ -18,22 +19,37 @@ import java.util.stream.Collectors;
 public class ChargingService {
 
     private final ScooterRepository scooterRepository;
+    private final SystemConfigRepository configRepository;
     private final AuthUtil authUtil;
 
-    private static final int LOW_BATTERY_THRESHOLD = 20;
     private static final int STATION_CAPACITY = 5;
 
-    public ChargingService(ScooterRepository scooterRepository, AuthUtil authUtil) {
+    public ChargingService(ScooterRepository scooterRepository, SystemConfigRepository configRepository, AuthUtil authUtil) {
         this.scooterRepository = scooterRepository;
+        this.configRepository = configRepository;
         this.authUtil = authUtil;
+    }
+
+    private double getConfig(String key, double defaultValue) {
+        return configRepository.findById(key)
+                .map(c -> {
+                    try {
+                        return Double.parseDouble(c.getConfigValue());
+                    } catch (NumberFormatException e) {
+                        return defaultValue;
+                    }
+                })
+                .orElse(defaultValue);
     }
 
     @Transactional
     public List<ScooterResponseDTO> autoScheduleCharging() {
         authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được điều phối sạc xe!");
 
+        int lowBatteryThreshold = (int) getConfig("MAINTENANCE_THRESHOLD", 20.0);
+
         Pageable limit = PageRequest.of(0, STATION_CAPACITY);
-        List<Scooter> scootersToCharge = scooterRepository.findScootersForCharging(LOW_BATTERY_THRESHOLD, limit);
+        List<Scooter> scootersToCharge = scooterRepository.findScootersForCharging(lowBatteryThreshold, limit);
 
         if (scootersToCharge.isEmpty()) {
             return List.of();
