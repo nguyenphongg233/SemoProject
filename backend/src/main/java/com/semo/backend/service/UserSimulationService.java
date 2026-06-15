@@ -83,7 +83,7 @@ public class UserSimulationService {
 
         for (User bot : bots) {
             // Kiểm tra xem bot có chuyến đi nào đang diễn ra không
-            List<Rental> activeRentals = rentalRepository.findByUserAndStatusOrderByStartTimeDesc(bot, "ACTIVE");
+            List<Rental> activeRentals = rentalRepository.findByUserAndStatusOrderByStartTimeDesc(bot, "IN_USE");
 
             try {
                 mockAuthentication(bot);
@@ -103,8 +103,9 @@ public class UserSimulationService {
                 } else {
                     // Kịch bản: Đang thuê xe
                     Rental rentalToFinish = activeRentals.get(0);
-                    // Chỉ kết thúc khi xe đã đến đích (hết lộ trình)
-                    if (scooterSimulationService.hasArrived(rentalToFinish.getScooter().getId())) {
+                    // Chỉ kết thúc khi xe đã đến đích (hết lộ trình) HOẶC xe gặp sự cố/bảo trì
+                    if (scooterSimulationService.hasArrived(rentalToFinish.getScooter().getId()) ||
+                        !"IN_USE".equals(rentalToFinish.getScooter().getStatus())) {
                         finishRentalAndLeaveFeedback(rentalToFinish);
                     }
                 }

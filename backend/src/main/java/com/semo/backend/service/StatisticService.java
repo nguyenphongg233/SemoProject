@@ -27,7 +27,7 @@ public class StatisticService {
 
         Double totalRevenue = rentalRepository.sumTotalPriceByStatus("COMPLETED");
         Long totalCompletedRentals = rentalRepository.countByStatus("COMPLETED");
-        Long activeRentals = rentalRepository.countByStatus("ACTIVE");
+        Long activeRentals = rentalRepository.countByStatus("IN_USE");
 
         Long availableScooters = scooterRepository.countByStatus("AVAILABLE");
         Long maintenanceScooters = scooterRepository.countByStatus("MAINTENANCE");

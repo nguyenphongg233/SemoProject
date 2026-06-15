@@ -121,7 +121,7 @@ export default function MyRidesPage() {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 shrink-0 rounded-2xl bg-slate-800 flex items-center justify-center border border-white/5">
-                      <Bike size={24} className={rental.status === 'ACTIVE' ? "text-cyan-400" : "text-slate-400"} />
+                      <Bike size={24} className={rental.status === 'IN_USE' ? "text-cyan-400" : "text-slate-400"} />
                     </div>
                     <div>
                       <h4 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
@@ -148,16 +148,16 @@ export default function MyRidesPage() {
                   </div>
 
                   <div className="flex flex-col md:items-end justify-center pt-3 md:pt-0 border-t border-white/5 md:border-0 mt-2 md:mt-0 gap-2">
-                    {rental.status === 'ACTIVE' && (
+                    {rental.status === 'IN_USE' && (
                       <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-500/30 text-xs font-medium text-cyan-400 animate-pulse w-fit md:mb-1">
                         <span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span> Riding Now
                       </span>
                     )}
                     <div className="text-right">
                       <p className="text-xs uppercase tracking-widest text-slate-500 font-semibold mb-1">
-                        {rental.status === 'ACTIVE' ? 'Current Fare' : 'Total Fare'}
+                        {rental.status === 'IN_USE' ? 'Current Fare' : 'Total Fare'}
                       </p>
-                      <div className={`text-2xl font-black ${rental.status === 'ACTIVE' ? 'text-cyan-400' : 'text-emerald-400'}`}>
+                      <div className={`text-2xl font-black ${rental.status === 'IN_USE' ? 'text-cyan-400' : 'text-emerald-400'}`}>
                         {formatCurrency(rental.totalPrice || 0)}
                       </div>
                     </div>

@@ -6,4 +6,5 @@ export {
   getScooterById,
   getScootersByStatus,
   updateScooter,
+  exportScootersExcel,
 } from './api'

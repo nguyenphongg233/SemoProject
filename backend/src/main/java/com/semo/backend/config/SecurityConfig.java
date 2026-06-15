@@ -41,6 +41,12 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/v3/api-docs/**").permitAll()
                         .requestMatchers("/error").permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
+                        .requestMatchers("/api/admin/system/hard-reset").permitAll()
+                        .requestMatchers("/api/public/**").permitAll()
+
+                        // System / Admin general endpoints
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
                         // Users
                         // Admin-only endpoints for user management
@@ -65,17 +71,20 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/routing/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/scooters").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/scooters/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/scooters/**").hasRole("ADMIN")
 
                         // Maintenance (admin)
                         .requestMatchers("/api/maintenance/**").hasRole("ADMIN")
 
-                        // Rentals (customer or admin)
+                        // Rentals
+                        .requestMatchers(HttpMethod.PUT, "/api/rentals/force-end-all").hasRole("ADMIN")
                         .requestMatchers("/api/rentals/**").hasAnyRole("CUSTOMER", "ADMIN")
 
-                        // Transactions (customer or admin)
-                        .requestMatchers("/api/transactions/**").hasAnyRole("CUSTOMER", "ADMIN")
+                        // Transactions
+                        .requestMatchers(HttpMethod.GET, "/api/transactions/history").hasAnyRole("CUSTOMER", "ADMIN")
+                        .requestMatchers("/api/transactions/**").hasRole("ADMIN")
 
-                        // Feedback (authenticated users)
+                        // Feedback
                         .requestMatchers(HttpMethod.POST, "/api/feedbacks").hasAnyRole("CUSTOMER", "ADMIN")
 
                         // Analytics & statistics (admin)

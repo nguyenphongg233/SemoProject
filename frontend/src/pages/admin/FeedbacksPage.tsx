@@ -48,7 +48,7 @@ export default function FeedbacksPage() {
     {
       label: 'ID',
       key: 'id',
-      render: (f: any) => <span className="text-slate-400 font-mono">#{f.id}</span>
+      render: (f: any) => <span className="text-text-strong font-mono font-bold">#{f.id}</span>
     },
     {
       label: 'User',
@@ -58,15 +58,15 @@ export default function FeedbacksPage() {
     {
       label: 'Rental ID',
       key: 'rentalId',
-      render: (f: any) => <span className="text-slate-400 font-mono">#{f.rentalId}</span>
+      render: (f: any) => <span className="text-text-strong font-mono font-bold">#{f.rentalId}</span>
     },
     {
       label: 'Rating',
       key: 'rating',
       render: (f: any) => (
-        <div className="flex items-center gap-1 text-amber-400">
+        <div className="flex items-center gap-1 text-amber-500">
           {[...Array(5)].map((_, i) => (
-            <Star key={i} size={14} fill={i < (f.rating || 0) ? "currentColor" : "none"} className={i < (f.rating || 0) ? "" : "text-slate-600"} />
+            <Star key={i} size={14} fill={i < (f.rating || 0) ? "currentColor" : "none"} className={i < (f.rating || 0) ? "" : "text-border"} />
           ))}
         </div>
       )
@@ -74,12 +74,12 @@ export default function FeedbacksPage() {
     {
       label: 'Comment',
       key: 'comment',
-      render: (f: any) => <span className="text-sm text-slate-300 max-w-[300px] block" title={f.comment}>{f.comment || <em className="text-slate-500">No comment</em>}</span>
+      render: (f: any) => <span className="text-sm text-text-strong font-semibold max-w-[300px] block" title={f.comment}>{f.comment || <em className="text-text-muted">No comment</em>}</span>
     },
     {
       label: 'Date',
       key: 'createdAt',
-      render: (f: any) => <span className="text-sm text-slate-400">{formatDateTime(f.createdAt)}</span>
+      render: (f: any) => <span className="text-sm text-text-muted font-medium">{formatDateTime(f.createdAt)}</span>
     }
   ]
 

@@ -105,11 +105,21 @@ public class ScooterService {
 
     @Transactional
     public void deleteScooter(@NonNull Integer id) {
-        if (!scooterRepository.existsById(id)) {
-            throw new RuntimeException("Không tìm thấy xe với ID: " + id);
+        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được phép thực hiện hành động này!");
+        Scooter scooter = scooterRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy xe với ID: " + id));
+
+        if ("IN_USE".equals(scooter.getStatus())) {
+            throw new RuntimeException("Không thể xóa xe đang có khách thuê. Vui lòng kết thúc chuyến đi trước!");
         }
 
-        scooterRepository.deleteById(id);
+        try {
+            scooterRepository.delete(scooter);
+            // Flush required to immediately catch constraint violation inside try-catch block
+            scooterRepository.flush();
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            throw new RuntimeException("Không thể xóa xe này vì đã có dữ liệu lịch sử thuê hoặc bảo trì trên hệ thống!");
+        }
     }
 
     private ScooterResponseDTO mapToResponseDTO(Scooter scooter) {

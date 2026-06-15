@@ -39,3 +39,9 @@ export async function deleteScooter(id: number | string) {
   const { data } = await axiosClient.delete(`/api/scooters/${id}`)
   return data
 }
+export async function exportScootersExcel() {
+  const response = await axiosClient.get('/api/scooters/export', {
+    responseType: 'blob'
+  });
+  return response.data;
+}

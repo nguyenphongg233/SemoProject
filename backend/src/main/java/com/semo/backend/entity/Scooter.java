@@ -47,6 +47,9 @@ public class Scooter {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Version
+    private Integer version;
+
     public Scooter() {
     }
 
@@ -88,4 +91,7 @@ public class Scooter {
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public Integer getVersion() { return version; }
+    public void setVersion(Integer version) { this.version = version; }
 }

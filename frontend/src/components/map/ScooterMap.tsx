@@ -177,7 +177,7 @@ export default function ScooterMap({ scooters = [], stations = [], zones = [], p
                   weight: 2,
                 }}
               >
-                <Tooltip direction="top" offset={[0, -8]} opacity={1} permanent>
+                <Tooltip direction="top" offset={[0, -8]} opacity={1}>
                   {station.name || `Station #${idx + 1}`}
                 </Tooltip>
                 <Popup>
@@ -219,7 +219,7 @@ export default function ScooterMap({ scooters = [], stations = [], zones = [], p
                 weight: 2,
               }}
             >
-              <Tooltip direction="top" offset={[0, -8]} opacity={1} permanent>
+              <Tooltip direction="top" offset={[0, -8]} opacity={1}>
                 {scooter.name ? `${scooter.name} — ID:${scooter.id}` : `ID:${scooter.id}`}
               </Tooltip>
               <Popup>
@@ -254,7 +254,7 @@ export default function ScooterMap({ scooters = [], stations = [], zones = [], p
                 dashArray: isActive ? undefined : '5, 5'
               }}
             >
-               <Tooltip direction="top" opacity={1} permanent>
+               <Tooltip direction="top" opacity={1}>
                  {z.name || `Zone #${z.id}`}
                </Tooltip>
                <Popup>

@@ -20,11 +20,11 @@ export default function UserCell({ userId, userName, email }: UserCellProps) {
         )}
       </div>
       <div className="flex flex-col">
-        <span className="text-sm font-semibold text-slate-200 truncate max-w-[150px]">
+        <span className="text-sm font-bold text-text-strong truncate max-w-[150px]">
           {displayName}
         </span>
         {email && userName && (
-          <span className="text-xs text-slate-500 truncate max-w-[150px]">
+          <span className="text-xs text-text-muted truncate max-w-[150px]">
             {email}
           </span>
         )}

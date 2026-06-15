@@ -143,7 +143,7 @@ export default function AnalyticsPage() {
           <p className="text-text-faded font-semibold text-sm uppercase tracking-[0.12em]">
             Fleet Available
           </p>
-          <div className="mt-2 text-4xl font-extrabold tracking-[-0.04em] bg-[linear-gradient(135deg,#fff,var(--success)_120%)] bg-clip-text text-transparent leading-[1.1]">
+          <div className="mt-2 text-4xl font-extrabold tracking-[-0.04em] bg-[linear-gradient(135deg,#fff,var(--color-success)_120%)] bg-clip-text text-transparent leading-[1.1]">
             {dashboardLoading ? '—' : `${Math.round((fleetAvailable / (fleetTotal || 1)) * 100)}%`}
           </div>
         </Card>
@@ -151,7 +151,7 @@ export default function AnalyticsPage() {
           <p className="text-text-faded font-semibold text-sm uppercase tracking-[0.12em]">
             Maintenance Costs
           </p>
-          <div className="mt-2 text-4xl font-extrabold tracking-[-0.04em] bg-[linear-gradient(135deg,#fff,var(--warning)_120%)] bg-clip-text text-transparent leading-[1.1]">
+          <div className="mt-2 text-4xl font-extrabold tracking-[-0.04em] bg-[linear-gradient(135deg,#fff,var(--color-warning)_120%)] bg-clip-text text-transparent leading-[1.1]">
             {dashboardLoading ? '—' : formatCurrency(totalMaintenanceCost)}
           </div>
         </Card>

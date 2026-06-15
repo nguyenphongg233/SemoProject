@@ -13,6 +13,8 @@
 // Có dùng geolocation của trình duyệt + Haversine để hiện xe trong bán kính.
 import { useEffect, useMemo, useRef, useState } from 'react'
 import 'leaflet/dist/leaflet.css'
+import { Client } from '@stomp/stompjs'
+import SockJS from 'sockjs-client'
 import { CircleMarker, MapContainer, Popup, TileLayer, Tooltip, Circle, useMap, Polyline } from 'react-leaflet'
 import type { LatLngTuple } from 'leaflet'
 import {
@@ -178,6 +180,18 @@ export default function BookingPage() {
   // Tick timer mỗi giây khi đang riding
   const [now, setNow] = useState<number>(Date.now())
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  
+  // Real-time balance monitoring
+  const [showWarning, setShowWarning] = useState<boolean>(false)
+  const [countdown, setCountdown] = useState<number | null>(null)
+
+  // Internal ticking for countdown
+  useEffect(() => {
+    if (countdown !== null && countdown > 0) {
+      const timer = setTimeout(() => setCountdown(c => c !== null ? c - 1 : null), 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [countdown])
 
   useEffect(() => {
     if (ride?.state === 'riding') {
@@ -201,47 +215,54 @@ export default function BookingPage() {
     }
   }, [user?.id, ride]);
 
-  // Poll backend every 5s to check if admin force-ended the rental
+  // Listen for WebSocket events (Balance warnings, Countdowns, Force-end)
   useEffect(() => {
-    if (ride?.state !== 'riding' || !ride?.rentalId) return
+    if (ride?.state !== 'riding' || !ride?.rentalId) {
+      setCountdown(null)
+      setShowWarning(false)
+      return
+    }
 
-    let alive = true
-    const pollBackend = async () => {
-      try {
-        const history = await getRentalHistory('ALL')
-        if (!alive) return
-        
-        const currentRental = history.find((r: any) => r.id === ride.rentalId)
-        
-        // If rental doesn't exist for this user OR it's completed
-        if (!currentRental || currentRental.status === 'COMPLETED') {
-          if (currentRental) {
-            // Ride was ended by admin
-            setCompletedInfo({
-              rentalId: currentRental.id,
-              scooterName: ride.scooterName,
-              totalPrice: currentRental.totalPrice ?? 0,
-              endTime: currentRental.endTime,
-              startedAt: ride.startedAt,
-            })
+    const client = new Client({
+      webSocketFactory: () => new SockJS('http://localhost:8888/ws'),
+      onConnect: () => {
+        client.subscribe(`/topic/rentals/${ride.rentalId}`, (message) => {
+          const body = message.body;
+          if (body === 'FORCE_END') {
+            getRentalHistory('ALL').then(history => {
+              const currentRental = history.find((r: any) => r.id === ride.rentalId)
+              if (currentRental) {
+                setCompletedInfo({
+                  rentalId: currentRental.id,
+                  scooterName: ride.scooterName,
+                  totalPrice: currentRental.totalPrice ?? 0,
+                  endTime: currentRental.endTime,
+                  startedAt: ride.startedAt,
+                })
+              }
+              setRide(null)
+              saveRide(null)
+              setSelectedId(null)
+              setCountdown(null)
+              setShowWarning(false)
+              setRefreshKey((k) => k + 1)
+              alert("Chuyến đi của bạn đã kết thúc do bạn hết tiền!");
+            }).catch(err => console.error(err));
+          } else if (body.startsWith('COUNTDOWN:')) {
+            const secs = parseInt(body.split(':')[1], 10);
+            setCountdown(secs);
+            setShowWarning(false);
+          } else if (body.startsWith('WARNING:')) {
+            setShowWarning(true);
           }
-          // Clear ride
-          setRide(null)
-          saveRide(null)
-          setSelectedId(null)
-          setRefreshKey((k) => k + 1)
-        }
-      } catch (err) {
-        console.error('Failed to sync rental status', err)
-      }
-    }
+        });
+      },
+    });
 
-    pollBackend() // Call immediately on mount
-    const interval = setInterval(pollBackend, 5000)
+    client.activate();
     return () => {
-      alive = false
-      clearInterval(interval)
-    }
+      client.deactivate();
+    };
   }, [ride?.state, ride?.rentalId, ride?.scooterName, ride?.startedAt])
 
   // Load scooters
@@ -255,6 +276,37 @@ export default function BookingPage() {
       .finally(() => { if (alive) setScootersLoading(false) })
     return () => { alive = false }
   }, [refreshKey])
+
+  // Sync active ride from backend on mount in case user changed devices
+  useEffect(() => {
+    let alive = true
+    const syncActiveRide = async () => {
+      try {
+        const history = await getRentalHistory('IN_USE')
+        if (!alive || !history || history.length === 0) return
+        
+        const activeRental = history[0]
+        // Khôi phục lại state đang đi nếu có chuyến chưa hoàn tất trên backend
+        const restoredRide: RideState = {
+          state: 'riding',
+          rentalId: activeRental.id,
+          scooterId: activeRental.scooterId,
+          scooterName: activeRental.scooterName || `Scooter #${activeRental.scooterId}`,
+          startedAt: activeRental.startTime ? new Date(activeRental.startTime).getTime() : Date.now(),
+          userId: user?.id || activeRental.userId,
+        }
+        
+        setRide(restoredRide)
+        saveRide(restoredRide)
+        setSelectedId(activeRental.scooterId)
+      } catch (err) {
+        console.error('Failed to sync initial active ride', err)
+      }
+    }
+    
+    syncActiveRide()
+    return () => { alive = false }
+  }, [user?.id])
 
   // Xin geolocation lần đầu
   useEffect(() => { requestLocation() }, []) // eslint-disable-line
@@ -552,7 +604,34 @@ export default function BookingPage() {
               </Alert>
             </div>
           )}
+          {showWarning && countdown === null && (
+            <div className="pointer-events-auto w-full animate-in fade-in slide-in-from-top-4">
+              <Alert tone="warning">
+                <div className="flex items-center gap-2.5">
+                  <Clock size={18} className="text-warning animate-pulse" />
+                  <span>
+                    Số dư sắp cạn! Chuyến đi sẽ <strong>kết thúc tự động</strong> trong dưới 5 phút nữa.
+                  </span>
+                </div>
+              </Alert>
+            </div>
+          )}
         </div>
+
+        {/* ============== COUNTDOWN OVERLAY ============== */}
+        {countdown !== null && (
+          <div className="absolute inset-0 z-[2000] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm pointer-events-none animate-in fade-in zoom-in-95 duration-300">
+            <div className="text-center">
+              <h2 className="text-rose-500 font-extrabold text-[8rem] leading-none drop-shadow-[0_0_40px_rgba(244,63,94,0.6)] tabular-nums">
+                {countdown}
+              </h2>
+              <p className="text-white font-semibold text-xl tracking-wider mt-4 uppercase drop-shadow-md">
+                Chuyến đi tự động kết thúc
+              </p>
+            </div>
+          </div>
+        )}
+
 
         {/* ============== PANEL TOGGLE BUTTON (Trực tiếp trên Map) ============== */}
         <button

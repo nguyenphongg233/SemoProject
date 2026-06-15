@@ -9,8 +9,12 @@ import org.springframework.stereotype.Component;
 
 import com.semo.backend.entity.Scooter;
 import com.semo.backend.entity.User;
+import com.semo.backend.entity.Rental;
 import com.semo.backend.repository.ScooterRepository;
 import com.semo.backend.repository.UserRepository;
+import com.semo.backend.repository.RentalRepository;
+
+import org.springframework.jdbc.core.JdbcTemplate;
 
 @Component
 public class DatabaseSeeder implements CommandLineRunner {
@@ -18,16 +22,26 @@ public class DatabaseSeeder implements CommandLineRunner {
     private final ScooterRepository scooterRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RentalRepository rentalRepository;
+    private final JdbcTemplate jdbcTemplate;
 
     public DatabaseSeeder(ScooterRepository scooterRepository, UserRepository userRepository,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder, RentalRepository rentalRepository, JdbcTemplate jdbcTemplate) {
         this.scooterRepository = scooterRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.rentalRepository = rentalRepository;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
     public void run(String... args) throws Exception {
+        // Fix uninitialized versions for existing rows
+        jdbcTemplate.execute("UPDATE rentals SET version = 0 WHERE version IS NULL");
+        jdbcTemplate.execute("UPDATE users SET version = 0 WHERE version IS NULL");
+        jdbcTemplate.execute("UPDATE scooters SET version = 0 WHERE version IS NULL");
+        jdbcTemplate.execute("UPDATE transactions SET version = 0 WHERE version IS NULL");
+
         // Seed admin user
         if (!userRepository.existsByEmail("admin@semo.com")) {
             User admin = new User(
@@ -101,6 +115,22 @@ public class DatabaseSeeder implements CommandLineRunner {
             if (needsSync) {
                 scooterRepository.saveAll(allScootersForSync);
                 System.out.println("✅ Đã đồng bộ và reset các xe bị lỗi trạng thái MAINTENANCE/ACTIVE trong Database!");
+            }
+        }
+
+        // Migrate Rentals
+        List<Rental> allRentals = rentalRepository.findAll();
+        boolean rentalsUpdated = false;
+        if (allRentals != null && !allRentals.isEmpty()) {
+            for (Rental r : allRentals) {
+                if ("ACTIVE".equals(r.getStatus())) {
+                    r.setStatus("IN_USE");
+                    rentalsUpdated = true;
+                }
+            }
+            if (rentalsUpdated) {
+                rentalRepository.saveAll(allRentals);
+                System.out.println("✅ Đã đồng bộ các chuyến đi ACTIVE thành IN_USE trong Database!");
             }
         }
 

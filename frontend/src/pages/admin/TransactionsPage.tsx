@@ -68,7 +68,7 @@ export default function TransactionsPage() {
     {
       label: 'Transaction ID',
       key: 'id',
-      render: (t: any) => <span className="text-slate-400 font-mono">#{t.id}</span>
+      render: (t: any) => <span className="text-text-strong font-mono font-bold">#{t.id}</span>
     },
     {
       label: 'User',
@@ -112,12 +112,12 @@ export default function TransactionsPage() {
     {
       label: 'Description',
       key: 'description',
-      render: (t: any) => <span className="text-slate-400 text-sm max-w-[200px] truncate block" title={t.description}>{t.description}</span>
+      render: (t: any) => <span className="text-text-strong font-medium text-sm max-w-[200px] truncate block" title={t.description}>{t.description}</span>
     },
     {
       label: 'Date',
       key: 'createdAt',
-      render: (t: any) => <span className="text-sm text-slate-400">{formatDateTime(t.createdAt)}</span>
+      render: (t: any) => <span className="text-sm text-text-muted font-medium">{formatDateTime(t.createdAt)}</span>
     },
     {
       label: 'Status',

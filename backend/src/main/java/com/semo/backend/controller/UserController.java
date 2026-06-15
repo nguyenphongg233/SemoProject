@@ -1,10 +1,15 @@
 package com.semo.backend.controller;
 
+import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,7 +22,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.lang.NonNull;
 
 import com.semo.backend.dto.*;
+import com.semo.backend.entity.User;
+import com.semo.backend.repository.UserRepository;
 import com.semo.backend.service.UserService;
+import com.semo.backend.service.ExportService;
 
 import jakarta.validation.Valid;
 
@@ -26,9 +34,13 @@ import jakarta.validation.Valid;
 public class UserController {
 
     private final UserService userService;
+    private final UserRepository userRepository;
+    private final ExportService exportService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, UserRepository userRepository, ExportService exportService) {
         this.userService = userService;
+        this.userRepository = userRepository;
+        this.exportService = exportService;
     }
 
     /**
@@ -66,9 +78,26 @@ public class UserController {
      * GET /api/users
      */
     @GetMapping
-    public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
-        List<UserResponseDTO> users = userService.getAllUsers();
-        return ResponseEntity.ok(users);
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    // Export all users to Excel (Dành cho Admin)
+    @GetMapping("/export")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<InputStreamResource> exportUsersToExcel() {
+        List<User> users = userRepository.findAll();
+        ByteArrayInputStream in = exportService.exportUsersToExcel(users);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Disposition", "attachment; filename=users.xlsx");
+
+        return ResponseEntity
+                .ok()
+                .headers(headers)
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(new InputStreamResource(in));
     }
 
     /**
