@@ -105,6 +105,7 @@ public class ScooterService {
 
     @Transactional
     public void deleteScooter(@NonNull Integer id) {
+        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được phép thực hiện hành động này!");
         if (!scooterRepository.existsById(id)) {
             throw new RuntimeException("Không tìm thấy xe với ID: " + id);
         }

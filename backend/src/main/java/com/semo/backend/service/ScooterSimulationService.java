@@ -53,6 +53,10 @@ public class ScooterSimulationService {
     public void simulateScooterData() {
         List<Scooter> activeScooters = scooterRepository.findByStatus("IN_USE");
 
+        // Dọn dẹp lộ trình rác: Nếu xe không còn IN_USE (bị force end, bảo trì, hoặc người dùng đã trả)
+        // thì xóa lộ trình ảo của xe đó đi để tránh "xe ma" tự chạy.
+        activeRoutes.keySet().removeIf(sId -> activeScooters.stream().noneMatch(s -> s.getId().equals(sId)));
+
         if (activeScooters.isEmpty()) {
             return;
         }

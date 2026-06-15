@@ -192,6 +192,7 @@ public class RentalService {
 
     @Transactional
     public void forceEndAllRentals() {
+        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
         List<Rental> activeRentals = new java.util.ArrayList<>(rentalRepository.findByStatusOrderByStartTimeDesc("IN_USE"));
         activeRentals.addAll(rentalRepository.findByStatusOrderByStartTimeDesc("ACTIVE"));
         for (Rental rental : activeRentals) {

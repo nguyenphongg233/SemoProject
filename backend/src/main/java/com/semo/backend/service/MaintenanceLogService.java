@@ -22,20 +22,28 @@ public class MaintenanceLogService {
 
     private final MaintenanceLogRepository maintenanceLogRepository;
     private final ScooterRepository scooterRepository;
+    private final com.semo.backend.util.AuthUtil authUtil;
 
     public MaintenanceLogService(MaintenanceLogRepository maintenanceLogRepository,
-            ScooterRepository scooterRepository) {
+            ScooterRepository scooterRepository,
+            com.semo.backend.util.AuthUtil authUtil) {
         this.maintenanceLogRepository = maintenanceLogRepository;
         this.scooterRepository = scooterRepository;
+        this.authUtil = authUtil;
     }
 
     @Transactional
     public MaintenanceLogResponseDTO createMaintenanceLog(MaintenanceLogRequestDTO requestDTO) {
+        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
         if (requestDTO.getScooterId() == null) {
             throw new IllegalArgumentException("ID xe không hợp lệ.");
         }
         Scooter scooter = scooterRepository.findById(java.util.Objects.requireNonNull(requestDTO.getScooterId()))
                 .orElseThrow(() -> new RuntimeException("ID xe không tồn tại"));
+
+        if ("IN_USE".equals(scooter.getStatus())) {
+            throw new RuntimeException("Không thể bảo trì xe đang có khách thuê. Vui lòng kết thúc chuyến đi trước!");
+        }
 
         scooter.setStatus("MAINTENANCE");
 
@@ -76,6 +84,7 @@ public class MaintenanceLogService {
 
     @Transactional
     public void resolveMaintenance(@NonNull Integer scooterId, ResolveMaintenanceRequestDTO requestDTO) {
+        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
         Scooter scooter = scooterRepository.findById(scooterId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy xe với ID: " + scooterId));
 
