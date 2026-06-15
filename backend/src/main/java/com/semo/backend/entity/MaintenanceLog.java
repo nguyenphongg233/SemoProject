@@ -25,7 +25,7 @@ public class MaintenanceLog {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-     // Quan hệ: Nhiều MaintenanceLog thuộc về 1 Scooter
+     // Relationship: Many MaintenanceLogs belong to 1 Scooter
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "scooter_id")

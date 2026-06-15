@@ -3,7 +3,7 @@ package com.semo.backend.dto;
 import jakarta.validation.constraints.Email;
 
 public class UserUpdateRequestDTO {
-    @Email(message = "Email không hợp lệ")
+    @Email(message = "Invalid email")
     private String email;
 
     private String fullName;

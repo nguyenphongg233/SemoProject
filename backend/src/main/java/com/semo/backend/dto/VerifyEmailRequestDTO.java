@@ -5,11 +5,11 @@ import jakarta.validation.constraints.NotBlank;
 
 public class VerifyEmailRequestDTO {
 
-    @NotBlank(message = "Email không được để trống")
-    @Email(message = "Email không đúng định dạng")
+    @NotBlank(message = "Email cannot be empty")
+    @Email(message = "Invalid email format")
     private String email;
 
-    @NotBlank(message = "Mã xác nhận không được để trống")
+    @NotBlank(message = "Verification code cannot be empty")
     private String otp;
 
     public String getEmail() {

@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 
 public class UploadRequestDTO {
 
-    @NotNull(message = "File không được để trống")
+    @NotNull(message = "File cannot be empty")
     private MultipartFile file;
 
     public UploadRequestDTO() {

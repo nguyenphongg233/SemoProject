@@ -33,14 +33,14 @@ public class ScooterService {
         }
         status = status.trim().toUpperCase();
         if (!VALID_STATUSES.contains(status)) {
-            throw new RuntimeException("Trạng thái xe không hợp lệ! Vui lòng chọn: AVAILABLE, IN_USE, hoặc MAINTENANCE.");
+            throw new RuntimeException("Invalid scooter state! Please select: AVAILABLE, IN_USE, or MAINTENANCE.");
         }
         return status;
     }
 
     @Transactional
     public ScooterResponseDTO createScooter(ScooterRequestDTO requestDTO) {
-        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được phép thực hiện hành động này!");
+        authUtil.requireAdminAccess("Permission denied: Only Administrators are allowed to perform this action!");
         Scooter scooter = new Scooter();
         scooter.setName(requestDTO.getName());
         scooter.setBatteryLevel(requestDTO.getBatteryLevel());
@@ -78,16 +78,16 @@ public class ScooterService {
     @Transactional(readOnly = true)
     public ScooterResponseDTO getScooterById(@NonNull Integer id) {
         Scooter scooter = scooterRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy xe với ID: " + id));
+                .orElseThrow(() -> new RuntimeException("Scooter not found with ID: " + id));
         return mapToResponseDTO(scooter);
     }
 
     @Transactional
     public ScooterResponseDTO updateScooter(@NonNull Integer id, ScooterRequestDTO requestDTO) {
-        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được phép thực hiện hành động này!");
+        authUtil.requireAdminAccess("Permission denied: Only Administrators are allowed to perform this action!");
 
         Scooter scooter = scooterRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy xe với ID: " + id));
+                .orElseThrow(() -> new RuntimeException("Scooter not found with ID: " + id));
 
         scooter.setName(requestDTO.getName());
         scooter.setBatteryLevel(requestDTO.getBatteryLevel());
@@ -105,12 +105,12 @@ public class ScooterService {
 
     @Transactional
     public void deleteScooter(@NonNull Integer id) {
-        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được phép thực hiện hành động này!");
+        authUtil.requireAdminAccess("Permission denied: Only Administrators are allowed to perform this action!");
         Scooter scooter = scooterRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy xe với ID: " + id));
+                .orElseThrow(() -> new RuntimeException("Scooter not found with ID: " + id));
 
         if ("IN_USE".equals(scooter.getStatus())) {
-            throw new RuntimeException("Không thể xóa xe đang có khách thuê. Vui lòng kết thúc chuyến đi trước!");
+            throw new RuntimeException("Cannot delete scooter currently rented. Please end the ride first!");
         }
 
         try {
@@ -118,7 +118,7 @@ public class ScooterService {
             // Flush required to immediately catch constraint violation inside try-catch block
             scooterRepository.flush();
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
-            throw new RuntimeException("Không thể xóa xe này vì đã có dữ liệu lịch sử thuê hoặc bảo trì trên hệ thống!");
+            throw new RuntimeException("Cannot delete this scooter because it has rental or maintenance history!");
         }
     }
 

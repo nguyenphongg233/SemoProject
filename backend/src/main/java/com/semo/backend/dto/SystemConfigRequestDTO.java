@@ -4,10 +4,10 @@ import jakarta.validation.constraints.NotBlank;
 
 public class SystemConfigRequestDTO {
 
-    @NotBlank(message = "Config Key không được để trống")
+    @NotBlank(message = "Config Key cannot be empty")
     private String key;
 
-    @NotBlank(message = "Config Value không được để trống")
+    @NotBlank(message = "Config Value cannot be empty")
     private String value;
 
     private String description;

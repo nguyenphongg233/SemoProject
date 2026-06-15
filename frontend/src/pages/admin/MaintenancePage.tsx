@@ -109,7 +109,7 @@ export default function MaintenancePage() {
     try {
       await createMaintenanceLog({
         scooterId: Number(scooter.id),
-        description: 'Báo hỏng từ trang quản lý',
+        description: 'Reported broken from management page',
         cost: 0,
       })
       setSuccess(`Scooter #${scooter.id} marked as broken.`)
@@ -349,7 +349,7 @@ export default function MaintenancePage() {
             autoFocus
           />
           <TextField
-            label="Cost (VNĐ)"
+            label="Cost (VND)"
             type="number"
             name="cost"
             min="0"

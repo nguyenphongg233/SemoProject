@@ -5,8 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 
 public class ResendOtpRequestDTO {
 
-    @NotBlank(message = "Email không được để trống")
-    @Email(message = "Định dạng email không hợp lệ")
+    @NotBlank(message = "Email cannot be empty")
+    @Email(message = "Invalid email format")
     private String email;
 
     public ResendOtpRequestDTO() {}

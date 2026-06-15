@@ -42,7 +42,7 @@ public class AuthService {
 
         if (existingUser != null) {
             if (Boolean.TRUE.equals(existingUser.getIsVerified())) {
-                throw new RuntimeException("Email này đã được sử dụng để đăng ký!");
+                throw new RuntimeException("This email is already registered!");
             }
 
             existingUser.setPassword(passwordEncoder.encode(requestDTO.getPassword()));
@@ -74,19 +74,19 @@ public class AuthService {
     @Transactional
     public void verifyEmail(VerifyEmailRequestDTO requestDTO) {
         User user = userRepository.findByEmail(requestDTO.getEmail())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với email này."));
+                .orElseThrow(() -> new RuntimeException("Account not found with this email."));
 
         if (Boolean.TRUE.equals(user.getIsVerified())) {
-            throw new RuntimeException("Tài khoản này đã được xác thực rồi.");
+            throw new RuntimeException("This account is already verified.");
         }
 
         if (user.getVerificationExpiry() == null || user.getVerificationExpiry().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Mã xác nhận đã hết hạn. Vui lòng yêu cầu gửi lại mã mới.");
+            throw new RuntimeException("Verification code has expired. Please request a new code.");
         }
 
         String inputOtp = requestDTO.getOtp().trim();
         if (!inputOtp.equals(user.getVerificationCode()) && !inputOtp.equals("000000")) {
-            throw new RuntimeException("Mã xác nhận không chính xác.");
+            throw new RuntimeException("Incorrect verification code.");
         }
 
         user.setIsVerified(true);
@@ -108,20 +108,20 @@ public class AuthService {
 
     public LoginResponseDTO login(LoginRequestDTO requestDTO) {
         User user = userRepository.findByEmail(requestDTO.getEmail())
-                .orElseThrow(() -> new RuntimeException("Email hoặc mật khẩu không đúng"));
+                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
 
         if (!passwordEncoder.matches(requestDTO.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Email hoặc mật khẩu không đúng");
+            throw new RuntimeException("Invalid email or password");
         }
 
         if (Boolean.FALSE.equals(user.getIsVerified())) {
             throw new RuntimeException(
-                    "Tài khoản chưa được xác thực. Vui lòng kiểm tra hộp thư email của bạn để lấy mã OTP.");
+                    "Account not verified. Please check your email for the OTP code.");
         }
 
         if (Boolean.FALSE.equals(user.getIsActive())) {
             throw new RuntimeException(
-                    "Tài khoản của bạn đã bị khóa do vi phạm chính sách. Vui lòng liên hệ Quản trị viên để được hỗ trợ!");
+                    "Your account is locked due to policy violation. Please contact Administrator for support!");
         }
 
         String token = jwtTokenProvider.generateToken(user.getEmail(), user.getRole(), user.getId());
@@ -137,15 +137,15 @@ public class AuthService {
     @Transactional
     public void resendOtp(ResendOtpRequestDTO requestDTO) {
         User user = userRepository.findByEmail(requestDTO.getEmail())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản với email này."));
+                .orElseThrow(() -> new RuntimeException("Account not found with this email."));
 
         if (Boolean.TRUE.equals(user.getIsVerified())) {
-            throw new RuntimeException("Tài khoản này đã được xác thực, không cần gửi lại mã.");
+            throw new RuntimeException("This account is already verified, no need to resend code.");
         }
 
         if (user.getVerificationExpiry() != null &&
                 user.getVerificationExpiry().isAfter(LocalDateTime.now().plusMinutes(4))) {
-            throw new RuntimeException("Vui lòng đợi 1 phút trước khi yêu cầu mã mới.");
+            throw new RuntimeException("Please wait 1 minute before requesting a new code.");
         }
 
         String newOtp = generateOtp();

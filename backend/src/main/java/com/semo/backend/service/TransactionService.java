@@ -39,7 +39,7 @@ public class TransactionService {
 
     @Transactional(readOnly = true)
     public List<TransactionResponseDTO> getAllTransactions() {
-        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
+        authUtil.requireAdminAccess("Permission denied: Only Administrators can use this feature!");
 
         List<Transaction> transactions = transactionRepository.findByOrderByCreatedAtDesc();
         return transactions.stream().map(this::mapToDTO).collect(Collectors.toList());
@@ -47,22 +47,22 @@ public class TransactionService {
 
     @Transactional(readOnly = true)
     public List<TransactionResponseDTO> getTransactionsByUserId(@NonNull Integer userId) {
-        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
+        authUtil.requireAdminAccess("Permission denied: Only Administrators can use this feature!");
 
         userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với ID: " + userId));
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
 
         List<Transaction> transactions = transactionRepository.findByUserIdOrderByCreatedAtDesc(userId);
         return transactions.stream().map(this::mapToDTO).collect(Collectors.toList());
     }
     @Transactional
     public TransactionResponseDTO approveTransaction(@NonNull Integer id) {
-        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
+        authUtil.requireAdminAccess("Permission denied: Only Administrators can use this feature!");
         Transaction transaction = transactionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy giao dịch"));
+                .orElseThrow(() -> new RuntimeException("Transaction not found"));
         
         if (!"PENDING".equals(transaction.getStatus())) {
-            throw new RuntimeException("Chỉ có thể duyệt giao dịch ở trạng thái PENDING");
+            throw new RuntimeException("Can only approve transactions in PENDING state");
         }
 
         transaction.setStatus("COMPLETED");
@@ -82,12 +82,12 @@ public class TransactionService {
 
     @Transactional
     public TransactionResponseDTO rejectTransaction(@NonNull Integer id) {
-        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
+        authUtil.requireAdminAccess("Permission denied: Only Administrators can use this feature!");
         Transaction transaction = transactionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy giao dịch"));
+                .orElseThrow(() -> new RuntimeException("Transaction not found"));
         
         if (!"PENDING".equals(transaction.getStatus())) {
-            throw new RuntimeException("Chỉ có thể từ chối giao dịch ở trạng thái PENDING");
+            throw new RuntimeException("Can only reject transactions in PENDING state");
         }
 
         transaction.setStatus("REJECTED");

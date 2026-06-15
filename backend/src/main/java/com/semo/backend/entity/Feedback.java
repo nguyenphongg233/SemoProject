@@ -28,7 +28,7 @@ public class Feedback {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    // Tự động gán thời gian khi tạo mới
+    // Auto set time when created
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();

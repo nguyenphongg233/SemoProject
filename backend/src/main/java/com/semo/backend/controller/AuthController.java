@@ -31,13 +31,13 @@ public class AuthController {
     }
 
     /**
-     * Xác thực email bằng OTP
+     * Verify email with OTP
      * POST /api/users/verify-email
      */
     @PostMapping("/verify-email")
     public ResponseEntity<Map<String, String>> verifyEmail(@Valid @RequestBody VerifyEmailRequestDTO requestDTO) {
         authService.verifyEmail(requestDTO);
-        return ResponseEntity.ok(Map.of("message", "Xác thực email thành công! Bạn đã có thể đăng nhập."));
+        return ResponseEntity.ok(Map.of("message", "Email verified successfully! You can now login."));
     }
 
     @PostMapping("/login")
@@ -49,6 +49,6 @@ public class AuthController {
     @PostMapping("/resend-otp")
     public ResponseEntity<Map<String, String>> resendOtp(@Valid @RequestBody ResendOtpRequestDTO requestDTO) {
         authService.resendOtp(requestDTO);
-        return ResponseEntity.ok(Map.of("message", "Mã xác thực mới đã được gửi. Vui lòng kiểm tra email của bạn (bao gồm cả hộp thư Spam)."));
+        return ResponseEntity.ok(Map.of("message", "New verification code sent. Please check your email (including Spam folder)."));
     }
 }

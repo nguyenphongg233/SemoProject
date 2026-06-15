@@ -29,8 +29,8 @@ public class UploadController {
      * Upload avatar cho user (authenticated users)
      * POST /api/upload/avatar
      * 
-     * @param file - File ảnh (multipart/form-data)
-     * @return URL ảnh đã upload
+     * @param file - Image file (multipart/form-data)
+     * @return Uploaded image URL
      */
     @PostMapping("/avatar")
     public ResponseEntity<UploadResponseDTO> uploadAvatar(@RequestParam("file") MultipartFile file) {
@@ -48,17 +48,17 @@ public class UploadController {
                     .body(new UploadResponseDTO("", "", 0, e.getMessage()));
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new UploadResponseDTO("", "", 0, "Lỗi upload file: " + e.getMessage()));
+                    .body(new UploadResponseDTO("", "", 0, "File upload error: " + e.getMessage()));
         }
     }
 
     /**
-     * Upload hình ảnh cho scooter (Admin only)
+     * Upload scooter image (Admin only)
      * POST /api/upload/scooter/{scooterId}
      * 
-     * @param scooterId - ID của scooter
+     * @param scooterId - Scooter ID
      * @param file      - File ảnh (multipart/form-data)
-     * @return URL ảnh đã upload
+     * @return Uploaded image URL
      */
     @PostMapping("/scooter/{scooterId}")
     public ResponseEntity<UploadResponseDTO> uploadScooterImage(
@@ -78,7 +78,7 @@ public class UploadController {
                     .body(new UploadResponseDTO("", "", 0, e.getMessage()));
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new UploadResponseDTO("", "", 0, "Lỗi upload file: " + e.getMessage()));
+                    .body(new UploadResponseDTO("", "", 0, "File upload error: " + e.getMessage()));
         }
     }
 }

@@ -41,7 +41,7 @@ public class SystemConfigService {
     @Cacheable(value = "system_configs", key = "#key")
     public SystemConfigResponseDTO getConfigByKey(@NonNull String key) {
         SystemConfig config = configRepository.findById(key)
-                .orElseThrow(() -> new RuntimeException("Khóa cấu hình '" + key + "' không tồn tại!"));
+                .orElseThrow(() -> new RuntimeException("Configuration key '" + key + "' does not exist!"));
         return mapToResponseDTO(config);
     }
 
@@ -53,11 +53,11 @@ public class SystemConfigService {
         String description = requestDTO.getDescription();
 
         if (key == null || key.isBlank()) {
-            throw new IllegalArgumentException("Khóa cấu hình không được để trống!");
+            throw new IllegalArgumentException("Configuration key cannot be empty!");
         }
 
         if (configRepository.existsById(key)) {
-            throw new RuntimeException("Khóa cấu hình '" + key + "' đã tồn tại!");
+            throw new RuntimeException("Configuration key '" + key + "' already exists!");
         }
 
         SystemConfig newConfig = new SystemConfig(key, value, description);
@@ -73,7 +73,7 @@ public class SystemConfigService {
     })
     public SystemConfigResponseDTO updateConfig(@NonNull String key, SystemConfigUpdateRequestDTO requestDTO) {
         SystemConfig config = configRepository.findById(key)
-                .orElseThrow(() -> new RuntimeException("Khóa cấu hình '" + key + "' không tồn tại!"));
+                .orElseThrow(() -> new RuntimeException("Configuration key '" + key + "' does not exist!"));
 
         String value = requestDTO.getValue();
         String description = requestDTO.getDescription();
@@ -95,7 +95,7 @@ public class SystemConfigService {
     })
     public void deleteConfig(@NonNull String key) {
         if (!configRepository.existsById(key)) {
-            throw new RuntimeException("Khóa cấu hình '" + key + "' không tồn tại!");
+            throw new RuntimeException("Configuration key '" + key + "' does not exist!");
         }
         configRepository.deleteById(key);
     }

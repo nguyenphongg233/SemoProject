@@ -18,7 +18,7 @@ public class OpenApiConfig {
         return new OpenAPI()
                 .info(new Info().title("SEMO API Documentation")
                         .version("1.0")
-                        .description("Tài liệu API cho hệ thống chia sẻ phương tiện SEMO"))
+                        .description("API Documentation for SEMO vehicle sharing system"))
                 .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
                 .components(new Components()
                         .addSecuritySchemes(securitySchemeName, new SecurityScheme()

@@ -70,7 +70,7 @@ public class ScooterSimulationService {
         List<Scooter> activeScooters = scooterRepository.findByStatus("IN_USE");
 
         // Dọn dẹp lộ trình rác: Nếu xe không còn IN_USE (bị force end, bảo trì, hoặc người dùng đã trả)
-        // thì xóa lộ trình ảo của xe đó đi để tránh "xe ma" tự chạy.
+        // thì xóa lộ trình ảo của xe đó đi để tránh "xe ma" auto running.
         activeRoutes.keySet().removeIf(sId -> activeScooters.stream().noneMatch(s -> s.getId().equals(sId)));
 
         if (activeScooters.isEmpty()) {
@@ -87,7 +87,7 @@ public class ScooterSimulationService {
         }
 
         messagingTemplate.convertAndSend("/topic/scooters", activeScooters);
-        System.out.println("Vừa cập nhật và bắn tọa độ cho " + activeScooters.size() + " chiếc xe!");
+        System.out.println("Just updated and broadcast coordinates for " + activeScooters.size() + " scooters!");
     }
 
     private void simulateMovementAndSensors(Scooter scooter) {
@@ -145,8 +145,8 @@ public class ScooterSimulationService {
         }
 
         if (!isSafe) {
-            System.out.println("🚨 [GEOFENCING] Xe " + scooter.getName() + " (ID: " + scooter.getId() + ") ĐÃ ĐI LẠC!");
-            messagingTemplate.convertAndSend("/topic/alerts", "🚨 CẢNH BÁO GEOFENCING: Xe " + scooter.getName() + " đang di chuyển ngoài ranh giới cho phép!");
+            System.out.println("🚨 [GEOFENCING] Xe " + scooter.getName() + " (ID: " + scooter.getId() + ") IS LOST!");
+            messagingTemplate.convertAndSend("/topic/alerts", "🚨 GEOFENCING WARNING: Scooter " + scooter.getName() + " is moving outside allowed boundaries!");
 
         }
     }
@@ -159,16 +159,16 @@ public class ScooterSimulationService {
         if (scooter.getBatteryLevel() < maintenanceThreshold || scooter.getTemperature() > 60.0) {
             scooter.setStatus("MAINTENANCE");
 
-            String reason = scooter.getBatteryLevel() < maintenanceThreshold ? "Hết Pin" : "Quá Nhiệt";
+            String reason = scooter.getBatteryLevel() < maintenanceThreshold ? "Out of Battery" : "Overheated";
 
             MaintenanceLog log = new MaintenanceLog(
-                    "Hệ thống tự động khóa xe do " + reason,
+                    "System auto-locked scooter due to " + reason,
                     0.0,
                     scooter
             );
             maintenanceLogRepository.save(log);
 
-            messagingTemplate.convertAndSend("/topic/alerts", "🔧 CẢNH BÁO BẢO TRÌ: Xe " + scooter.getName() + " đã bị khóa tự động do " + reason + "!");
+            messagingTemplate.convertAndSend("/topic/alerts", "🔧 MAINTENANCE WARNING: Scooter " + scooter.getName() + " was auto-locked due to " + reason + "!");
         }
     }
 }

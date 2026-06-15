@@ -19,10 +19,10 @@ public class Transaction {
     private User user;
 
     @Column(nullable = false)
-    private Double amount; // Số tiền dương (nạp) hoặc âm (trừ)
+    private Double amount; // Positive amount (deposit) or negative (deduct)
 
     @Column(nullable = false, length = 50)
-    private String type; // DEPOSIT (Nạp tiền), RENTAL_PAYMENT (Thanh toán)
+    private String type; // DEPOSIT (Top up), RENTAL_PAYMENT (Payment)
 
     @Column(length = 255)
     private String description;

@@ -30,22 +30,22 @@ public class FeedbackService {
         User user = authUtil.requireActiveAuthenticatedUser();
 
         if (requestDTO.getRentalId() == null) {
-            throw new IllegalArgumentException("ID chuyến đi không hợp lệ.");
+            throw new IllegalArgumentException("Invalid ride ID.");
         }
 
         Rental rental = rentalRepository.findById(java.util.Objects.requireNonNull(requestDTO.getRentalId()))
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy chuyến đi"));
+                .orElseThrow(() -> new RuntimeException("Ride not found"));
 
         if (!rental.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Lỗi bảo mật: Bạn không thể đánh giá chuyến đi của người khác!");
+            throw new RuntimeException("Security error: You cannot review someone else's ride!");
         }
 
         if (!"COMPLETED".equals(rental.getStatus())) {
-            throw new RuntimeException("Chỉ có thể đánh giá những chuyến đi đã hoàn thành!");
+            throw new RuntimeException("You can only review completed rides!");
         }
 
         if (feedbackRepository.existsByRental(rental)) {
-            throw new RuntimeException("Chuyến đi này đã được đánh giá rồi!");
+            throw new RuntimeException("This ride has already been reviewed!");
         }
 
         Feedback feedback = new Feedback();
@@ -60,7 +60,7 @@ public class FeedbackService {
     }
 
     public java.util.List<FeedbackResponseDTO> getAllFeedbacks() {
-        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
+        authUtil.requireAdminAccess("Permission denied: Only Administrators can use this feature!");
 
         return feedbackRepository.findAllWithDetails().stream()
                 .map(this::mapToDTO)

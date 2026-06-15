@@ -107,6 +107,6 @@ public class ScooterController {
     @org.springframework.web.bind.annotation.DeleteMapping("/{id}")
     public ResponseEntity<String> deleteScooter(@PathVariable @NonNull Integer id) {
         scooterService.deleteScooter(id);
-        return ResponseEntity.ok("Đã xóa thành công xe với ID: " + id);
+        return ResponseEntity.ok("Successfully deleted scooter with ID: " + id);
     }
 }

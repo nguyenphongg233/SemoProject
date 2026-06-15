@@ -18,18 +18,18 @@ public class AuthUtil {
     public User requireAuthenticatedUser() {
         Authentication auth = getAuthentication();
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
-            throw new RuntimeException("Truy cập bị từ chối: Vui lòng đăng nhập lại!");
+            throw new RuntimeException("Access denied: Please log in again!");
         }
 
         return userRepository.findByEmail(auth.getName())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng hệ thống"));
+                .orElseThrow(() -> new RuntimeException("System user not found"));
     }
 
     public User requireActiveAuthenticatedUser() {
         User user = requireAuthenticatedUser();
 
         if (Boolean.FALSE.equals(user.getIsActive())) {
-            throw new RuntimeException("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên!");
+            throw new RuntimeException("Your account is locked. Please contact administrator!");
         }
 
         return user;

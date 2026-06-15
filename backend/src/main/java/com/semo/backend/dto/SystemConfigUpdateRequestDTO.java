@@ -3,7 +3,7 @@ package com.semo.backend.dto;
 import jakarta.validation.constraints.NotBlank;
 
 public class SystemConfigUpdateRequestDTO {
-    @NotBlank(message = "Config Value không được để trống")
+    @NotBlank(message = "Config Value cannot be empty")
     private String value;
 
     private String description;

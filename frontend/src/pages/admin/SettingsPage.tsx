@@ -24,11 +24,11 @@ interface DisplayConfig extends SystemConfig {
 }
 
 const KNOWN_CONFIGS: DisplayConfig[] = [
-  { key: 'BASE_PRICE', value: '5000', description: 'Giá thuê mỗi phút (VNĐ)', isDefault: true },
-  { key: 'UNLOCK_FEE', value: '10000', description: 'Phí mở khóa xe lúc bắt đầu chuyến (VNĐ)', isDefault: true },
-  { key: 'MIN_BALANCE', value: '20000', description: 'Số dư ví tối thiểu yêu cầu (VNĐ)', isDefault: true },
-  { key: 'MAINTENANCE_THRESHOLD', value: '20', description: 'Ngưỡng phần trăm pin tự động bảo trì (%)', isDefault: true },
-  { key: 'DISCOUNT_RATE', value: '0', description: 'Tỉ lệ giảm giá khuyến mãi (Ví dụ: 0.1 = 10%)', isDefault: true },
+  { key: 'BASE_PRICE', value: '5000', description: 'Rental price per minute (VND)', isDefault: true },
+  { key: 'UNLOCK_FEE', value: '10000', description: 'Unlock fee at the start of the ride (VND)', isDefault: true },
+  { key: 'MIN_BALANCE', value: '20000', description: 'Minimum required wallet balance (VND)', isDefault: true },
+  { key: 'MAINTENANCE_THRESHOLD', value: '20', description: 'Auto-maintenance battery percentage threshold (%)', isDefault: true },
+  { key: 'DISCOUNT_RATE', value: '0', description: 'Discount rate (Example: 0.1 = 10%)', isDefault: true },
 ]
 
 export default function SettingsPage() {
@@ -145,7 +145,7 @@ export default function SettingsPage() {
       render: (row) => (
         <div className="flex flex-col">
           <span className="font-mono text-cyan-soft font-medium">{row.value}</span>
-          {row.isDefault && <span className="text-xs text-slate-400 italic mt-0.5">Chưa thiết lập (Dùng mặc định)</span>}
+          {row.isDefault && <span className="text-xs text-slate-400 italic mt-0.5">Not yet set (Use default)</span>}
         </div>
       ),
     },

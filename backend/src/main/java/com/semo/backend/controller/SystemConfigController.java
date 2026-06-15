@@ -22,14 +22,14 @@ public class SystemConfigController {
         this.configService = configService;
     }
 
-    // TẠO MỚI (POST /api/admin/configs)
+    // CREATE NEW (POST /api/admin/configs)
     @PostMapping
     public ResponseEntity<SystemConfigResponseDTO> createConfig(@Valid @RequestBody SystemConfigRequestDTO requestDTO) {
         SystemConfigResponseDTO responseDTO = configService.createConfig(requestDTO);
         return new ResponseEntity<>(responseDTO, HttpStatus.CREATED);
     }
 
-    // CẬP NHẬT (PUT /api/admin/configs/{key})
+    // UPDATE (PUT /api/admin/configs/{key})
     @PutMapping("/{key}")
     public ResponseEntity<SystemConfigResponseDTO> updateConfig(
             @PathVariable @NonNull String key,
@@ -40,7 +40,7 @@ public class SystemConfigController {
         return ResponseEntity.ok(responseDTO);
     }
 
-    // XÓA (DELETE /api/admin/configs/{key})
+    // DELETE (DELETE /api/admin/configs/{key})
     @DeleteMapping("/{key}")
     public ResponseEntity<Void> deleteConfig(@PathVariable @NonNull String key) {
         configService.deleteConfig(key);

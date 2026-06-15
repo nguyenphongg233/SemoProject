@@ -25,7 +25,7 @@ public class GeofenceZoneService {
     @Transactional
     public GeofenceZoneResponseDTO createZone(GeofenceZoneRequestDTO requestDTO) {
         if (geofenceZoneRepository.existsByName(requestDTO.getName())) {
-            throw new RuntimeException("Tên khu vực này đã tồn tại!");
+            throw new RuntimeException("This zone name already exists!");
         }
 
         GeofenceZone zone = new GeofenceZone();
@@ -47,7 +47,7 @@ public class GeofenceZoneService {
     @Transactional
     public GeofenceZoneResponseDTO updateZone(@NonNull Integer id, GeofenceZoneRequestDTO requestDTO) {
         GeofenceZone zone = geofenceZoneRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy khu vực với ID: " + id));
+                .orElseThrow(() -> new RuntimeException("Zone not found with ID: " + id));
 
         zone.setName(requestDTO.getName());
         zone.setCenterLat(requestDTO.getCenterLat());
@@ -60,7 +60,7 @@ public class GeofenceZoneService {
     @Transactional
     public void deleteZone(@NonNull Integer id) {
         if (!geofenceZoneRepository.existsById(id)) {
-            throw new RuntimeException("Không tìm thấy khu vực với ID: " + id);
+            throw new RuntimeException("Zone not found with ID: " + id);
         }
         geofenceZoneRepository.deleteById(id);
     }

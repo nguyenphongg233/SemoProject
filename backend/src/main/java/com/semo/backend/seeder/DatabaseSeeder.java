@@ -64,7 +64,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                     "CUSTOMER",
                     100000.0);
             userRepository.save(customer);
-            System.out.println("✅ Đã tạo tài khoản Customer thành công!");
+            System.out.println("✅ Customer account created successfully!");
             System.out.println("   Customer: customer@semo.com / Customer@123");
         }
 
@@ -80,7 +80,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                         "CUSTOMER",
                         200000.0);
                 userRepository.save(bot);
-                System.out.println("✅ Đã tạo tài khoản " + botEmail + " thành công!");
+                System.out.println("✅ Account created: " + botEmail + " successfully!");
             }
         }
 
@@ -96,7 +96,7 @@ public class DatabaseSeeder implements CommandLineRunner {
             Scooter s8 = createScooter("Super Soco CUx", 15, "MAINTENANCE", 21.00577, 105.84442);
 
             scooterRepository.saveAll(java.util.Objects.requireNonNull(Arrays.asList(s1, s2, s3, s4, s5, s6, s7, s8)));
-            System.out.println("✅ Đã bơm dữ liệu mẫu cho bảng Scooters thành công!");
+            System.out.println("✅ Scooters sample data seeded successfully!");
         }
 
         // Tự động Migrate và Reset các Scooter bị lỗi trạng thái
@@ -114,7 +114,7 @@ public class DatabaseSeeder implements CommandLineRunner {
             }
             if (needsSync) {
                 scooterRepository.saveAll(allScootersForSync);
-                System.out.println("✅ Đã đồng bộ và reset các xe bị lỗi trạng thái MAINTENANCE/ACTIVE trong Database!");
+                System.out.println("✅ Synchronized and reset scooters with stuck MAINTENANCE/ACTIVE status in Database!");
             }
         }
 
@@ -130,7 +130,7 @@ public class DatabaseSeeder implements CommandLineRunner {
             }
             if (rentalsUpdated) {
                 rentalRepository.saveAll(allRentals);
-                System.out.println("✅ Đã đồng bộ các chuyến đi ACTIVE thành IN_USE trong Database!");
+                System.out.println("✅ Synchronized ACTIVE rides to IN_USE in Database!");
             }
         }
 
@@ -159,7 +159,7 @@ public class DatabaseSeeder implements CommandLineRunner {
 
         if (updated) {
             scooterRepository.saveAll(java.util.Objects.requireNonNull(scooters));
-            System.out.println("✅ Đã bổ sung tọa độ cho các scooter chưa có vị trí.");
+            System.out.println("✅ Added coordinates for scooters without location.");
         }
     }
 

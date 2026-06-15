@@ -43,6 +43,6 @@ public class GeofenceZoneController {
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteZone(@PathVariable @NonNull Integer id) {
         geofenceZoneService.deleteZone(id);
-        return ResponseEntity.ok("Đã xóa khu vực an toàn thành công!");
+        return ResponseEntity.ok("Safe zone deleted successfully!");
     }
 }

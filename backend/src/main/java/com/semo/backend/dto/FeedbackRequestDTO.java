@@ -7,15 +7,15 @@ import jakarta.validation.constraints.Size;
 
 public class FeedbackRequestDTO {
 
-    @NotNull(message = "ID chuyến đi không được để trống")
+    @NotNull(message = "Ride ID cannot be empty")
     private Integer rentalId;
 
-    @NotNull(message = "Số sao đánh giá không được để trống")
-    @Min(value = 1, message = "Đánh giá tối thiểu là 1 sao")
-    @Max(value = 5, message = "Đánh giá tối đa là 5 sao")
+    @NotNull(message = "Rating stars cannot be empty")
+    @Min(value = 1, message = "Minimum rating is 1 star")
+    @Max(value = 5, message = "Maximum rating is 5 stars")
     private Integer rating;
 
-    @Size(max = 500, message = "Bình luận không được vượt quá 500 ký tự")
+    @Size(max = 500, message = "Comment cannot exceed 500 characters")
     private String comment;
 
     public Integer getRentalId() {

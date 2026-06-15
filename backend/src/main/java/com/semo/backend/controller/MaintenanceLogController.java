@@ -48,7 +48,7 @@ public class MaintenanceLogController {
                                                 @RequestBody @Valid ResolveMaintenanceRequestDTO requestDTO) {
         maintenanceLogService.resolveMaintenance(scooterId, requestDTO);
 
-        return ResponseEntity.ok("Đã sửa chữa, ghi nhận chi phí " + requestDTO.getCost() + " VNĐ và sạc đầy xe thành công!");
+        return ResponseEntity.ok("Repaired, recorded cost " + requestDTO.getCost() + " VND and fully charged scooter successfully!");
     }
 
 }

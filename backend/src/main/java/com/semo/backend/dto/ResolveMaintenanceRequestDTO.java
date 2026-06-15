@@ -5,8 +5,8 @@ import jakarta.validation.constraints.NotNull;
 
 public class ResolveMaintenanceRequestDTO {
 
-    @NotNull(message = "Vui lòng nhập chi phí sửa chữa cuối cùng")
-    @Min(value = 0, message = "Chi phí không được là số âm")
+    @NotNull(message = "Please enter the final repair cost")
+    @Min(value = 0, message = "Cost cannot be negative")
     private Double cost;
 
     public Double getCost() {

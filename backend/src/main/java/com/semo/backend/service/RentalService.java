@@ -57,31 +57,31 @@ public class RentalService {
     public RentalResponseDTO startRental(RentalRequestDTO requestDTO) {
         User user = authUtil.requireActiveAuthenticatedUser();
 
-        if (requestDTO.getScooterId() == null) throw new IllegalArgumentException("ID xe không hợp lệ");
+        if (requestDTO.getScooterId() == null) throw new IllegalArgumentException("Invalid scooter ID");
         Scooter scooter = scooterRepository.findById(java.util.Objects.requireNonNull(requestDTO.getScooterId()))
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy Xe"));
+                .orElseThrow(() -> new RuntimeException("Scooter not found"));
 
         if (!"ADMIN".equals(user.getRole())) {
             double minBalance = getConfig("MIN_BALANCE", 20000.0);
             double depositFee = getConfig("DEPOSIT_FEE", 50000.0);
 
             if (user.getBalance() < 0) {
-                throw new RuntimeException("Tài khoản của bạn đang có dư nợ (" + user.getBalance()
-                        + " VNĐ). Vui lòng nạp tiền để thanh toán nợ trước khi thuê chuyến mới!");
+                throw new RuntimeException("Your account has an outstanding debt (" + user.getBalance()
+                        + " VND). Please top up to pay debt before renting a new ride!");
             }
 
             if (user.getBalance() < minBalance) {
-                throw new RuntimeException("Số dư ví tối thiểu để thuê xe là " + minBalance + " VNĐ.");
+                throw new RuntimeException("Minimum wallet balance to rent a scooter is " + minBalance + " VND.");
             }
 
             if (user.getBalance() < depositFee) {
                 throw new RuntimeException(
-                        "Số dư tài khoản không đủ. Vui lòng đảm bảo trong ví có ít nhất " + depositFee + " VNĐ để đặt cọc.");
+                        "Insufficient account balance. Please ensure wallet has at least " + depositFee + " VND for deposit.");
             }
         }
 
         if (!"AVAILABLE".equals(scooter.getStatus())) {
-            throw new RuntimeException("Xe này hiện không khả dụng để thuê!");
+            throw new RuntimeException("This scooter is currently not available for rent!");
         }
 
         scooter.setStatus("IN_USE");
@@ -100,7 +100,7 @@ public class RentalService {
             tx.setUser(user);
             tx.setAmount(-depositFee);
             tx.setType("RENTAL_DEPOSIT");
-            tx.setDescription("Trừ tiền cọc bắt đầu chuyến đi #" + rental.getId());
+            tx.setDescription("Deducted deposit for starting ride #" + rental.getId());
             transactionRepository.save(tx);
         }
 
@@ -112,12 +112,12 @@ public class RentalService {
         User loggedInUser = authUtil.requireActiveAuthenticatedUser();
 
         Rental rental = rentalRepository.findById(rentalId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy chuyến đi"));
+                .orElseThrow(() -> new RuntimeException("Ride not found"));
 
         User rentalOwner = rental.getUser();
 
         if (!rentalOwner.getId().equals(loggedInUser.getId()) && !"ADMIN".equals(loggedInUser.getRole())) {
-            throw new RuntimeException("Lỗi bảo mật: Bạn không có quyền kết thúc chuyến đi của người khác!");
+            throw new RuntimeException("Security error: You do not have permission to end someone else's ride!");
         }
 
         return executeEndRentalLogic(rental, rentalOwner);
@@ -126,13 +126,13 @@ public class RentalService {
     @Transactional
     public RentalResponseDTO forceEndRental(@NonNull Integer rentalId) {
         Rental rental = rentalRepository.findById(rentalId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy chuyến đi"));
+                .orElseThrow(() -> new RuntimeException("Ride not found"));
         return executeEndRentalLogic(rental, rental.getUser());
     }
 
     private RentalResponseDTO executeEndRentalLogic(Rental rental, User rentalOwner) {
         if ("COMPLETED".equals(rental.getStatus()))
-            throw new RuntimeException("Chuyến đi này đã được thanh toán rồi!");
+            throw new RuntimeException("This ride has already been paid for!");
 
         Scooter scooter = rental.getScooter();
 
@@ -177,14 +177,14 @@ public class RentalService {
             refundTx.setUser(rentalOwner);
             refundTx.setAmount(depositFee);
             refundTx.setType("RENTAL_REFUND");
-            refundTx.setDescription("Hoàn tiền cọc chuyến đi #" + rental.getId());
+            refundTx.setDescription("Refunded deposit for ride #" + rental.getId());
             transactionRepository.save(refundTx);
 
             Transaction paymentTx = new Transaction();
             paymentTx.setUser(rentalOwner);
             paymentTx.setAmount(-amount);
             paymentTx.setType("RENTAL_PAYMENT");
-            paymentTx.setDescription("Thanh toán phí thuê xe cho chuyến đi #" + rental.getId());
+            paymentTx.setDescription("Paid rental fee for ride #" + rental.getId());
             transactionRepository.save(paymentTx);
         }
 
@@ -195,7 +195,7 @@ public class RentalService {
     public List<RentalResponseDTO> getRentalHistory(String status) {
         status = (status == null || status.isBlank()) ? "ALL" : status.trim().toUpperCase();
         if (!VALID_STATUSES.contains(status)) {
-            throw new RuntimeException("Trạng thái không hợp lệ!");
+            throw new RuntimeException("Invalid state!");
         }
         User user = authUtil.requireActiveAuthenticatedUser();
 
@@ -236,14 +236,14 @@ public class RentalService {
     }
 
     public void forceEndAllRentals() {
-        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
+        authUtil.requireAdminAccess("Permission denied: Only Administrators can use this feature!");
         List<Rental> activeRentals = new java.util.ArrayList<>(rentalRepository.findByStatusOrderByStartTimeDesc("IN_USE"));
         activeRentals.addAll(rentalRepository.findByStatusOrderByStartTimeDesc("ACTIVE"));
         for (Rental rental : activeRentals) {
             try {
                 endRental(rental.getId());
             } catch (Exception e) {
-                System.err.println("Lỗi khi force end chuyến đi #" + rental.getId() + ": " + e.getMessage());
+                System.err.println("Error force ending ride #" + rental.getId() + ": " + e.getMessage());
             }
         }
     }

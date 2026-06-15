@@ -44,7 +44,7 @@ public class ChargingService {
 
     @Transactional
     public List<ScooterResponseDTO> autoScheduleCharging() {
-        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được điều phối sạc xe!");
+        authUtil.requireAdminAccess("Permission denied: Only Administrators can coordinate scooter charging!");
 
         int lowBatteryThreshold = (int) getConfig("MAINTENANCE_THRESHOLD", 20.0);
 
@@ -66,13 +66,13 @@ public class ChargingService {
 
     @Transactional
     public ScooterResponseDTO completeCharging(@NonNull Integer scooterId) {
-        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được nghiệm thu sạc xe!");
+        authUtil.requireAdminAccess("Permission denied: Only Administrators can accept scooter charging!");
 
         Scooter scooter = scooterRepository.findById(scooterId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy xe với ID: " + scooterId));
+                .orElseThrow(() -> new RuntimeException("Scooter not found with ID: " + scooterId));
 
         if (!"CHARGING".equals(scooter.getStatus())) {
-            throw new RuntimeException("Xe này không ở trạng thái Đang sạc (CHARGING)!");
+            throw new RuntimeException("This scooter is not in CHARGING state!");
         }
 
         scooter.setBatteryLevel(100);

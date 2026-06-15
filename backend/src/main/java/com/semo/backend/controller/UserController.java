@@ -44,7 +44,7 @@ public class UserController {
     }
 
     /**
-     * Tạo user mới
+     * Create new user
      * POST /api/users
      */
     @PostMapping
@@ -54,7 +54,7 @@ public class UserController {
     }
 
     /**
-     * Lấy user theo ID
+     * Get user by ID
      * GET /api/users/{id}
      */
     @GetMapping("/{id}")
@@ -64,7 +64,7 @@ public class UserController {
     }
 
     /**
-     * Lấy user theo email
+     * Get user by email
      * GET /api/users/by-email?email=user@example.com
      */
     @GetMapping("/by-email")
@@ -74,7 +74,7 @@ public class UserController {
     }
 
     /**
-     * Lấy tất cả users
+     * Get all users
      * GET /api/users
      */
     @GetMapping
@@ -83,7 +83,7 @@ public class UserController {
         return userRepository.findAll();
     }
 
-    // Export all users to Excel (Dành cho Admin)
+    // Export all users to Excel (For Admin)
     @GetMapping("/export")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<InputStreamResource> exportUsersToExcel() {
@@ -101,7 +101,7 @@ public class UserController {
     }
 
     /**
-     * Lấy users theo role
+     * Get users by role
      * GET /api/users/by-role?role=ADMIN
      */
     @GetMapping("/by-role")
@@ -123,7 +123,7 @@ public class UserController {
     }
 
     /**
-     * Xóa user
+     * Delete user
      * DELETE /api/users/{id}
      */
     @DeleteMapping("/{id}")
@@ -133,7 +133,7 @@ public class UserController {
     }
 
     /**
-     * Kiểm tra email đã tồn tại hay chưa
+     * Check if email already exists
      * GET /api/users/check-email?email=user@example.com
      */
     @GetMapping("/check-email")
@@ -173,7 +173,7 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    // API Khóa/Mở khóa tài khoản (Chỉ ADMIN)
+    // Lock/Unlock account API (ADMIN only)
     @PutMapping("/{id}/toggle-status")
     public ResponseEntity<UserResponseDTO> toggleUserStatus(@PathVariable @NonNull Integer id) {
         UserResponseDTO updatedUser = userService.toggleUserStatus(id);

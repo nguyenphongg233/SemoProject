@@ -34,15 +34,15 @@ public class MaintenanceLogService {
 
     @Transactional
     public MaintenanceLogResponseDTO createMaintenanceLog(MaintenanceLogRequestDTO requestDTO) {
-        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
+        authUtil.requireAdminAccess("Permission denied: Only Administrators can use this feature!");
         if (requestDTO.getScooterId() == null) {
-            throw new IllegalArgumentException("ID xe không hợp lệ.");
+            throw new IllegalArgumentException("Invalid scooter ID.");
         }
         Scooter scooter = scooterRepository.findById(java.util.Objects.requireNonNull(requestDTO.getScooterId()))
-                .orElseThrow(() -> new RuntimeException("ID xe không tồn tại"));
+                .orElseThrow(() -> new RuntimeException("Scooter ID does not exist"));
 
         if ("IN_USE".equals(scooter.getStatus())) {
-            throw new RuntimeException("Không thể bảo trì xe đang có khách thuê. Vui lòng kết thúc chuyến đi trước!");
+            throw new RuntimeException("Cannot maintain a scooter currently rented by a customer. Please end the ride first!");
         }
 
         scooter.setStatus("MAINTENANCE");
@@ -59,7 +59,7 @@ public class MaintenanceLogService {
 
     public List<MaintenanceLogResponseDTO> getMaintenanceLogsByScooterId(@NonNull Integer scooterId) {
         if (!scooterRepository.existsById(scooterId)) {
-            throw new RuntimeException("ID xe không tồn tại");
+            throw new RuntimeException("Scooter ID does not exist");
         }
 
         List<MaintenanceLog> logs = maintenanceLogRepository.findByScooterId(scooterId);
@@ -84,18 +84,18 @@ public class MaintenanceLogService {
 
     @Transactional
     public void resolveMaintenance(@NonNull Integer scooterId, ResolveMaintenanceRequestDTO requestDTO) {
-        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
+        authUtil.requireAdminAccess("Permission denied: Only Administrators can use this feature!");
         Scooter scooter = scooterRepository.findById(scooterId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy xe với ID: " + scooterId));
+                .orElseThrow(() -> new RuntimeException("Scooter not found with ID: " + scooterId));
 
         if (!"MAINTENANCE".equals(scooter.getStatus())) {
-            throw new RuntimeException("Xe này không nằm trong danh sách bảo trì!");
+            throw new RuntimeException("This scooter is not in the maintenance list!");
         }
 
         Double cost = requestDTO.getCost();
 
         MaintenanceLog latestLog = maintenanceLogRepository.findFirstByScooterIdOrderByCreatedAtDesc(scooterId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu bảo trì nào cho xe này"));
+                .orElseThrow(() -> new RuntimeException("No maintenance log found for this scooter"));
 
         latestLog.setCost(cost);
 

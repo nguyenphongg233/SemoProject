@@ -21,7 +21,7 @@ public class TransactionController {
         this.transactionService = transactionService;
     }
 
-    // Khách hàng gọi API này để xem biến động số dư của mình
+    // Customers call this API to view their balance changes
     @GetMapping("/history")
     public ResponseEntity<List<TransactionResponseDTO>> getMyTransactionHistory() {
         List<TransactionResponseDTO> history = transactionService.getMyTransactionHistory();

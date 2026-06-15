@@ -46,11 +46,11 @@ public class UserSimulationService {
     }
 
     private final List<String> FEEDBACK_COMMENTS = Arrays.asList(
-        "Xe đi rất mượt, cảm ơn Semo!",
-        "Chuyến đi tuyệt vời, xe còn mới.",
-        "Dịch vụ tốt, giá cả phải chăng.",
-        "Ứng dụng dễ dùng, sẽ tiếp tục ủng hộ.",
-        "Xe ổn định nhưng pin tụt hơi nhanh."
+        "The ride was very smooth, thank you Semo!",
+        "Great ride, the scooter is still new.",
+        "Good service, affordable price.",
+        "Easy to use app, will continue to support.",
+        "Scooter is stable but battery drops a bit fast."
     );
 
     public UserSimulationService(UserRepository userRepository, ScooterRepository scooterRepository,
@@ -69,12 +69,12 @@ public class UserSimulationService {
         this.scooterSimulationService = scooterSimulationService;
     }
 
-    // @Scheduled(fixedRate = 15000) // Tạm thời tắt hẳn chức năng bot theo yêu cầu
+    // @Scheduled(fixedRate = 15000) // Temporarily disabled bot function as requested
     
     public void simulateBotBehaviors() {
         if (!botEnabled) return;
 
-        // Lấy danh sách bots (được đánh dấu bởi email có chữ bot và role CUSTOMER)
+        // Get list of bots (marked by 'bot' in email and CUSTOMER role)
         List<User> bots = userRepository.findAll().stream()
                 .filter(u -> u.getEmail().startsWith("bot") && "CUSTOMER".equals(u.getRole()))
                 .toList();
@@ -82,35 +82,35 @@ public class UserSimulationService {
         if (bots.isEmpty()) return;
 
         for (User bot : bots) {
-            // Kiểm tra xem bot có chuyến đi nào đang diễn ra không
+            // Check if bot has any ongoing rides
             List<Rental> activeRentals = rentalRepository.findByUserAndStatusOrderByStartTimeDesc(bot, "IN_USE");
 
             try {
                 mockAuthentication(bot);
 
                 if (activeRentals.isEmpty()) {
-                    // Kịch bản: Không có chuyến đi
-                    // 1. Kiểm tra số dư, nếu nhỏ hơn 50.000 VNĐ -> nạp tiền tự động
+                    // Scenario: No ride
+                    // 1. Check balance, if less than 50,000 VND -> auto top up
                     if (bot.getBalance() < 50000.0) {
                         topUpBalance(bot, 200000.0);
-                        System.out.println("🤖 Bot " + bot.getEmail() + " đã tự động nạp thêm tiền.");
+                        System.out.println("🤖 Bot " + bot.getEmail() + " automatically topped up money.");
                     } else {
-                        // Có 100% tỷ lệ bắt đầu thuê xe mới để dễ quan sát
+                        // 100% chance to start renting scooter for easy observation
                         if (random.nextInt(100) < 100) {
                             startRandomRental(bot);
                         }
                     }
                 } else {
-                    // Kịch bản: Đang thuê xe
+                    // Scenario: Currently renting
                     Rental rentalToFinish = activeRentals.get(0);
-                    // Chỉ kết thúc khi xe đã đến đích (hết lộ trình) HOẶC xe gặp sự cố/bảo trì
+                    // Only end when scooter reaches destination OR has issue/maintenance
                     if (scooterSimulationService.hasArrived(rentalToFinish.getScooter().getId()) ||
                         !"IN_USE".equals(rentalToFinish.getScooter().getStatus())) {
                         finishRentalAndLeaveFeedback(rentalToFinish);
                     }
                 }
             } catch (Exception e) {
-                System.err.println("🤖 Lỗi khi giả lập Bot " + bot.getEmail() + ": " + e.getMessage());
+                System.err.println("🤖 Error simulating Bot " + bot.getEmail() + ": " + e.getMessage());
             } finally {
                 clearAuthentication();
             }
@@ -126,12 +126,12 @@ public class UserSimulationService {
         tx.setAmount(amount);
         tx.setType("TOPUP");
         tx.setStatus("COMPLETED");
-        tx.setDescription("Hệ thống tự động nạp tiền cho BOT");
+        tx.setDescription("System automatically topped up money for BOT");
         transactionRepository.save(tx);
     }
 
     private void startRandomRental(User bot) {
-        // Tìm xe AVAILABLE ngẫu nhiên
+        // Find random AVAILABLE scooter
         List<Scooter> availableScooters = scooterRepository.findByStatus("AVAILABLE");
         if (availableScooters.isEmpty()) return;
 
@@ -140,7 +140,7 @@ public class UserSimulationService {
         if (scooter.getCurrentLat() == null || scooter.getCurrentLng() == null) return;
 
         try {
-            // Random đích đến cách khoảng +- 0.01 độ (khoảng 1km)
+            // Random destination within +- 0.01 degrees (about 1km)
             double endLat = scooter.getCurrentLat() + (random.nextDouble() - 0.5) * 0.02;
             double endLng = scooter.getCurrentLng() + (random.nextDouble() - 0.5) * 0.02;
             
@@ -151,27 +151,27 @@ public class UserSimulationService {
             requestDTO.setScooterId(scooter.getId());
             rentalService.startRental(requestDTO);
             
-            System.out.println("🤖 Bot " + bot.getEmail() + " bắt đầu thuê xe " + scooter.getName() + " và đi theo lộ trình " + route.getDistance() + "m");
-            messagingTemplate.convertAndSend("/topic/alerts", "🤖 Bot " + bot.getEmail() + " vừa bắt đầu lộ trình " + Math.round(route.getDistance()) + "m bằng xe " + scooter.getName() + "!");
+            System.out.println("🤖 Bot " + bot.getEmail() + " started renting scooter " + scooter.getName() + " and following route " + route.getDistance() + "m");
+            messagingTemplate.convertAndSend("/topic/alerts", "🤖 Bot " + bot.getEmail() + " just started route " + Math.round(route.getDistance()) + "m using scooter " + scooter.getName() + "!");
         } catch (Exception e) {
-            System.err.println("🤖 Lỗi khi tạo lộ trình cho Bot: " + e.getMessage());
+            System.err.println("🤖 Error creating route for Bot: " + e.getMessage());
         }
     }
 
     private void finishRentalAndLeaveFeedback(Rental rental) {
-        // Kết thúc chuyến
+        // End ride
         rentalService.endRental(rental.getId());
         
-        // Để lại feedback ngẫu nhiên từ 4-5 sao
+        // Leave random 4-5 stars feedback
         FeedbackRequestDTO feedbackDTO = new FeedbackRequestDTO();
         feedbackDTO.setRentalId(rental.getId());
-        feedbackDTO.setRating(random.nextInt(2) + 4); // 4 hoặc 5
+        feedbackDTO.setRating(random.nextInt(2) + 4); // 4 or 5
         feedbackDTO.setComment(FEEDBACK_COMMENTS.get(random.nextInt(FEEDBACK_COMMENTS.size())));
         
         feedbackService.submitFeedback(feedbackDTO);
         
-        System.out.println("🤖 Bot " + rental.getUser().getEmail() + " đã trả xe " + rental.getScooter().getName() + " và đánh giá " + feedbackDTO.getRating() + " sao.");
-        messagingTemplate.convertAndSend("/topic/alerts", "🤖 Bot " + rental.getUser().getEmail() + " vừa trả xe và đánh giá hệ thống!");
+        System.out.println("🤖 Bot " + rental.getUser().getEmail() + " returned scooter " + rental.getScooter().getName() + " and rated " + feedbackDTO.getRating() + " stars.");
+        messagingTemplate.convertAndSend("/topic/alerts", "🤖 Bot " + rental.getUser().getEmail() + " just returned scooter and rated the system!");
     }
 
     private void mockAuthentication(User user) {

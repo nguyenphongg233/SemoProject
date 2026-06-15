@@ -134,7 +134,7 @@ export default function Register() {
             name="fullName"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            placeholder="Nguyễn Văn A"
+            placeholder="John Doe"
             autoComplete="name"
             required
             leadingIcon={<User size={18} strokeWidth={1.7} />}

@@ -38,7 +38,7 @@ public class FileService {
     public String uploadFile(MultipartFile file, String subfolder) throws IOException {
         // Validate file
         if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("File không hợp lệ");
+            throw new IllegalArgumentException("Invalid file");
         }
 
         // Get file extension
@@ -54,14 +54,14 @@ public class FileService {
 
         if (!isValidContentType && !isValidExtension) {
             throw new IllegalArgumentException(
-                    "Chỉ cho phép upload file ảnh (extension: " + fileExtension + ", contentType: " + contentType
+                    "Only image files allowed (extension: " + fileExtension + ", contentType: " + contentType
                             + ")");
         }
 
         // Validate file size (max 5MB)
         if (file.getSize() > 5 * 1024 * 1024) {
             throw new IllegalArgumentException(
-                    "Kích thước file không được vượt quá 5MB (file của bạn: " + (file.getSize() / 1024 / 1024) + "MB)");
+                    "File size cannot exceed 5MB (your file: " + (file.getSize() / 1024 / 1024) + "MB)");
         }
 
         // Tạo đường dẫn thư mục

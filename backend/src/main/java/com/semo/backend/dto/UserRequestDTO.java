@@ -7,25 +7,25 @@ import jakarta.validation.constraints.Size;
 
 public class UserRequestDTO {
 
-    @Email(message = "Email không hợp lệ")
-    @NotBlank(message = "Email không được để trống")
+    @Email(message = "Invalid email")
+    @NotBlank(message = "Email cannot be empty")
     private String email;
 
-    @NotBlank(message = "Mật khẩu không được để trống")
-    @Size(min = 8, message = "Mật khẩu phải ít nhất 8 ký tự")
+    @NotBlank(message = "Password cannot be empty")
+    @Size(min = 8, message = "Password must be at least 8 characters")
     @Pattern(
             regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*$",
-            message = "Mật khẩu phải chứa ít nhất 1 chữ cái in hoa, 1 chữ cái in thường và 1 chữ số"
+            message = "Password must contain at least 1 uppercase letter, 1 lowercase letter, and 1 number"
     )
     private String password;
 
-    @NotBlank(message = "Tên đầy đủ không được để trống")
+    @NotBlank(message = "Full name cannot be empty")
     private String fullName;
 
-    @NotBlank(message = "Số điện thoại không được để trống")
+    @NotBlank(message = "Phone number cannot be empty")
     @Pattern(
             regexp = "^[0-9]{10}$",
-            message = "Số điện thoại không hợp lệ (phải bao gồm đúng 10 chữ số)"
+            message = "Invalid phone number (must be exactly 10 digits)"
     )
     private String phoneNumber;
 

@@ -19,17 +19,17 @@ public class MailService {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(toEmail);
-            message.setSubject("Mã xác thực tài khoản SEMO của bạn");
-            message.setText("Chào bạn,\n\n"
-                    + "Cảm ơn bạn đã đăng ký tài khoản tại hệ thống SEMO.\n\n"
-                    + "Mã xác thực (OTP) của bạn là: " + otp + "\n"
-                    + "Mã này sẽ hết hạn trong vòng 5 phút.\n\n"
-                    + "Trân trọng,\nĐội ngũ SEMO.");
+            message.setSubject("Your SEMO account verification code");
+            message.setText("Hello,\n\n"
+                    + "Thank you for registering an account at SEMO system.\n\n"
+                    + "Your verification code (OTP) is: " + otp + "\n"
+                    + "This code will expire in 5 minutes.\n\n"
+                    + "Best regards,\nSEMO Team.");
 
             mailSender.send(message);
-            System.out.println("Đã gửi email OTP thành công tới: " + toEmail);
+            System.out.println("Sent OTP email successfully to: " + toEmail);
         } catch (Exception e) {
-            System.err.println("Lỗi khi gửi email tới " + toEmail + ": " + e.getMessage());
+            System.err.println("Error sending email to " + toEmail + ": " + e.getMessage());
         }
     }
 
@@ -38,17 +38,18 @@ public class MailService {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(toEmail);
-            String action = "COMPLETED".equals(status) ? "đã được DUYỆT" : "đã bị TỪ CHỐI";
-            message.setSubject("Thông báo kết quả giao dịch nạp tiền SEMO");
-            message.setText("Chào bạn,\n\n"
-                    + "Giao dịch nạp tiền trị giá " + amount + " VNĐ của bạn " + action + ".\n\n"
-                    + ("COMPLETED".equals(status) ? "Số tiền đã được cộng vào số dư ví của bạn.\n\n" : "Vui lòng liên hệ bộ phận hỗ trợ nếu có thắc mắc.\n\n")
-                    + "Trân trọng,\nĐội ngũ SEMO.");
+            boolean isApproved = "COMPLETED".equals(status);
+            String action = isApproved ? "has been APPROVED" : "has been REJECTED";
+            message.setSubject("SEMO top-up transaction result notification");
+            message.setText("Hello,\n\n"
+                    + "Top-up transaction of " + amount + " VND of yours " + action + ".\n\n"
+                    + (isApproved ? "The amount has been added to your wallet balance.\n\n" : "Please contact support if you have questions.\n\n")
+                    + "Best regards,\nSEMO Team.");
 
             mailSender.send(message);
-            System.out.println("Đã gửi email thông báo giao dịch thành công tới: " + toEmail);
+            System.out.println("Sent transaction notification email successfully to: " + toEmail);
         } catch (Exception e) {
-            System.err.println("Lỗi khi gửi email tới " + toEmail + ": " + e.getMessage());
+            System.err.println("Error sending email to " + toEmail + ": " + e.getMessage());
         }
     }
 }

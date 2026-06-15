@@ -33,7 +33,7 @@ public class AnalyticsService {
 
     public List<PointDTO> calculateOptimalChargingStations(int k) {
         if (k <= 0)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Số lượng trạm sạc (K) phải lớn hơn 0.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Number of charging stations (K) must be greater than 0.");
         
         List <Rental> rentals = rentalRepository.findByStatusOrderByStartTimeDesc("COMPLETED").stream()
                 .filter(r -> r.getEndLat() != null && r.getEndLng() != null)
@@ -44,7 +44,7 @@ public class AnalyticsService {
         if (k > rentals.size())
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "Số lượng trạm sạc (K=" + k + ") không được lớn hơn tổng số xe hiện có ("
+                    "Number of charging stations (K=" + k + ") cannot be greater than total available scooters ("
                     + rentals.size() + " xe)."
             );
 
@@ -111,7 +111,7 @@ public class AnalyticsService {
     @SuppressWarnings("deprecation")
     public List<PointDTO> calculateOptimalChargingStationsHDBSCAN(int minClusterSize) {
         if (minClusterSize <= 0)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tham số minClusterSize phải lớn hơn 0.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Parameter minClusterSize must be greater than 0.");
 
         List<Rental> rentals = rentalRepository.findByStatusOrderByStartTimeDesc("COMPLETED").stream()
                 .filter(r -> r.getEndLat() != null && r.getEndLng() != null)
@@ -122,7 +122,7 @@ public class AnalyticsService {
         if (minClusterSize > rentals.size())
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "minClusterSize (" + minClusterSize + ") không được lớn hơn tổng số xe hiện có (" + rentals.size() + " xe)."
+                    "minClusterSize (" + minClusterSize + ") cannot be greater than total available scooters (" + rentals.size() + " xe)."
             );
 
         SimpleDataSourceProvenance prov = new SimpleDataSourceProvenance("HDBSCAN", new ClusteringFactory());

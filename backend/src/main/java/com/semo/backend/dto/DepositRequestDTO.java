@@ -5,8 +5,8 @@ import jakarta.validation.constraints.NotNull;
 
 public class DepositRequestDTO {
 
-    @NotNull(message = "Số tiền nạp không được để trống")
-    @Min(value = 10000, message = "Số tiền nạp tối thiểu là 10.000 VNĐ")
+    @NotNull(message = "Deposit amount cannot be empty")
+    @Min(value = 10000, message = "Minimum deposit amount is 10,000 VND")
     private Double amount;
 
     public Double getAmount() {

@@ -34,7 +34,7 @@ public class RoutingController {
         ScooterResponseDTO scooter = scooterService.getScooterById(scooterId);
 
         if (scooter.getCurrentLat() == null || scooter.getCurrentLng() == null) {
-            throw new RuntimeException("Tọa độ của xe không hợp lệ.");
+            throw new RuntimeException("Invalid scooter coordinates.");
         }
 
         RoutingResponseDTO response = routingService.findShortestPath(

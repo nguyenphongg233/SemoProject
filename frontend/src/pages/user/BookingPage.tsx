@@ -200,7 +200,7 @@ export default function BookingPage() {
     }
   }, [ride?.state])
 
-  // Lỗi bảo mật fix: Clear ride if it belongs to another user
+  // Error bảo mật fix: Clear ride if it belongs to another user
   useEffect(() => {
     if (user?.id && ride) {
       if (ride.userId && ride.userId !== user.id) {
@@ -246,7 +246,7 @@ export default function BookingPage() {
               setCountdown(null)
               setShowWarning(false)
               setRefreshKey((k) => k + 1)
-              alert("Chuyến đi của bạn đã kết thúc do bạn hết tiền!");
+              alert("Your ride has ended because you ran out of balance!");
             }).catch(err => console.error(err));
           } else if (body.startsWith('COUNTDOWN:')) {
             const secs = parseInt(body.split(':')[1], 10);
@@ -610,7 +610,7 @@ export default function BookingPage() {
                 <div className="flex items-center gap-2.5">
                   <Clock size={18} className="text-warning animate-pulse" />
                   <span>
-                    Số dư sắp cạn! Chuyến đi sẽ <strong>kết thúc tự động</strong> trong dưới 5 phút nữa.
+                    Balance running low! The ride will <strong>automatically end</strong> in less than 5 minutes.
                   </span>
                 </div>
               </Alert>
@@ -626,7 +626,7 @@ export default function BookingPage() {
                 {countdown}
               </h2>
               <p className="text-white font-semibold text-xl tracking-wider mt-4 uppercase drop-shadow-md">
-                Chuyến đi tự động kết thúc
+                Ride automatically ended
               </p>
             </div>
           </div>

@@ -6,17 +6,17 @@ import jakarta.validation.constraints.NotNull;
 
 public class GeofenceZoneRequestDTO {
 
-    @NotBlank(message = "Tên khu vực không được để trống")
+    @NotBlank(message = "Zone name cannot be empty")
     private String name;
 
-    @NotNull(message = "Vĩ độ tâm không được để trống")
+    @NotNull(message = "Center latitude cannot be empty")
     private Double centerLat;
 
-    @NotNull(message = "Kinh độ tâm không được để trống")
+    @NotNull(message = "Center longitude cannot be empty")
     private Double centerLng;
 
-    @NotNull(message = "Bán kính không được để trống")
-    @Min(value = 0, message = "Bán kính phải lớn hơn 0")
+    @NotNull(message = "Radius cannot be empty")
+    @Min(value = 0, message = "Radius must be greater than 0")
     private Double radiusKm;
 
     public GeofenceZoneRequestDTO() {}

@@ -68,7 +68,7 @@ export default function AccountPage() {
         return
       }
       if (!profilePassword) {
-        setError('Mật khẩu xác nhận là bắt buộc để cập nhật thông tin.')
+        setError('Confirm password is required to update info.')
         return
       }
       
@@ -76,7 +76,7 @@ export default function AccountPage() {
       try {
         await loginApi({ email: user.email, password: profilePassword })
       } catch (err) {
-        setError('Mật khẩu xác nhận không chính xác.')
+        setError('Confirm password does not match.')
         setLoadingProfile(false)
         return
       }
@@ -92,7 +92,7 @@ export default function AccountPage() {
       setSuccess('Profile information updated successfully.')
       setProfilePassword('') // Reset field
     } catch (err: any) {
-      setError(getApiErrorMessage(err, 'Lỗi cập nhật hồ sơ.'))
+      setError(getApiErrorMessage(err, 'Error updating profile.'))
     } finally {
       setLoadingProfile(false)
     }

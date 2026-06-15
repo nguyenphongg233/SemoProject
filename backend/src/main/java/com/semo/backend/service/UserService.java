@@ -39,7 +39,7 @@ public class UserService {
     }
 
     /**
-     * Tạo user mới
+     * Create new user
      * 
      * @param requestDTO UserRequestDTO chứa thông tin user
      * @return UserResponseDTO
@@ -48,7 +48,7 @@ public class UserService {
     public UserResponseDTO createUser(UserRequestDTO requestDTO) {
         // Kiểm tra email đã tồn tại chưa
         if (userRepository.existsByEmail(requestDTO.getEmail())) {
-            throw new RuntimeException("Email đã được sử dụng");
+            throw new RuntimeException("Email is already in use");
         }
 
         User user = new User(
@@ -66,38 +66,38 @@ public class UserService {
     }
 
     /**
-     * Lấy user theo ID
+     * Get user by ID
      * 
      * @param id User ID
      * @return UserResponseDTO
      */
     public UserResponseDTO getUserById(@NonNull Integer id) {
-        authUtil.requireAdminOrSelfAccess(id, "Lỗi phân quyền: Bạn không có quyền xem thông tin user này!");
+        authUtil.requireAdminOrSelfAccess(id, "Permission denied: You do not have permission to view this user's info!");
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy User với ID: " + id));
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + id));
         return mapToResponseDTO(user);
     }
 
     /**
-     * Lấy user theo email
+     * Get user by email
      * 
      * @param email User email
      * @return UserResponseDTO
      */
     public UserResponseDTO getUserByEmail(String email) {
-        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
+        authUtil.requireAdminAccess("Permission denied: Only Administrators can use this feature!");
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy User với email: " + email));
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
         return mapToResponseDTO(user);
     }
 
     /**
-     * Lấy tất cả users
+     * Get all users
      * 
      * @return List UserResponseDTO
      */
     public List<UserResponseDTO> getAllUsers() {
-        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
+        authUtil.requireAdminAccess("Permission denied: Only Administrators can use this feature!");
         return userRepository.findAll()
                 .stream()
                 .map(this::mapToResponseDTO)
@@ -105,13 +105,13 @@ public class UserService {
     }
 
     /**
-     * Lấy tất cả users theo role
+     * Get all users theo role
      * 
      * @param role User role (ADMIN, CUSTOMER, ...)
      * @return List UserResponseDTO
      */
     public List<UserResponseDTO> getUsersByRole(String role) {
-        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
+        authUtil.requireAdminAccess("Permission denied: Only Administrators can use this feature!");
         return userRepository.findByRole(role)
                 .stream()
                 .map(this::mapToResponseDTO)
@@ -127,14 +127,14 @@ public class UserService {
      */
     @Transactional
     public UserResponseDTO updateUser(@NonNull Integer id, UserUpdateRequestDTO requestDTO) {
-        authUtil.requireAdminOrSelfAccess(id, "Lỗi phân quyền: Bạn không có quyền xem thông tin user này!");
+        authUtil.requireAdminOrSelfAccess(id, "Permission denied: You do not have permission to view this user's info!");
         User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy User với ID: " + id));
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + id));
 
         if (requestDTO.getEmail() != null && !requestDTO.getEmail().isBlank()) {
             if (!existingUser.getEmail().equals(requestDTO.getEmail()) &&
                     userRepository.existsByEmail(requestDTO.getEmail())) {
-                throw new RuntimeException("Email đã được sử dụng");
+                throw new RuntimeException("Email is already in use");
             }
             existingUser.setEmail(requestDTO.getEmail());
         }
@@ -152,21 +152,21 @@ public class UserService {
     }
 
     /**
-     * Xóa user
+     * Delete user
      * 
      * @param id User ID
      */
     @Transactional
     public void deleteUser(@NonNull Integer id) {
-        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
+        authUtil.requireAdminAccess("Permission denied: Only Administrators can use this feature!");
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy User với ID: " + id));
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + id));
 
         List<com.semo.backend.entity.Rental> userRentals = rentalRepository.findByUserOrderByStartTimeDesc(user);
         if (userRentals != null) {
             for (com.semo.backend.entity.Rental r : userRentals) {
                 if ("IN_USE".equals(r.getStatus()) || "ACTIVE".equals(r.getStatus())) {
-                    throw new RuntimeException("Không thể xóa người dùng đang có chuyến đi chưa hoàn tất!");
+                    throw new RuntimeException("Cannot delete user with incomplete rides!");
                 }
             }
         }
@@ -195,9 +195,9 @@ public class UserService {
      */
     @Transactional
     public String adminResetPassword(@NonNull Integer id, String newPassword) {
-        authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
+        authUtil.requireAdminAccess("Permission denied: Only Administrators can use this feature!");
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy User với ID: " + id));
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + id));
 
         String rawPassword = newPassword;
         if (rawPassword == null || rawPassword.isEmpty()) {
@@ -217,7 +217,7 @@ public class UserService {
         User user = authUtil.requireActiveAuthenticatedUser();
 
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
-            throw new RuntimeException("Mật khẩu hiện tại không đúng.");
+            throw new RuntimeException("Current password is incorrect.");
         }
 
         user.setPassword(passwordEncoder.encode(newPassword));
@@ -244,7 +244,7 @@ public class UserService {
      */
     public User getUserEntityByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy User với email: " + email));
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
     }
 
     /**
@@ -256,7 +256,7 @@ public class UserService {
      */
     public User getUserEntityById(@NonNull Integer id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy User với ID: " + id));
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + id));
     }
 
     /**
@@ -289,25 +289,25 @@ public class UserService {
         transaction.setUser(user);
         transaction.setAmount(requestDTO.getAmount());
         transaction.setType("DEPOSIT");
-        transaction.setDescription("Nạp tiền vào ví điện tử SEMO");
+        transaction.setDescription("Top up SEMO e-wallet");
         transaction.setStatus("PENDING");
 
         transactionRepository.save(transaction);
 
-        return new DepositResponseDTO("Yêu cầu nạp tiền đã được gửi. Đang chờ Admin xét duyệt!", user.getBalance());
+        return new DepositResponseDTO("Top-up request sent. Waiting for Admin approval!", user.getBalance());
     }
 
     @Transactional
     public UserResponseDTO toggleUserStatus(@NonNull Integer targetUserId) {
-        User admin = authUtil.requireAdminAccess("Lỗi phân quyền: Chỉ Quản trị viên mới được dùng tính năng này!");
+        User admin = authUtil.requireAdminAccess("Permission denied: Only Administrators can use this feature!");
 
 
         if (admin.getId().equals(targetUserId)) {
-            throw new RuntimeException("Thao tác không hợp lệ: Bạn không thể tự khóa chính mình!");
+            throw new RuntimeException("Invalid action: You cannot block yourself!");
         }
 
         User targetUser = userRepository.findById(targetUserId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng cần thao tác"));
+                .orElseThrow(() -> new RuntimeException("Target user not found"));
 
         targetUser.setIsActive(!targetUser.getIsActive());
 

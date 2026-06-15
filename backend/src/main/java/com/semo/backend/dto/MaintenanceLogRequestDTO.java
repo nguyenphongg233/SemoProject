@@ -5,10 +5,10 @@ import jakarta.validation.constraints.NotNull;
 
 public class MaintenanceLogRequestDTO {
 
-    @NotNull(message = "ID xe không được để trống")
+    @NotNull(message = "Scooter ID cannot be empty")
     private Integer scooterId;
 
-    @NotBlank(message = "Mô tả lỗi không được để trống")
+    @NotBlank(message = "Error description cannot be empty")
     private String description;
 
     public MaintenanceLogRequestDTO() {

@@ -3,7 +3,7 @@ package com.semo.backend.dto;
 import jakarta.validation.constraints.NotNull;
 
 public class RentalRequestDTO {
-    @NotNull(message = "Thiếu thông tin xe")
+    @NotNull(message = "Missing scooter information")
     private Integer scooterId;
 
     public Integer getScooterId() { return scooterId; }

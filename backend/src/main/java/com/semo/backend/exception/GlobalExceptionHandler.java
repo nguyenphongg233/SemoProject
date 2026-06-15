@@ -13,7 +13,7 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // Bắt lỗi khi Validate DTO thất bại (ví dụ: thiếu tên xe, pin > 100)
+    // Catch DTO Validation errors (ví dụ: thiếu tên xe, pin > 100)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Object> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
@@ -25,23 +25,23 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
-    // Bắt các lỗi RuntimeException chung chung khác
+    // Catch other general RuntimeExceptions
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex) {
         ErrorResponse error = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
-    // Bắt các lỗi Tối hậu (Server Crash, Database chết, NullPointer...)
+    // Catch ultimate errors (Server Crash, Database dead, NullPointer...)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex) {
-        // Ghi log lỗi ra console để Dev còn biết đường mà fix
+        // Log error to console for debugging
         ex.printStackTrace();
 
-        // Trả về 500 Internal Server Error cho Frontend
+        // Return 500 Internal Server Error to Frontend
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "Lỗi hệ thống nội bộ: " + ex.getMessage() + " - " + ex.getClass().getName()
+                "Internal system error: " + ex.getMessage() + " - " + ex.getClass().getName()
         );
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
