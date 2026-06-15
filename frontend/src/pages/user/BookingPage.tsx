@@ -282,7 +282,8 @@ export default function BookingPage() {
       const lat = Number(s.currentLat), lng = Number(s.currentLng)
       const hasPos = Number.isFinite(lat) && Number.isFinite(lng)
       const reportedStatus = reports[String(s.id)]?.status
-      const effectiveStatus = reportedStatus || s.status
+      // Luôn sử dụng trạng thái thật từ Database thay vì bị ghi đè bởi localStorage của trình duyệt
+      const effectiveStatus = s.status 
       const distance = userPos && hasPos ? haversineKm(userPos, [lat, lng]) : null
       return {
         ...s,

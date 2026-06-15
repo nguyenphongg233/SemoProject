@@ -85,14 +85,23 @@ public class DatabaseSeeder implements CommandLineRunner {
             System.out.println("✅ Đã bơm dữ liệu mẫu cho bảng Scooters thành công!");
         }
 
-        // Tự động Migrate các Scooter từ ACTIVE về lại IN_USE
-        List<Scooter> legacyScooters = scooterRepository.findByStatus("ACTIVE");
-        if (legacyScooters != null && !legacyScooters.isEmpty()) {
-            for (Scooter s : legacyScooters) {
-                s.setStatus("IN_USE");
+        // Tự động Migrate và Reset các Scooter bị lỗi trạng thái
+        List<Scooter> allScootersForSync = scooterRepository.findAll();
+        boolean needsSync = false;
+        if (allScootersForSync != null && !allScootersForSync.isEmpty()) {
+            for (Scooter s : allScootersForSync) {
+                if ("ACTIVE".equals(s.getStatus())) {
+                    s.setStatus("IN_USE");
+                    needsSync = true;
+                } else if ("MAINTENANCE".equals(s.getStatus())) {
+                    s.setStatus("AVAILABLE");
+                    needsSync = true;
+                }
             }
-            scooterRepository.saveAll(legacyScooters);
-            System.out.println("✅ Đã migrate " + legacyScooters.size() + " xe từ ACTIVE sang IN_USE trong Database!");
+            if (needsSync) {
+                scooterRepository.saveAll(allScootersForSync);
+                System.out.println("✅ Đã đồng bộ và reset các xe bị lỗi trạng thái MAINTENANCE/ACTIVE trong Database!");
+            }
         }
 
         List<Scooter> scooters = scooterRepository.findAll();

@@ -48,7 +48,7 @@ public class ScooterSimulationService {
         this.geofenceZoneRepository = geofenceZoneRepository;
     }
 
-    @Scheduled(fixedRate = 5000)
+    // @Scheduled(fixedRate = 5000) // Tạm thời tắt hẳn chức năng bot theo yêu cầu
     @Transactional
     public void simulateScooterData() {
         List<Scooter> activeScooters = scooterRepository.findByStatus("IN_USE");

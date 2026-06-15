@@ -187,4 +187,18 @@ public class RentalService {
         dto.setEndLng(rental.getEndLng());
         return dto;
     }
+
+    public void forceEndAllRentals() {
+        List<Rental> activeRentals = rentalRepository.findByStatusOrderByStartTimeDesc("IN_USE");
+        for (Rental rental : activeRentals) {
+            rental.setStatus("COMPLETED");
+            rental.setEndTime(LocalDateTime.now());
+            // Optionally set end location to current location if needed
+            
+            Scooter scooter = rental.getScooter();
+            scooter.setStatus("AVAILABLE");
+            scooterRepository.save(scooter);
+        }
+        rentalRepository.saveAll(activeRentals);
+    }
 }
