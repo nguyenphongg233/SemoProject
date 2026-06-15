@@ -13,7 +13,7 @@ import { SectionHeader,
   ScooterMap, DropdownMenu
  } from '@/components'
 import { SCOOTER_STATUSES } from '@/constants'
-import { createScooter, getAllScooters, updateScooter } from '@/features/scooters'
+import { createScooter, getAllScooters, updateScooter, exportScootersExcel } from '@/features/scooters'
 import { formatBatteryLevel, formatDateTime, getApiErrorMessage } from '@/utils'
 
 import type { Scooter } from '@/types/models'
@@ -238,6 +238,21 @@ export default function ScootersPage() {
     }
   }
 
+  async function handleExportExcel() {
+    try {
+      const blob = await exportScootersExcel();
+      const url = window.URL.createObjectURL(new Blob([blob]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'scooters.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Failed to export Excel file'));
+    }
+  }
+
   return (
     <div className="grid gap-6">
       <SectionHeader
@@ -248,11 +263,11 @@ export default function ScootersPage() {
           <div className="flex gap-2">
             <Button 
               variant="secondary"
-              title="Pending backend implementation"
-              onClick={() => alert("Chức năng Export CSV hiện đang chờ Backend API.")}
+              title="Export Excel (.xlsx)"
+              onClick={handleExportExcel}
               leadingIcon={<Download size={16} />}
             >
-              Export CSV
+              Export Excel
             </Button>
             <Button onClick={openCreate}>New scooter</Button>
           </div>

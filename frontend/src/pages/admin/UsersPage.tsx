@@ -22,6 +22,7 @@ import {
   toggleUserStatus,
   depositToWallet,
   getUserTransactions,
+  exportUsersExcel,
 } from '@/features/users'
 import { formatCurrency, formatDateTime, getApiErrorMessage } from '@/utils'
 
@@ -327,6 +328,21 @@ export default function UsersPage() {
     }
   }
 
+  async function handleExportExcel() {
+    try {
+      const blob = await exportUsersExcel();
+      const url = window.URL.createObjectURL(new Blob([blob]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'users.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Failed to export Excel file'));
+    }
+  }
+
   const filteredUsers = useMemo(() => {
     let result = users
     if (searchTerm) {
@@ -398,11 +414,11 @@ export default function UsersPage() {
         <div className="flex items-center gap-2">
           <Button 
             variant="secondary"
-            title="Pending backend implementation"
-            onClick={() => alert("Chức năng Export CSV hiện đang chờ Backend API.")}
+            title="Export Excel (.xlsx)"
+            onClick={handleExportExcel}
             leadingIcon={<Download size={16} />}
           >
-            Export CSV
+            Export Excel
           </Button>
           <Button 
             variant={sortByBalance === 'none' ? 'secondary' : 'primary'}

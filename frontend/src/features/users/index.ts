@@ -15,4 +15,5 @@ export {
   updateUser,
   updateProfile,
   uploadAvatar,
+  exportUsersExcel,
 } from './api'

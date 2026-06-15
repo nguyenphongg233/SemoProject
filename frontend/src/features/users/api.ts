@@ -85,3 +85,9 @@ export async function uploadAvatar(file: File) {
   })
   return data
 }
+export async function exportUsersExcel() {
+  const response = await axiosClient.get('/api/users/export', {
+    responseType: 'blob'
+  });
+  return response.data;
+}
