@@ -7,6 +7,7 @@ import com.semo.backend.repository.SystemConfigRepository;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -43,6 +44,7 @@ public class RentalMonitorService {
     }
 
     @Scheduled(fixedRate = 5000)
+    @Transactional
     public void monitorActiveRentals() {
         List<Rental> activeRentals = rentalRepository.findByStatusOrderByStartTimeDesc("IN_USE");
         if (activeRentals.isEmpty()) return;

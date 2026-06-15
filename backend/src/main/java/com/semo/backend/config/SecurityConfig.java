@@ -79,7 +79,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/rentals/**").hasAnyRole("CUSTOMER", "ADMIN")
 
                         // Transactions
-                        .requestMatchers(HttpMethod.GET, "/api/transactions/my-history").hasAnyRole("CUSTOMER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/transactions/history").hasAnyRole("CUSTOMER", "ADMIN")
                         .requestMatchers("/api/transactions/**").hasRole("ADMIN")
 
                         // Feedback
