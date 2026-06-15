@@ -35,7 +35,7 @@ export interface Rental {
   startTime: string
   endTime?: string | null
   totalPrice?: number
-  status: 'ACTIVE' | 'COMPLETED' | string
+  status: 'IN_USE' | 'COMPLETED' | string
   startLat?: number | null
   startLng?: number | null
   endLat?: number | null

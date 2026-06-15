@@ -35,9 +35,9 @@ public class Rental {
     @Column(name = "total_price")
     private Double totalPrice;
 
-    // Trạng thái chuyến đi: ACTIVE (Đang thuê), COMPLETED (Đã trả)
+    // Trạng thái chuyến đi: IN_USE (Đang thuê), COMPLETED (Đã trả)
     @Column(nullable = false)
-    private String status = "ACTIVE";
+    private String status = "IN_USE";
 
     @Column(name = "start_lat", nullable = false)
     private Double startLat;
@@ -58,7 +58,7 @@ public class Rental {
     public Rental(User user, Scooter scooter) {
         this.user = user;
         this.scooter = scooter;
-        this.status = "ACTIVE";
+        this.status = "IN_USE";
         this.startTime = LocalDateTime.now(); // Tự động lấy thời gian hiện tại khi tạo rental
     }
 

@@ -83,7 +83,7 @@ public class UserSimulationService {
 
         for (User bot : bots) {
             // Kiểm tra xem bot có chuyến đi nào đang diễn ra không
-            List<Rental> activeRentals = rentalRepository.findByUserAndStatusOrderByStartTimeDesc(bot, "ACTIVE");
+            List<Rental> activeRentals = rentalRepository.findByUserAndStatusOrderByStartTimeDesc(bot, "IN_USE");
 
             try {
                 mockAuthentication(bot);

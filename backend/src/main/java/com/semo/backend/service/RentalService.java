@@ -26,7 +26,7 @@ public class RentalService {
     private final ScooterRepository scooterRepository;
     private final TransactionRepository transactionRepository;
     private final AuthUtil authUtil;
-    private static final List<String> VALID_STATUSES = List.of("ALL", "ACTIVE", "COMPLETED");
+    private static final List<String> VALID_STATUSES = List.of("ALL", "IN_USE", "COMPLETED");
 
     public RentalService(RentalRepository rentalRepository, ScooterRepository scooterRepository,
             TransactionRepository transactionRepository,
@@ -116,7 +116,9 @@ public class RentalService {
         rental.setTotalPrice(amount);
         rental.setStatus("COMPLETED");
 
-        scooter.setStatus("AVAILABLE");
+        if (!"MAINTENANCE".equals(scooter.getStatus())) {
+            scooter.setStatus("AVAILABLE");
+        }
 
         if (!"ADMIN".equals(rentalOwner.getRole())) {
             double diff = amount - 50000.0;
@@ -188,17 +190,16 @@ public class RentalService {
         return dto;
     }
 
+    @Transactional
     public void forceEndAllRentals() {
-        List<Rental> activeRentals = rentalRepository.findByStatusOrderByStartTimeDesc("IN_USE");
+        List<Rental> activeRentals = new java.util.ArrayList<>(rentalRepository.findByStatusOrderByStartTimeDesc("IN_USE"));
+        activeRentals.addAll(rentalRepository.findByStatusOrderByStartTimeDesc("ACTIVE"));
         for (Rental rental : activeRentals) {
-            rental.setStatus("COMPLETED");
-            rental.setEndTime(LocalDateTime.now());
-            // Optionally set end location to current location if needed
-            
-            Scooter scooter = rental.getScooter();
-            scooter.setStatus("AVAILABLE");
-            scooterRepository.save(scooter);
+            try {
+                endRental(rental.getId());
+            } catch (Exception e) {
+                System.err.println("Lỗi khi force end chuyến đi #" + rental.getId() + ": " + e.getMessage());
+            }
         }
-        rentalRepository.saveAll(activeRentals);
     }
 }
