@@ -13,6 +13,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 
 @Entity
 @Table(name = "users")
@@ -59,6 +60,9 @@ public class User {
 
     @Column(name = "is_verified", nullable = false)
     private Boolean isVerified = false;
+
+    @Version
+    private Integer version;
 
     public User() {
     }
@@ -186,5 +190,13 @@ public class User {
 
     public void setIsVerified(Boolean isVerified) {
         this.isVerified = isVerified;
+    }
+
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
     }
 }

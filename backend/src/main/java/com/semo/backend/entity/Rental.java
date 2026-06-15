@@ -51,6 +51,9 @@ public class Rental {
     @Column(name = "end_lng", nullable = true)
     private Double endLng;
 
+    @Version
+    private Integer version;
+
     // Các hàm Constructor
     public Rental() {
     }
@@ -149,5 +152,13 @@ public class Rental {
 
     public void setEndLng(Double endLng) {
         this.endLng = endLng;
+    }
+
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
     }
 }
