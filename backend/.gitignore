@@ -35,3 +35,7 @@ build/
 ### Data ###
 data/*.pbf
 data/*-gh/
+data/
+
+
+.DS_Store
