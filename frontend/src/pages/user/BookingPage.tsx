@@ -256,6 +256,37 @@ export default function BookingPage() {
     return () => { alive = false }
   }, [refreshKey])
 
+  // Sync active ride from backend on mount in case user changed devices
+  useEffect(() => {
+    let alive = true
+    const syncActiveRide = async () => {
+      try {
+        const history = await getRentalHistory('IN_USE')
+        if (!alive || !history || history.length === 0) return
+        
+        const activeRental = history[0]
+        // Khôi phục lại state đang đi nếu có chuyến chưa hoàn tất trên backend
+        const restoredRide: RideState = {
+          state: 'riding',
+          rentalId: activeRental.id,
+          scooterId: activeRental.scooterId,
+          scooterName: activeRental.scooterName || `Scooter #${activeRental.scooterId}`,
+          startedAt: activeRental.startTime ? new Date(activeRental.startTime).getTime() : Date.now(),
+          userId: user?.id || activeRental.userId,
+        }
+        
+        setRide(restoredRide)
+        saveRide(restoredRide)
+        setSelectedId(activeRental.scooterId)
+      } catch (err) {
+        console.error('Failed to sync initial active ride', err)
+      }
+    }
+    
+    syncActiveRide()
+    return () => { alive = false }
+  }, [user?.id])
+
   // Xin geolocation lần đầu
   useEffect(() => { requestLocation() }, []) // eslint-disable-line
 

@@ -14,6 +14,8 @@ import com.semo.backend.repository.ScooterRepository;
 import com.semo.backend.repository.UserRepository;
 import com.semo.backend.repository.RentalRepository;
 
+import org.springframework.jdbc.core.JdbcTemplate;
+
 @Component
 public class DatabaseSeeder implements CommandLineRunner {
 
@@ -21,17 +23,25 @@ public class DatabaseSeeder implements CommandLineRunner {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final RentalRepository rentalRepository;
+    private final JdbcTemplate jdbcTemplate;
 
     public DatabaseSeeder(ScooterRepository scooterRepository, UserRepository userRepository,
-            PasswordEncoder passwordEncoder, RentalRepository rentalRepository) {
+            PasswordEncoder passwordEncoder, RentalRepository rentalRepository, JdbcTemplate jdbcTemplate) {
         this.scooterRepository = scooterRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.rentalRepository = rentalRepository;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
     public void run(String... args) throws Exception {
+        // Fix uninitialized versions for existing rows
+        jdbcTemplate.execute("UPDATE rentals SET version = 0 WHERE version IS NULL");
+        jdbcTemplate.execute("UPDATE users SET version = 0 WHERE version IS NULL");
+        jdbcTemplate.execute("UPDATE scooters SET version = 0 WHERE version IS NULL");
+        jdbcTemplate.execute("UPDATE transactions SET version = 0 WHERE version IS NULL");
+
         // Seed admin user
         if (!userRepository.existsByEmail("admin@semo.com")) {
             User admin = new User(
