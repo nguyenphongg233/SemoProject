@@ -10,8 +10,12 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
+import org.springframework.data.jpa.repository.Modifying;
+
 public interface RentalRepository extends JpaRepository<Rental, Integer> {
-    void deleteByUserId(Integer userId);
+    @Modifying
+    @Query("DELETE FROM Rental r WHERE r.user.id = :userId")
+    void deleteByUserId(@Param("userId") Integer userId);
     
     @EntityGraph(attributePaths = {"user", "scooter"})
     List<Rental> findByUserAndStatusOrderByStartTimeDesc(User user, String status);

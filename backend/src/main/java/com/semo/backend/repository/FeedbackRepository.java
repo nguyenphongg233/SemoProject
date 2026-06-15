@@ -6,6 +6,8 @@ import com.semo.backend.entity.User;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,5 +25,7 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Integer> {
     List<Feedback> findByUserWithDetails(User user);
 
     List<Feedback> findByUser(User user);
-    void deleteByUserId(Integer userId);
+    @Modifying
+    @Query("DELETE FROM Feedback f WHERE f.user.id = :userId")
+    void deleteByUserId(@Param("userId") Integer userId);
 }
