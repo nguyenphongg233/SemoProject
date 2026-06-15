@@ -23,10 +23,12 @@
   --color-surface-elevated: rgba(255, 255, 255, 0.07);
 
   /* ===== Văn bản ===== */
-  --color-text: #E6EEFF;
+  --color-text: #E6EEFF; 
   --color-text-strong: #FFFFFF;
-  --color-text-muted: #94A3B8; /* Equivalent to text-slate-400 */
-  --color-text-faded: #64748B; /* Equivalent to text-slate-500 for slight variation */
+  --color-text-muted: #94A3B8; 
+  --color-text-faded: #64748B; 
+  --text-glow-semo: 0 0 12px rgba(0, 209, 255, 0.15); /* Soft, subtle glow to prevent blur */
+  --text-shadow-hust: none;
 
   /* ===== Thương hiệu & Trạng thái ===== */
   --color-brand: var(--color-electric);
@@ -113,10 +115,11 @@ h2,
 h3,
 h4,
 h5 {
-  color: var(--text-strong);
+  color: var(--color-text-strong);
   letter-spacing: -0.02em;
-  font-weight: 700;
+  font-weight: 700; /* Trả về 700 để chữ ko bị biến dạng */
   line-height: 1.25;
+  text-shadow: var(--text-glow-semo);
 }
 
 p {
@@ -379,6 +382,9 @@ input:-webkit-autofill:active {
   --color-text-strong: #ce1628; /* HUST Red */
   --color-text-muted: #64748B;
   --color-text-faded: #94A3B8;
+  
+  --text-glow-semo: none;
+  --text-shadow-hust: 1px 2px 4px rgba(206, 22, 40, 0.15), 0px 1px 2px rgba(0, 0, 0, 0.1);
 
   --color-electric: #ce1628; /* Override electric with HUST red */
   --color-electric-soft: #e53e4f;
@@ -436,7 +442,11 @@ input:-webkit-autofill:active {
 }
 
 /* Override utility text colors that get hidden in light mode */
-:root.hust .text-text-strong { color: #020617 !important; }
+:root.hust .text-text-strong { color: #020617 !important; text-shadow: var(--text-shadow-hust); }
+:root.hust h1, :root.hust h2, :root.hust h3, :root.hust h4, :root.hust h5 {
+  text-shadow: var(--text-shadow-hust);
+  font-weight: 700;
+}
 :root.hust .text-text-muted { color: #1E293B !important; }
 :root.hust .text-text-faded { color: #334155 !important; }
 :root.hust .text-cyan-400, :root.hust .text-cyan-soft { color: #ce1628 !important; }
