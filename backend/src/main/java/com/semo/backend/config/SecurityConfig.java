@@ -42,6 +42,8 @@ public class SecurityConfig {
                         .requestMatchers("/v3/api-docs/**").permitAll()
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
+                        .requestMatchers("/api/admin/system/hard-reset").permitAll()
+                        .requestMatchers("/api/public/**").permitAll()
 
                         // System / Admin general endpoints
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
