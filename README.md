@@ -1,6 +1,38 @@
 # SEMO
 
-SEMO is a smart e-scooter fleet management platform with authentication, scooter tracking, maintenance management, and analytics.
+SEMO is a comprehensive, smart e-scooter fleet management platform designed to provide a seamless rental experience for users while empowering administrators with powerful tools to oversee and operate their business. 
+
+The system bridges the gap between customers looking for convenient urban mobility and fleet operators who need real-time data, reliable tracking, and efficient maintenance management. Built with a robust Spring Boot backend and a dynamic React frontend, SEMO integrates interactive map routing via GraphHopper to deliver accurate and responsive geographical services. From processing wallet deposits and tracking live scooter locations, to handling secure authentication and generating business analytics, SEMO offers an end-to-end solution for modern micro-mobility services.
+
+## Project Team
+
+**Course:** Nhập môn Công nghệ phần mềm  
+**Instructor:** Nguyễn Quốc Tuấn  
+
+| Name | Student ID | Email |
+| :--- | :--- | :--- |
+| Nguyễn Phong | 202400066 | phong.n2400066@sis.hust.edu.vn |
+| Nguyễn Ngọc Tuấn Anh | 202400029 | anh.nnt2400029@sis.hust.edu.vn |
+| Nguyễn Hải Yến Nhi | 202400064 | nhi.nhy2400064@sis.hust.edu.vn |
+| Đặng Bảo Quân | 202416319 | quan.db2416319@sis.hust.edu.vn |
+| Phạm Đình Minh Đức | 202400038 | duc.pdm2400038@sis.hust.edu.vn |
+| Nguyễn Thị Hải Linh | 202416263 | linh.nth2416263@sis.hust.edu.vn |
+
+## Main Features
+
+- JWT login and role-based routing
+- Admin management for users, scooters, rentals, maintenance, and analytics
+- Customer profile, wallet deposit, and password change
+- Map-based scooter creation in the admin area
+- Map visualization for scooter locations and analytics results
+- Upload support for avatars and scooter images
+
+## Documentation & Tutorials
+
+- 🎥 [Video Tutorial](https://drive.google.com/drive/folders/1Mucl2WwQHXFYH6NkSFJedtME79svJTRD?usp=sharing)
+- 👨‍💼 [Admin Guide](docs/admin.md)
+- 👤 [Customer Guide](docs/customer.md)
+- 📄 [Software Requirements Specification](docs/SEMO-SRS.docx)
 
 ## Project Structure
 
@@ -14,6 +46,14 @@ SEMO is a smart e-scooter fleet management platform with authentication, scooter
 - Node.js 18+
 - npm
 - MySQL
+
+## Quick Start
+
+1. Start MySQL.
+2. Start the backend.
+3. Run `npm install` inside `frontend/`.
+4. Start the frontend with `npm run dev`.
+5. Log in with the default admin account if you want to access the admin area.
 
 ## Backend Setup
 
@@ -87,16 +127,8 @@ The frontend is configured to talk to `http://localhost:8888` by default.
 - Password: `Admin@123`
 
 ## Testing & Verification
+
 For development and testing purposes, if email sending fails or you want to quickly bypass OTP verification, you can use the **Master OTP Code**: `000000`.
-
-## Main Features
-
-- JWT login and role-based routing
-- Admin management for users, scooters, rentals, maintenance, and analytics
-- Customer profile, wallet deposit, and password change
-- Map-based scooter creation in the admin area
-- Map visualization for scooter locations and analytics results
-- Upload support for avatars and scooter images
 
 ## How to Use Swagger UI (API Wrapper)
 
@@ -133,14 +165,6 @@ To test any API (e.g., `POST /api/rentals/start`), follow these steps:
     * **Response body:** JSON data or error message from the Backend.
 
 > **Note:** If the Server returns a **401 Unauthorized** or **403 Forbidden** error, double-check if the JWT padlock has been set with the correct token, or if that token has expired.
-
-## Quick Start
-
-1. Start MySQL.
-2. Start the backend.
-3. Run `npm install` inside `frontend/`.
-4. Start the frontend with `npm run dev`.
-5. Log in with the default admin account if you want to access the admin area.
 
 ## 🚀 Production Deployment Guide (Render + Vercel)
 
