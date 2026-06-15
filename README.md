@@ -38,6 +38,8 @@ Before starting the backend, make sure the following environment variables are c
 - `DB_PASSWORD`
 - `JWT_SECRET`
 - `JWT_EXPIRATION`
+- `MAIL_USERNAME` (Your Gmail address for sending emails)
+- `MAIL_PASSWORD` (Your Gmail App Password)
 - `PORT`
 
 The backend is expected to run on `http://localhost:8888` by default.
@@ -49,7 +51,10 @@ The backend uses GraphHopper and the A* algorithm for scooter routing, which req
 1. Navigate to the Geofabrik download server: [https://download.geofabrik.de/asia/vietnam.html](https://download.geofabrik.de/asia/vietnam.html)
 2. Download the `.osm.pbf` file (e.g., `vietnam-latest.osm.pbf`).
 3. Place the downloaded file inside the `backend/data/` directory. Ensure the file name exactly matches `vietnam-latest.osm.pbf`.
-4. Upon starting the backend for the first time, GraphHopper will parse this map file and create a `vietnam-gh` cache folder. *This initial import process may take 1-2 minutes. Subsequent startups will be fast.*
+4. Upon starting the backend for the first time, GraphHopper will parse this map file and create a `vietnam-gh` cache folder. *This initial import process may take 1-2 minutes and uses significant RAM.*
+
+> **⚠️ RENDER FREE TIER WARNING:** Building the GraphHopper cache requires >1.5GB RAM. If you deploy to Render's Free/Hobby tier (512MB RAM), the server will crash (Out of Memory) during startup. 
+> **Solution:** Build the `vietnam-gh` cache folder locally first, zip it, host the zip file online, and write a custom Build Command on Render to download and extract the cache directly instead of the `.pbf` file.
 
 ## Frontend Setup
 
@@ -80,6 +85,9 @@ The frontend is configured to talk to `http://localhost:8888` by default.
 
 - Email: `admin@semo.com`
 - Password: `Admin@123`
+
+## Testing & Verification
+For development and testing purposes, if email sending fails or you want to quickly bypass OTP verification, you can use the **Master OTP Code**: `000000`.
 
 ## Main Features
 
@@ -147,7 +155,8 @@ The recommended way to deploy SEMO for production is to use **Render** for the S
    - `DB_PASSWORD`: Your Aiven MySQL database password.
    - `JWT_SECRET`: A long random secret string.
    - `JWT_EXPIRATION`: `86400000` (24 hours).
-   - `MAIL_PASSWORD`: Your Gmail app password.
+   - `MAIL_USERNAME`: Your Gmail address (e.g., `youremail@gmail.com`).
+   - `MAIL_PASSWORD`: Your Gmail **App Password** (16 characters, no spaces).
 4. Click **Create Web Service**. Wait for the deployment to finish (it may take 5-10 minutes).
 5. Once deployed, copy your backend URL (e.g., `https://semoproject-backend.onrender.com`).
 
