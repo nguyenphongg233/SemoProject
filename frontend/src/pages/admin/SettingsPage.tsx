@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Edit2, Trash2, RefreshCw } from 'lucide-react'
+import { Edit2, RefreshCw } from 'lucide-react'
 import {
   SectionHeader,
   Button,
