@@ -448,6 +448,23 @@ input:-webkit-autofill:active {
   font-weight: 700;
 }
 :root.hust .text-text-muted { color: #1E293B !important; }
+
+/* Override hardcoded Tailwind Slate text colors so they are legible in light mode */
+:root.hust .text-slate-100,
+:root.hust .text-slate-200,
+:root.hust .text-slate-300 {
+  color: #0f172a !important;
+}
+
+:root.hust .text-slate-400,
+:root.hust .text-slate-500 {
+  color: #334155 !important;
+  font-weight: 600 !important; /* Làm đậm ID và các text mờ */
+}
+
+:root.hust .text-slate-600 {
+  color: #64748b !important;
+}
 :root.hust .text-text-faded { color: #334155 !important; }
 :root.hust .text-cyan-400, :root.hust .text-cyan-soft { color: #ce1628 !important; }
 :root.hust .text-cyan-300 { color: #ce1628 !important; }
