@@ -56,6 +56,7 @@ export default function ScootersPage() {
   const [saving, setSaving] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
+  const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState<boolean>(false)
   const [form, setForm] = useState<ScooterFormState>(initialForm)
 
   useEffect(() => {
@@ -207,14 +208,24 @@ export default function ScootersPage() {
     setIsModalOpen(true)
   }
 
-  // FIX 9: Khai báo SyntheticEvent cho hàm submit
   async function handleSubmit(event: SyntheticEvent<HTMLFormElement>) {
     event.preventDefault()
+    
+    // Check for duplicate scooter name
+    const isDuplicate = scooters.some(
+      (s) => s.name.trim().toLowerCase() === form.name.trim().toLowerCase() && s.id !== form.id
+    )
+
+    if (isDuplicate) {
+      setIsDuplicateModalOpen(true)
+      return
+    }
+
     setSaving(true)
     setError('')
 
     const payload = {
-      name: form.name,
+      name: form.name.trim(),
       batteryLevel: Number(form.batteryLevel),
       status: form.status,
       currentLat: form.currentLat === '' ? null : Number(form.currentLat),
@@ -386,6 +397,23 @@ export default function ScootersPage() {
             </select>
           </label>
         </form>
+      </Modal>
+
+      <Modal
+        open={isDuplicateModalOpen}
+        title="Duplicate Scooter Name"
+        onClose={() => setIsDuplicateModalOpen(false)}
+        footer={
+          <div className="flex items-center gap-3 justify-end">
+            <Button onClick={() => setIsDuplicateModalOpen(false)}>
+              Understood
+            </Button>
+          </div>
+        }
+      >
+        <p className="text-text-strong py-2">
+          A scooter with the name <strong>{form.name}</strong> already exists. Please choose a different name.
+        </p>
       </Modal>
     </div>
   )

@@ -48,7 +48,12 @@ public class SecurityConfig {
                         // System / Admin general endpoints
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                        // Users
+                        // Authenticated user endpoints (Must be BEFORE the /api/users/* wildcards)
+                        .requestMatchers(HttpMethod.PUT, "/api/users/update-profile").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/users/change-password").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/users/wallet/deposit").hasAnyRole("CUSTOMER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/users/by-email").authenticated()
+
                         // Admin-only endpoints for user management
                         .requestMatchers(HttpMethod.POST, "/api/users/*/reset-password").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/users/*/toggle-status").hasRole("ADMIN")
@@ -56,11 +61,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/users/*").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/users/*").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/users/by-role").hasRole("ADMIN")
-
-                        // Authenticated user endpoints
-                        .requestMatchers(HttpMethod.PUT, "/api/users/change-password").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/users/wallet/deposit").hasAnyRole("CUSTOMER", "ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/users/by-email").authenticated()
 
                         // Uploads
                         .requestMatchers("/api/upload/avatar").authenticated()
