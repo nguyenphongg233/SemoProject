@@ -51,4 +51,11 @@ public class MaintenanceLogController {
         return ResponseEntity.ok("Repaired, recorded cost " + requestDTO.getCost() + " VND and fully charged scooter successfully!");
     }
 
+    @PostMapping("/{scooterId}/report")
+    public ResponseEntity<String> reportScooter(@PathVariable @NonNull Integer scooterId,
+                                                @org.springframework.web.bind.annotation.RequestParam(required = false, defaultValue = "User Report") String issue) {
+        maintenanceLogService.userReportScooter(scooterId, issue);
+        return ResponseEntity.ok("Successfully reported scooter with ID: " + scooterId);
+    }
+
 }

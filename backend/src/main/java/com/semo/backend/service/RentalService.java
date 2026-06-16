@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import com.semo.backend.dto.RentalRequestDTO;
 import com.semo.backend.dto.RentalResponseDTO;
@@ -28,17 +29,20 @@ public class RentalService {
     private final TransactionRepository transactionRepository;
     private final SystemConfigRepository configRepository;
     private final AuthUtil authUtil;
+    private final SimpMessagingTemplate messagingTemplate;
     private static final List<String> VALID_STATUSES = List.of("ALL", "IN_USE", "COMPLETED");
 
     public RentalService(RentalRepository rentalRepository, ScooterRepository scooterRepository,
             TransactionRepository transactionRepository,
             SystemConfigRepository configRepository,
-            AuthUtil authUtil) {
+            AuthUtil authUtil,
+            SimpMessagingTemplate messagingTemplate) {
         this.rentalRepository = rentalRepository;
         this.scooterRepository = scooterRepository;
         this.transactionRepository = transactionRepository;
         this.configRepository = configRepository;
         this.authUtil = authUtil;
+        this.messagingTemplate = messagingTemplate;
     }
 
     private double getConfig(String key, double defaultValue) {
@@ -131,8 +135,9 @@ public class RentalService {
     }
 
     private RentalResponseDTO executeEndRentalLogic(Rental rental, User rentalOwner) {
-        if ("COMPLETED".equals(rental.getStatus()))
-            throw new RuntimeException("This ride has already been paid for!");
+        if ("COMPLETED".equals(rental.getStatus())) {
+            return mapToDTO(rental);
+        }
 
         Scooter scooter = rental.getScooter();
 
@@ -242,6 +247,7 @@ public class RentalService {
         for (Rental rental : activeRentals) {
             try {
                 endRental(rental.getId());
+                messagingTemplate.convertAndSend("/topic/rentals/" + rental.getId(), "FORCE_END");
             } catch (Exception e) {
                 System.err.println("Error force ending ride #" + rental.getId() + ": " + e.getMessage());
             }

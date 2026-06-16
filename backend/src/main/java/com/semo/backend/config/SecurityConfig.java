@@ -73,7 +73,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/scooters/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/scooters/**").hasRole("ADMIN")
 
-                        // Maintenance (admin)
+                        // Maintenance
+                        .requestMatchers(HttpMethod.POST, "/api/maintenance/*/report").authenticated()
                         .requestMatchers("/api/maintenance/**").hasRole("ADMIN")
 
                         // Rentals

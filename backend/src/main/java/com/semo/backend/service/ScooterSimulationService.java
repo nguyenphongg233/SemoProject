@@ -1,5 +1,16 @@
 package com.semo.backend.service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.semo.backend.entity.GeofenceZone;
 import com.semo.backend.entity.MaintenanceLog;
 import com.semo.backend.entity.Scooter;
@@ -8,17 +19,6 @@ import com.semo.backend.repository.MaintenanceLogRepository;
 import com.semo.backend.repository.ScooterRepository;
 import com.semo.backend.repository.SystemConfigRepository;
 import com.semo.backend.util.GeoUtils;
-
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class ScooterSimulationService {
@@ -41,10 +41,10 @@ public class ScooterSimulationService {
     }
 
     public ScooterSimulationService(ScooterRepository scooterRepository,
-                                    MaintenanceLogRepository maintenanceLogRepository,
-                                    SimpMessagingTemplate messagingTemplate,
-                                    GeofenceZoneRepository geofenceZoneRepository,
-                                    SystemConfigRepository configRepository) {
+            MaintenanceLogRepository maintenanceLogRepository,
+            SimpMessagingTemplate messagingTemplate,
+            GeofenceZoneRepository geofenceZoneRepository,
+            SystemConfigRepository configRepository) {
         this.scooterRepository = scooterRepository;
         this.maintenanceLogRepository = maintenanceLogRepository;
         this.messagingTemplate = messagingTemplate;
@@ -64,12 +64,13 @@ public class ScooterSimulationService {
                 .orElse(defaultValue);
     }
 
-    // @Scheduled(fixedRate = 5000) // Tạm thời tắt hẳn chức năng bot theo yêu cầu
+    @Scheduled(fixedRate = 50000) // Bật lại để mô phỏng nhiệt độ/pin cho xe đang được thuê thật
     @Transactional
     public void simulateScooterData() {
         List<Scooter> activeScooters = scooterRepository.findByStatus("IN_USE");
 
-        // Dọn dẹp lộ trình rác: Nếu xe không còn IN_USE (bị force end, bảo trì, hoặc người dùng đã trả)
+        // Dọn dẹp lộ trình rác: Nếu xe không còn IN_USE (bị force end, bảo trì, hoặc
+        // người dùng đã trả)
         // thì xóa lộ trình ảo của xe đó đi để tránh "xe ma" auto running.
         activeRoutes.keySet().removeIf(sId -> activeScooters.stream().noneMatch(s -> s.getId().equals(sId)));
 
@@ -135,8 +136,7 @@ public class ScooterSimulationService {
         for (GeofenceZone zone : allowedZones) {
             double distance = GeoUtils.calculateDistance(
                     zone.getCenterLat(), zone.getCenterLng(),
-                    scooter.getCurrentLat(), scooter.getCurrentLng()
-            );
+                    scooter.getCurrentLat(), scooter.getCurrentLng());
 
             if (distance <= zone.getRadiusKm()) {
                 isSafe = true;
@@ -146,7 +146,8 @@ public class ScooterSimulationService {
 
         if (!isSafe) {
             System.out.println("🚨 [GEOFENCING] Xe " + scooter.getName() + " (ID: " + scooter.getId() + ") IS LOST!");
-            messagingTemplate.convertAndSend("/topic/alerts", "🚨 GEOFENCING WARNING: Scooter " + scooter.getName() + " is moving outside allowed boundaries!");
+            messagingTemplate.convertAndSend("/topic/alerts",
+                    "🚨 GEOFENCING WARNING: Scooter " + scooter.getName() + " is moving outside allowed boundaries!");
 
         }
     }
@@ -164,11 +165,11 @@ public class ScooterSimulationService {
             MaintenanceLog log = new MaintenanceLog(
                     "System auto-locked scooter due to " + reason,
                     0.0,
-                    scooter
-            );
+                    scooter);
             maintenanceLogRepository.save(log);
 
-            messagingTemplate.convertAndSend("/topic/alerts", "🔧 MAINTENANCE WARNING: Scooter " + scooter.getName() + " was auto-locked due to " + reason + "!");
+            messagingTemplate.convertAndSend("/topic/alerts",
+                    "🔧 MAINTENANCE WARNING: Scooter " + scooter.getName() + " was auto-locked due to " + reason + "!");
         }
     }
 }

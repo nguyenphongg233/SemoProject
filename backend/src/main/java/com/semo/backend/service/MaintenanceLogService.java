@@ -35,20 +35,31 @@ public class MaintenanceLogService {
     @Transactional
     public MaintenanceLogResponseDTO createMaintenanceLog(MaintenanceLogRequestDTO requestDTO) {
         authUtil.requireAdminAccess("Permission denied: Only Administrators can use this feature!");
-        if (requestDTO.getScooterId() == null) {
+        return createLogInternal(requestDTO.getScooterId(), requestDTO.getDescription());
+    }
+
+    @Transactional
+    public MaintenanceLogResponseDTO userReportScooter(@NonNull Integer scooterId, String description) {
+        authUtil.requireActiveAuthenticatedUser();
+        return createLogInternal(scooterId, description);
+    }
+
+    private MaintenanceLogResponseDTO createLogInternal(Integer scooterId, String description) {
+        if (scooterId == null) {
             throw new IllegalArgumentException("Invalid scooter ID.");
         }
-        Scooter scooter = scooterRepository.findById(java.util.Objects.requireNonNull(requestDTO.getScooterId()))
+        Scooter scooter = scooterRepository.findById(scooterId)
                 .orElseThrow(() -> new RuntimeException("Scooter ID does not exist"));
 
         if ("IN_USE".equals(scooter.getStatus())) {
-            throw new RuntimeException("Cannot maintain a scooter currently rented by a customer. Please end the ride first!");
+            // If it's rented, we still allow marking it as MAINTENANCE so the admin knows.
+            // But we shouldn't throw an error. The ride will end via the frontend calling handleEnd().
         }
 
         scooter.setStatus("MAINTENANCE");
 
         MaintenanceLog maintenanceLog = new MaintenanceLog();
-        maintenanceLog.setDescription(requestDTO.getDescription());
+        maintenanceLog.setDescription(description);
         maintenanceLog.setCost(0.0);
         maintenanceLog.setScooter(scooter);
 

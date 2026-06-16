@@ -31,6 +31,8 @@ import { SCOOTER_STATUSES, SCOOTER_STATUS_OPTIONS } from '@/constants'
 import { formatBatteryLevel, formatCoordinates, formatCurrency,
   formatDateTime, getApiErrorMessage, cn
  } from '@/utils'
+import { APP_ENV } from '@/config/env'
+import { axiosClient } from '@/config/axiosClient'
 
 
 // ----- Interfaces & Types -----
@@ -65,16 +67,6 @@ interface CompletedInfo {
   startedAt?: number
 }
 
-interface ReportItem {
-  status: string
-  kind: string
-  reportedAt: number
-}
-
-interface ReportsMap {
-  [scooterId: string]: ReportItem
-}
-
 interface TimelineRowProps {
   icon: React.ReactNode
   label: string
@@ -84,7 +76,6 @@ interface TimelineRowProps {
 
 const BACH_KHOA_CENTER: LatLngTuple = [21.0052, 105.8433]
 const ACTIVE_RIDE_KEY = 'semo_active_ride'
-const REPORTS_KEY = 'semo_scooter_reports'
 
 const statusStyles: Record<string, { color: string; fillColor: string }> = {
   [SCOOTER_STATUSES.AVAILABLE]:   { color: 'var(--color-cyan)', fillColor: 'var(--color-cyan)' },
@@ -132,12 +123,6 @@ function saveRide(ride: RideState | null): void {
   else localStorage.setItem(ACTIVE_RIDE_KEY, JSON.stringify(ride))
 }
 
-function loadReports(): ReportsMap {
-  try { const v = localStorage.getItem(REPORTS_KEY); return v ? JSON.parse(v) : {} } catch { return {} }
-}
-
-function saveReports(map: ReportsMap): void { localStorage.setItem(REPORTS_KEY, JSON.stringify(map)) }
-
 // Component nhỏ để recenter map khi user location thay đổi
 function FlyTo({ center, zoom = 16 }: { center: LatLngTuple; zoom?: number }) {
   const map = useMap()
@@ -171,7 +156,6 @@ export default function BookingPage() {
   const [actionLoading, setActionLoading] = useState<boolean>(false)
   const [actionError, setActionError] = useState<string | null>(null)
   const [completedInfo, setCompletedInfo] = useState<CompletedInfo | null>(null)
-  const [reports, setReports] = useState<ReportsMap>(() => loadReports())
   
   // Routing state
   const [routeData, setRouteData] = useState<RoutingResponse | null>(null)
@@ -224,7 +208,7 @@ export default function BookingPage() {
     }
 
     const client = new Client({
-      webSocketFactory: () => new SockJS('http://localhost:8888/ws'),
+      webSocketFactory: () => new SockJS(`${APP_ENV.apiUrl}/ws`),
       onConnect: () => {
         client.subscribe(`/topic/rentals/${ride.rentalId}`, (message) => {
           const body = message.body;
@@ -246,7 +230,7 @@ export default function BookingPage() {
               setCountdown(null)
               setShowWarning(false)
               setRefreshKey((k) => k + 1)
-              alert("Your ride has ended because you ran out of balance!");
+              alert("Your ride has been ended by the system.");
             }).catch(err => console.error(err));
           } else if (body.startsWith('COUNTDOWN:')) {
             const secs = parseInt(body.split(':')[1], 10);
@@ -328,23 +312,22 @@ export default function BookingPage() {
     )
   }
 
-  // Map từng xe → có distance + report localStorage
+  // Map từng xe → có distance
   const enrichedScooters = useMemo<EnrichedScooter[]>(() => {
     return (scooters || []).map((s) => {
       const lat = Number(s.currentLat), lng = Number(s.currentLng)
       const hasPos = Number.isFinite(lat) && Number.isFinite(lng)
-      const reportedStatus = reports[String(s.id)]?.status
       // Luôn sử dụng trạng thái thật từ Database thay vì bị ghi đè bởi localStorage của trình duyệt
       const effectiveStatus = s.status 
       const distance = userPos && hasPos ? haversineKm(userPos, [lat, lng]) : null
       return {
         ...s,
         _lat: lat, _lng: lng, _hasPos: hasPos,
-        _status: effectiveStatus, _reported: Boolean(reportedStatus),
+        _status: effectiveStatus, _reported: false,
         _distance: distance,
       }
     })
-  }, [scooters, userPos, reports])
+  }, [scooters, userPos])
 
   // Bộ lọc áp dụng
   const visibleScooters = useMemo<EnrichedScooter[]>(() => {
@@ -474,26 +457,30 @@ export default function BookingPage() {
     } finally { setActionLoading(false) }
   }
 
-  // Báo cáo giả lập
-  function reportIssue(kind: string) {
+  // Báo cáo lỗi xe gửi về Backend
+  async function reportIssue(kind: string) {
     const sid = ride?.scooterId || selectedScooter?.id
     if (!sid) return
-    const next: ReportsMap = {
-      ...reports,
-      [String(sid)]: {
-        status: SCOOTER_STATUSES.MAINTENANCE,
-        kind,
-        reportedAt: Date.now(),
-      },
+    
+    setActionLoading(true)
+    try {
+      // Gửi request báo lỗi lên backend
+      await axiosClient.post(`/api/maintenance/${sid}/report`, null, { params: { issue: kind } })
+      
+      // Tự động kết thúc rental nếu đang đi
+      if (ride?.state === 'riding' && ride?.rentalId) {
+        await handleEnd()
+      } else if (ride && ride.state !== 'idle') {
+        setRide(null); saveRide(null); setSelectedId(null)
+      }
+      setActionError(null)
+      setRefreshKey((k) => k + 1)
+      alert("Cảm ơn bạn đã báo cáo. Xe đã được đánh dấu bảo trì trên hệ thống!")
+    } catch (err) {
+      setActionError(getApiErrorMessage(err, 'Failed to report issue to the server.'))
+    } finally {
+      setActionLoading(false)
     }
-    setReports(next); saveReports(next)
-    // Tự động kết thúc rental nếu đang đi
-    if (ride?.state === 'riding' && ride?.rentalId) {
-      handleEnd()
-    } else if (ride && ride.state !== 'idle') {
-      setRide(null); saveRide(null); setSelectedId(null)
-    }
-    setActionError(null)
   }
 
   function dismissCompleted() { setCompletedInfo(null) }
@@ -788,9 +775,10 @@ export default function BookingPage() {
           </div>
         )}
 
-        {/* FIND THE RIGHT RIDE (FILTER + LIST) */}
-        <div className="flex-1 flex flex-col min-h-[400px] bg-surface border-border rounded-3xl shadow-2xl overflow-hidden p-5 pointer-events-auto">
-          <div className="shrink-0">
+        {/* DYNAMIC RIGHT BOTTOM PANEL */}
+        {(!ride || ride.state === 'idle') ? (
+          <div className="flex-1 flex flex-col min-h-[400px] bg-surface border-border rounded-3xl shadow-2xl overflow-hidden p-5 pointer-events-auto">
+            <div className="shrink-0">
             <div className="flex items-center gap-2 mb-4">
               <span
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold transition-colors
@@ -931,6 +919,58 @@ export default function BookingPage() {
             </div>
           </div>
         </div>
+        ) : (
+          <div className="flex-1 flex flex-col bg-surface border-border rounded-3xl shadow-2xl p-5 pointer-events-auto">
+            <h2 className="text-xl font-bold text-text-strong tracking-tight mb-4 flex items-center gap-2">
+              <Bike size={20} className="text-brand" /> Scooter Details
+            </h2>
+            {selectedScooter ? (
+              <div className="grid gap-4 mt-2">
+                <div className="flex items-center justify-between p-4 bg-surface-elevated rounded-2xl border border-white/5">
+                  <div className="flex flex-col">
+                    <span className="text-xs text-text-muted mb-1 font-semibold tracking-wide uppercase">Temperature</span>
+                    <span className="text-lg font-bold text-text-strong flex items-center gap-2">
+                      <Thermometer size={18} className={selectedScooter.temperature && Number(selectedScooter.temperature) > 50 ? "text-rose-400" : "text-emerald-400"} />
+                      {selectedScooter.temperature ? `${Number(selectedScooter.temperature).toFixed(1)} °C` : 'Optimal'}
+                    </span>
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <span className="text-xs text-text-muted mb-1 font-semibold tracking-wide uppercase">Status</span>
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border text-brand border-brand/30 bg-brand/10">
+                      IN USE
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-surface-elevated rounded-2xl border border-white/5">
+                  <div className="flex flex-col w-full">
+                    <span className="text-xs text-text-muted mb-1 font-semibold tracking-wide uppercase">Current Location</span>
+                    <span className="text-sm font-mono text-text-strong flex items-center gap-2 bg-slate-900/50 px-3 py-2 rounded-xl mt-1">
+                      <MapPin size={16} className="text-cyan-400 shrink-0" />
+                      <span className="truncate">{Number(selectedScooter.currentLat).toFixed(6)}, {Number(selectedScooter.currentLng).toFixed(6)}</span>
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-surface-elevated rounded-2xl border border-white/5">
+                  <div className="flex flex-col">
+                    <span className="text-xs text-text-muted mb-1 font-semibold tracking-wide uppercase">Battery Health</span>
+                    <span className="text-lg font-bold text-text-strong flex items-center gap-2">
+                      <Battery size={18} className={selectedScooter.batteryLevel > 20 ? "text-emerald-400" : "text-rose-400"} />
+                      {selectedScooter.batteryLevel}% remaining
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex-1 flex items-center justify-center">
+                <p className="text-text-muted text-sm flex items-center gap-2">
+                  <ShieldAlert size={16} /> Scooter information is not available.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
