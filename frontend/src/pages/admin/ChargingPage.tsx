@@ -108,7 +108,7 @@ export default function ChargingPage() {
           <ScooterMap scooters={allScooters} />
         </div>
         <p className="mt-2 text-text-muted mb-4">
-          Clicking "Auto-Schedule Charging" will find scooters that need charging and put them into MAINTENANCE status. They will appear in the table and map below.
+          Clicking "Auto-Schedule Charging" will find scooters that need charging and put them into CHARGING status. They will appear in the table and map below.
         </p>
         <Table
           columns={columns}
