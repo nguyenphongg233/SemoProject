@@ -152,6 +152,18 @@ public class UserService {
     }
 
     /**
+     * Update current user profile
+     * 
+     * @param requestDTO UserUpdateRequestDTO
+     * @return UserResponseDTO
+     */
+    @Transactional
+    public UserResponseDTO updateProfile(UserUpdateRequestDTO requestDTO) {
+        User user = authUtil.requireActiveAuthenticatedUser();
+        return updateUser(java.util.Objects.requireNonNull(user.getId()), requestDTO);
+    }
+
+    /**
      * Delete user
      * 
      * @param id User ID

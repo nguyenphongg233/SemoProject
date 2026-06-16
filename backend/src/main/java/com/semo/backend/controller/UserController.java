@@ -123,6 +123,17 @@ public class UserController {
     }
 
     /**
+     * Update current user's profile
+     * PUT /api/users/update-profile
+     */
+    @PutMapping("/update-profile")
+    public ResponseEntity<UserResponseDTO> updateProfile(
+            @Valid @RequestBody UserUpdateRequestDTO requestDTO) {
+        UserResponseDTO responseDTO = userService.updateProfile(requestDTO);
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    /**
      * Delete user
      * DELETE /api/users/{id}
      */
