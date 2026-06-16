@@ -41,6 +41,11 @@ public class ScooterService {
     @Transactional
     public ScooterResponseDTO createScooter(ScooterRequestDTO requestDTO) {
         authUtil.requireAdminAccess("Permission denied: Only Administrators are allowed to perform this action!");
+
+        if (scooterRepository.existsByName(requestDTO.getName())) {
+            throw new RuntimeException("A scooter with this name already exists!");
+        }
+
         Scooter scooter = new Scooter();
         scooter.setName(requestDTO.getName());
         scooter.setBatteryLevel(requestDTO.getBatteryLevel());
@@ -88,6 +93,10 @@ public class ScooterService {
 
         Scooter scooter = scooterRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Scooter not found with ID: " + id));
+
+        if (!scooter.getName().equalsIgnoreCase(requestDTO.getName()) && scooterRepository.existsByName(requestDTO.getName())) {
+            throw new RuntimeException("A scooter with this name already exists!");
+        }
 
         scooter.setName(requestDTO.getName());
         scooter.setBatteryLevel(requestDTO.getBatteryLevel());
