@@ -249,6 +249,36 @@ export default function BookingPage() {
     };
   }, [ride?.state, ride?.rentalId, ride?.scooterName, ride?.startedAt])
 
+  // Listen for real-time scooter updates
+  useEffect(() => {
+    const client = new Client({
+      webSocketFactory: () => new SockJS(`${APP_ENV.apiUrl}/ws`),
+      onConnect: () => {
+        client.subscribe('/topic/scooters', (message) => {
+          try {
+            const updatedScooters = JSON.parse(message.body) as Scooter[]
+            setScooters((prev) => {
+              const prevMap = new Map(prev.map(s => [s.id, s]))
+              updatedScooters.forEach(s => {
+                const existing = prevMap.get(s.id)
+                if (existing) {
+                  prevMap.set(s.id, { ...existing, ...s })
+                } else {
+                  prevMap.set(s.id, s)
+                }
+              })
+              return Array.from(prevMap.values())
+            })
+          } catch (err) {
+            console.error('Failed to parse scooter updates', err)
+          }
+        })
+      },
+    })
+    client.activate()
+    return () => { client.deactivate() }
+  }, [])
+
   // Load scooters
   useEffect(() => {
     let alive = true

@@ -64,7 +64,7 @@ public class ScooterSimulationService {
                 .orElse(defaultValue);
     }
 
-    @Scheduled(fixedRate = 50000) // Bật lại để mô phỏng nhiệt độ/pin cho xe đang được thuê thật
+    @Scheduled(fixedRate = 5000) // Bật lại để mô phỏng nhiệt độ/pin cho xe đang được thuê thật
     @Transactional
     public void simulateScooterData() {
         List<Scooter> activeScooters = scooterRepository.findByStatus("IN_USE");
