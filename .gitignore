@@ -10,7 +10,8 @@
 
 # Log files
 *.log
-.vscode/
+.vscode/*
+!.vscode/*.example
 .codegraph/
 postman/
 .postman/

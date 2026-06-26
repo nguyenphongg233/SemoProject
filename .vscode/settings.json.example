@@ -1,0 +1,30 @@
+{
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.import.gradle.enabled": false,
+    "java.import.maven.enabled": true,
+    "[java]": {
+        "editor.defaultFormatter": "redhat.java",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": [
+            "source.fixAll.eslint",
+            "source.organizeImports"
+        ]
+    },
+    "files.exclude": {
+        "**/.classpath": true,
+        "**/.project": true,
+        "**/.settings": true,
+        "**/.factorypath": true
+    },
+    "java.compile.nullAnalysis.mode": "automatic",
+    "terminal.integrated.env.osx": {
+        "VITE_API_URL": "http://localhost:8888"
+    },
+    "terminal.integrated.env.linux": {
+        "VITE_API_URL": "http://localhost:8888"
+    },
+    "terminal.integrated.env.windows": {
+        "VITE_API_URL": "http://localhost:8888"
+    },
+    "java.debug.settings.onBuildFailureProceed": true
+}
