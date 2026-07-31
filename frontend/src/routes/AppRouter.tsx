@@ -1,13 +1,13 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 
-import { AdminLayout, AppLayout, AuthLayout } from '@/layouts'
+import { AdminLayout, AppLayout, AuthLayout, LandingLayout } from '@/layouts'
 import ProtectedRoute from './ProtectedRoute'
 import { ROUTES, ROLES } from '@/constants'
 import { useAuth } from '@/hooks/useAuth'
 import { 
   Login, Register, DashboardPage, WalletPage, AccountPage, BookingPage, MyRidesPage,
   AnalyticsPage, MaintenancePage, RentalsPage, ScootersPage, UsersPage, SettingsPage, TransactionsPage, FeedbacksPage,
-  ChargingPage, GeofencePage
+  ChargingPage, GeofencePage, LandingPage
 } from '@/pages'
 
 function RoleHomeRedirect() {
@@ -30,9 +30,13 @@ export default function AppRouter() {
           <Route path={ROUTES.REGISTER} element={<Register />} />
         </Route>
 
+        <Route element={<LandingLayout />}>
+          <Route path={ROUTES.HOME} element={<LandingPage />} />
+        </Route>
+
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
-            <Route path={ROUTES.HOME} element={<RoleHomeRedirect />} />
+            <Route path="/app" element={<RoleHomeRedirect />} />
             <Route path={ROUTES.DASHBOARD} element={<RoleDashboardRoute />} />
             <Route path={ROUTES.BOOKING} element={<BookingPage />} />
             <Route path={ROUTES.MY_RIDES} element={<MyRidesPage />} />

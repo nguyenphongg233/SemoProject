@@ -2,6 +2,9 @@
 export { default as Login } from './auth/Login'
 export { default as Register } from './auth/Register'
 
+// Public
+export { default as LandingPage } from './landing/LandingPage'
+
 // Dashboard & Profile
 export { default as DashboardPage } from './dashboard/DashboardPage'
 export { default as WalletPage } from './profile/WalletPage'

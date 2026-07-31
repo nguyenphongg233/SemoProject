@@ -59,23 +59,37 @@ export default function TextField({
       {label && <span className="text-sm font-semibold text-(--text)">{label}</span>}
 
       {leadingIcon || trailingAction ? (
-        <div className="relative flex items-center">
+        <div className="relative flex items-center group/input">
+          {/* Animated focus border beam */}
+          <div className="absolute inset-0 rounded-[14px] opacity-0 transition-opacity duration-300 group-focus-within/input:opacity-100 pointer-events-none overflow-hidden">
+             <div className="absolute inset-[0] rounded-[inherit] [border:1.5px_solid_transparent] ![mask-clip:padding-box,border-box] ![mask-composite:intersect] [mask:linear-gradient(transparent,transparent),linear-gradient(white,white)] after:absolute after:aspect-square after:w-[200px] after:animate-[border-beam_4s_linear_infinite] after:[background:linear-gradient(to_left,var(--color-brand),var(--color-cyan),transparent)] after:[offset-anchor:90%_50%] after:[offset-path:rect(0_auto_auto_0_round_14px)]"></div>
+          </div>
+          
           {leadingIcon && (
-            <span className="absolute left-3 flex items-center justify-center pointer-events-none text-(--text-muted)">
+            <span className="absolute left-4 flex items-center justify-center pointer-events-none text-text-muted transition-colors group-focus-within/input:text-brand z-10">
               {leadingIcon}
             </span>
           )}
 
-          {inputElement}
+          <div className="w-full relative z-0">
+            {inputElement}
+          </div>
 
           {trailingAction && (
-            <span className="absolute right-3 flex items-center justify-center pointer-events-auto">
+            <span className="absolute right-3 flex items-center justify-center pointer-events-auto z-10">
               {trailingAction}
             </span>
           )}
         </div>
       ) : (
-        inputElement
+        <div className="relative group/input">
+          <div className="absolute inset-0 rounded-[14px] opacity-0 transition-opacity duration-300 group-focus-within/input:opacity-100 pointer-events-none overflow-hidden">
+             <div className="absolute inset-[0] rounded-[inherit] [border:1.5px_solid_transparent] ![mask-clip:padding-box,border-box] ![mask-composite:intersect] [mask:linear-gradient(transparent,transparent),linear-gradient(white,white)] after:absolute after:aspect-square after:w-[200px] after:animate-[border-beam_4s_linear_infinite] after:[background:linear-gradient(to_left,var(--color-brand),var(--color-cyan),transparent)] after:[offset-anchor:90%_50%] after:[offset-path:rect(0_auto_auto_0_round_14px)]"></div>
+          </div>
+          <div className="w-full relative z-0">
+            {inputElement}
+          </div>
+        </div>
       )}
 
       {helpText && !error && (

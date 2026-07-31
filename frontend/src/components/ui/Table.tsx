@@ -25,7 +25,7 @@ export default function Table<T extends Record<string, any>>({
   emptyState
 }: TableProps<T>) {
   return (
-    <div className="overflow-auto max-h-[500px] rounded-md border border-border bg-surface backdrop-blur-md">
+    <div className="overflow-auto max-h-[500px] rounded-md border border-border/50 bg-transparent">
       <table className="w-full border-collapse min-w-135">
         <thead>
           <tr>
@@ -33,7 +33,7 @@ export default function Table<T extends Record<string, any>>({
               <th
                 key={column.key}
                 className={cn(
-                  "sticky top-0 z-10 p-4 border-b border-border bg-[#10172A] text-[0.78rem] font-bold uppercase tracking-[0.12em] text-text-muted",
+                  "sticky top-0 z-10 p-4 border-b border-border/50 bg-white/[0.03] backdrop-blur-md text-[0.78rem] font-bold uppercase tracking-[0.12em] text-text-muted",
                   column.align === 'right' ? 'text-right' : column.align === 'center' ? 'text-center' : 'text-left'
                 )}
               >
@@ -60,13 +60,13 @@ export default function Table<T extends Record<string, any>>({
             rows.map((row, index) => (
               <tr
                 key={rowKey(row, index)}
-                className="transition-colors duration-180 ease-out hover:bg-accent/4"
+                className="transition-colors duration-300 ease-out hover:bg-white/[0.04]"
               >
                 {columns.map((column) => (
                   <td
                     key={column.key}
                     className={cn(
-                      "p-4 border-b border-border text-text text-sm",
+                      "p-4 border-b border-border/30 text-text text-sm group-last:border-0",
                       column.align === 'right' ? 'text-right' : column.align === 'center' ? 'text-center' : 'text-left',
                       column.isNumeric ? 'font-semibold' : ''
                     )}

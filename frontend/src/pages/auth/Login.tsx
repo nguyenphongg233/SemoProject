@@ -29,7 +29,7 @@ export default function Login() {
     setLoading(true)
     try {
       await login({ email, password })
-      navigate(ROUTES.HOME, { replace: true })
+      navigate('/app', { replace: true })
     } catch (err) {
       setError(getApiErrorMessage(err, 'Login failed. Please check your email and password.'))
     } finally {

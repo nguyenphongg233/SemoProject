@@ -12,7 +12,7 @@ export default function UserCell({ userId, userName, email }: UserCellProps) {
 
   return (
     <div className="flex items-center gap-3">
-      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500/20 to-cyan-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0">
+      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand/20 to-accent/20 border border-brand/30 flex items-center justify-center text-brand shrink-0">
         {initial ? (
           <span className="text-xs font-bold">{initial}</span>
         ) : (

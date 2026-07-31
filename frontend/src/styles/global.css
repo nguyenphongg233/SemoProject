@@ -4,36 +4,36 @@
 @theme {
   --color-scheme: dark;
 
-  /* ===== Bảng màu Tech Blue chủ đạo ===== */
-  --color-midnight: #0B1120;
-  --color-midnight-2: #0F172A;
-  --color-midnight-3: #111c34;
-  --color-electric: #0052FF;
-  --color-electric-soft: #2563ff;
-  --color-cyan: #00D1FF;
-  --color-cyan-soft: #38ddff;
-  --color-violet: #6D5DFF;
+  /* ===== Bảng màu Cosmic Purple chủ đạo ===== */
+  --color-midnight: #0a0303;
+  --color-midnight-2: #140505;
+  --color-midnight-3: #1f0808;
+  --color-electric: #dc2626;      /* Đỏ */
+  --color-electric-soft: #f87171; /* Đỏ nhạt */
+  --color-cyan: #16a34a;          /* Xanh lá */
+  --color-cyan-soft: #4ade80;     /* Xanh lá nhạt */
+  --color-violet: #ea580c;        /* Cam */
 
   /* ===== Bề mặt & Nền ===== */
   --color-bg: var(--color-midnight);
-  --color-bg-accent: #060a16;
-  --color-surface: rgba(17, 28, 52, 0.55);
-  --color-surface-strong: rgba(17, 28, 52, 0.85);
+  --color-bg-accent: #0f0505;
+  --color-surface: rgba(28, 17, 17, 0.55);
+  --color-surface-strong: rgba(28, 17, 17, 0.85);
   --color-surface-muted: rgba(255, 255, 255, 0.04);
   --color-surface-elevated: rgba(255, 255, 255, 0.07);
 
   /* ===== Văn bản ===== */
-  --color-text: #E6EEFF; 
+  --color-text: #ffe6e6; 
   --color-text-strong: #FFFFFF;
   --color-text-muted: #94A3B8; 
   --color-text-faded: #64748B; 
-  --text-glow-semo: 0 0 12px rgba(0, 209, 255, 0.15); /* Soft, subtle glow to prevent blur */
+  --text-glow-semo: 0 0 12px rgba(220, 38, 38, 0.15);
   --text-shadow-hust: none;
 
   /* ===== Thương hiệu & Trạng thái ===== */
   --color-brand: var(--color-electric);
-  --color-brand-dark: #0040c8;
-  --color-brand-soft: rgba(0, 82, 255, 0.16);
+  --color-brand-dark: #991b1b;
+  --color-brand-soft: rgba(220, 38, 38, 0.16);
   --color-accent: var(--color-cyan);
   --color-success: #00E0A4;
   --color-warning: #FF9F43;
@@ -47,23 +47,23 @@
   --color-text-info: #bfdbfe;
 
   /* ===== Viền ===== */
-  --color-border: rgba(120, 160, 230, 0.16);
-  --color-border-strong: rgba(120, 160, 230, 0.28);
-  --color-border-glow: rgba(0, 209, 255, 0.45);
+  --color-border: rgba(230, 120, 120, 0.16);
+  --color-border-strong: rgba(230, 120, 120, 0.28);
+  --color-border-glow: rgba(220, 38, 38, 0.45);
 
   /* ===== Đổ bóng & Hiệu ứng phát sáng ===== */
-  --shadow-card: 0 24px 80px rgba(2, 10, 30, 0.55);
-  --shadow-soft: 0 16px 40px rgba(2, 10, 30, 0.45);
-  --shadow-glow-blue: 0 0 24px rgba(0, 82, 255, 0.45), 0 0 56px rgba(0, 82, 255, 0.18);
-  --shadow-glow-cyan: 0 0 24px rgba(0, 209, 255, 0.45), 0 0 64px rgba(0, 209, 255, 0.18);
+  --shadow-card: 0 24px 80px rgba(10, 3, 3, 0.85);
+  --shadow-soft: 0 16px 40px rgba(10, 3, 3, 0.65);
+  --shadow-glow-blue: 0 0 24px rgba(220, 38, 38, 0.45), 0 0 56px rgba(220, 38, 38, 0.18);
+  --shadow-glow-cyan: 0 0 24px rgba(22, 163, 74, 0.45), 0 0 64px rgba(22, 163, 74, 0.18);
 
   /* ===== Gradients ===== */
-  --background-image-gradient-brand: linear-gradient(135deg, #0052FF 0%, #00D1FF 50%, #0052FF 100%);
-  --background-image-gradient-brand-soft: linear-gradient(135deg, rgba(0, 82, 255, 0.2), rgba(0, 209, 255, 0.2));
-  --background-image-gradient-border: linear-gradient(135deg, rgba(0, 209, 255, 0.6), rgba(0, 82, 255, 0.2) 60%, rgba(109, 93, 255, 0.5));
-  --background-image-gradient-hero: radial-gradient(circle at 20% 0%, rgba(0, 209, 255, 0.18), transparent 45%),
-    radial-gradient(circle at 100% 20%, rgba(0, 82, 255, 0.22), transparent 50%),
-    radial-gradient(circle at 50% 100%, rgba(109, 93, 255, 0.18), transparent 55%);
+  --background-image-gradient-brand: linear-gradient(135deg, #dc2626 0%, #ea580c 50%, #dc2626 100%);
+  --background-image-gradient-brand-soft: linear-gradient(135deg, rgba(220, 38, 38, 0.2), rgba(234, 88, 12, 0.2));
+  --background-image-gradient-border: linear-gradient(135deg, rgba(234, 88, 12, 0.6), rgba(220, 38, 38, 0.2) 60%, rgba(22, 163, 74, 0.5));
+  --background-image-gradient-hero: radial-gradient(circle at 20% 0%, rgba(234, 88, 12, 0.18), transparent 45%),
+    radial-gradient(circle at 100% 20%, rgba(220, 38, 38, 0.22), transparent 50%),
+    radial-gradient(circle at 50% 100%, rgba(22, 163, 74, 0.18), transparent 55%);
 
   /* ===== Bo góc ===== */
   --radius-xl: 32px;
@@ -91,10 +91,10 @@ body {
 
   /* Giữ nguyên phần background gradient nghệ thuật này bằng CSS thuần */
   background:
-    radial-gradient(circle at 12% 8%, rgba(0, 82, 255, 0.18), transparent 36%),
-    radial-gradient(circle at 88% 12%, rgba(0, 209, 255, 0.14), transparent 40%),
-    radial-gradient(circle at 70% 95%, rgba(109, 93, 255, 0.16), transparent 50%),
-    linear-gradient(180deg, #060a16 0%, var(--color-midnight) 50%, #060a16 100%);
+    radial-gradient(circle at 12% 8%, rgba(220, 38, 38, 0.15), transparent 36%),   /* Đỏ */
+    radial-gradient(circle at 88% 12%, rgba(234, 88, 12, 0.12), transparent 40%),  /* Cam */
+    radial-gradient(circle at 70% 95%, rgba(22, 163, 74, 0.14), transparent 50%),  /* Xanh */
+    linear-gradient(180deg, #080202 0%, var(--color-midnight) 50%, #080202 100%);
 }
 
 a {
@@ -546,4 +546,33 @@ input:-webkit-autofill:active {
 :root.hust input:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0 50px #FFFFFF inset !important;
   -webkit-text-fill-color: #1E293B !important;
+}
+/* ================== LANDING PAGE ANIMATIONS ================== */
+@keyframes image-glow {
+  0% { opacity: 0.5; filter: blur(5rem); }
+  50% { opacity: 1; filter: blur(6rem); }
+  100% { opacity: 0.5; filter: blur(5rem); }
+}
+@keyframes border-beam {
+  100% { offset-distance: 100%; }
+}
+@keyframes flip {
+  0% { transform: rotateX(0deg); }
+  100% { transform: rotateX(180deg); }
+}
+@keyframes rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+@keyframes aurora {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes shiny-text {
+  0%, 10%, 100% { background-position: -200% 0; }
+  40%, 60% { background-position: 200% 0; }
+}
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(calc(-50% - 1rem)); } /* -50% to loop seamlessly */
 }

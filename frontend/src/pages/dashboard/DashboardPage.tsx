@@ -228,13 +228,12 @@ export default function DashboardPage() {
 
   return (
     <div className="grid gap-6">
-      <section className="relative p-8 px-[2.2rem] rounded-lg
-        bg-gradient-brand
-        border border-border-glow shadow-glow-blue overflow-hidden
-        text-white after:content-[''] after:absolute after:inset-0
-        after:pointer-events-none after:opacity-60"
+      <section className="relative p-8 px-[2.2rem] rounded-xl
+        bg-midnight border border-border-glow shadow-glow-blue overflow-hidden
+        text-white"
       >
-        <div className="relative flex items-center justify-between gap-6 flex-wrap">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-brand-soft to-transparent opacity-40 animate-[image-glow_6s_infinite_ease-in-out]"></div>
+        <div className="relative flex items-center justify-between gap-6 flex-wrap z-10">
           <div>
             <p className="m-0 text-white/80 uppercase tracking-[0.2em] text-[0.72rem] font-bold">
               Hello, {greetingName}
@@ -268,8 +267,9 @@ export default function DashboardPage() {
 
       <div className="grid gap-[1.1rem] grid-cols-4 max-[980px]:grid-cols-2 max-sm:grid-cols-1">
         {summaryCards.map((card) => (
-          <div key={card.label} className="rounded-xl bg-surface-elevated backdrop-blur-md border border-border p-5 relative overflow-hidden flex flex-col justify-between">
-              <div className="flex items-center justify-between gap-3 mb-2">
+          <div key={card.label} className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border/60 bg-midnight [box-shadow:0_-20px_80px_-20px_#ffffff0a_inset] p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-glow-blue">
+            <div className="pointer-events-none absolute inset-0 transition-all duration-300 group-hover:bg-white/[.02]"></div>
+              <div className="relative z-10 flex items-center justify-between gap-3 mb-2">
                 <p className="text-xs tracking-wider text-text-muted uppercase font-semibold">
                   {card.label}
                 </p>

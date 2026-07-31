@@ -14,10 +14,10 @@ const NORTHERN_VIETNAM_BOUNDS: [[number, number], [number, number]] = [
 ]
 
 const statusStyles: Record<string, { color: string; fillColor: string }> = {
-  [SCOOTER_STATUSES.AVAILABLE]: { color: '#00D1FF', fillColor: '#00D1FF' },
-  [SCOOTER_STATUSES.IN_USE]: { color: '#0052FF', fillColor: '#0052FF' },
-  [SCOOTER_STATUSES.MAINTENANCE]: { color: '#FF5C7A', fillColor: '#FF5C7A' },
-  [SCOOTER_STATUSES.CHARGING]: { color: '#FFB800', fillColor: '#FFB800' },
+  [SCOOTER_STATUSES.AVAILABLE]: { color: '#16a34a', fillColor: '#16a34a' },
+  [SCOOTER_STATUSES.IN_USE]: { color: '#dc2626', fillColor: '#dc2626' },
+  [SCOOTER_STATUSES.MAINTENANCE]: { color: '#ea580c', fillColor: '#ea580c' },
+  [SCOOTER_STATUSES.CHARGING]: { color: '#f59e0b', fillColor: '#f59e0b' },
 }
 
 const statusLabels: Record<string, string> = {
@@ -28,15 +28,15 @@ const statusLabels: Record<string, string> = {
 }
 
 const CLUSTER_COLORS = [
-  '#FF5C7A', // Red
-  '#00D1FF', // Cyan
-  '#FFB800', // Yellow
-  '#6D5DFF', // Purple
-  '#00E5A3', // Green
-  '#FF8A00', // Orange
-  '#FF00D6', // Pink
-  '#0052FF', // Blue
-  '#A0FF00', // Lime
+  '#dc2626', // Red
+  '#16a34a', // Green
+  '#ea580c', // Orange
+  '#f59e0b', // Yellow
+  '#ef4444', // Red-500
+  '#22c55e', // Green-500
+  '#f97316', // Orange-500
+  '#fbbf24', // Amber-400
+  '#b91c1c', // Red-700
 ]
 
 function resolveMarkerStyle(status: string) {
@@ -126,8 +126,8 @@ export default function ScooterMap({ scooters = [], stations = [], zones = [], p
               center={[preview.lat, preview.lng]}
               radius={previewRadius}
               pathOptions={{
-                color: '#6D5DFF',
-                fillColor: '#6D5DFF',
+                color: '#dc2626',
+                fillColor: '#dc2626',
                 fillOpacity: 0.3,
                 weight: 2,
                 dashArray: '5, 5'
@@ -146,8 +146,8 @@ export default function ScooterMap({ scooters = [], stations = [], zones = [], p
               center={[preview.lat, preview.lng]}
               radius={8}
               pathOptions={{
-                color: '#6D5DFF',
-                fillColor: '#6D5DFF',
+                color: '#dc2626',
+                fillColor: '#dc2626',
                 fillOpacity: 0.7,
                 weight: 2,
               }}
@@ -171,8 +171,8 @@ export default function ScooterMap({ scooters = [], stations = [], zones = [], p
                 center={[Number(station.lat), Number(station.lng)]}
                 radius={12}
                 pathOptions={{
-                  color: '#38ddff',
-                  fillColor: '#38ddff',
+                  color: '#16a34a',
+                  fillColor: '#16a34a',
                   fillOpacity: 0.6,
                   weight: 2,
                 }}
@@ -247,8 +247,8 @@ export default function ScooterMap({ scooters = [], stations = [], zones = [], p
               center={[lat, lng]}
               radius={Number(z.radius)}
               pathOptions={{
-                color: isActive ? '#00D1FF' : '#8BA0C7',
-                fillColor: isActive ? '#00D1FF' : '#8BA0C7',
+                color: isActive ? '#16a34a' : '#8BA0C7',
+                fillColor: isActive ? '#16a34a' : '#8BA0C7',
                 fillOpacity: isActive ? 0.15 : 0.05,
                 weight: 2,
                 dashArray: isActive ? undefined : '5, 5'
@@ -276,25 +276,25 @@ export default function ScooterMap({ scooters = [], stations = [], zones = [], p
               onClick={() => toggleStatus(SCOOTER_STATUSES.AVAILABLE)}
               className={`inline-flex items-center gap-2 cursor-pointer transition-opacity hover:opacity-80 ${!visibleStatuses.has(SCOOTER_STATUSES.AVAILABLE) ? 'opacity-40 grayscale' : ''}`}
             >
-              <i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-[#00D1FF] text-[rgba(0,209,255,0.5)]" /> Available
+              <i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-[#16a34a] text-[rgba(22,163,74,0.5)]" /> Available
             </button>
             <button 
               onClick={() => toggleStatus(SCOOTER_STATUSES.IN_USE)}
               className={`inline-flex items-center gap-2 cursor-pointer transition-opacity hover:opacity-80 ${!visibleStatuses.has(SCOOTER_STATUSES.IN_USE) ? 'opacity-40 grayscale' : ''}`}
             >
-              <i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-[#0052FF] text-[rgba(0,82,255,0.5)]" /> In Use
+              <i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-[#dc2626] text-[rgba(220,38,38,0.5)]" /> In Use
             </button>
             <button 
               onClick={() => toggleStatus(SCOOTER_STATUSES.MAINTENANCE)}
               className={`inline-flex items-center gap-2 cursor-pointer transition-opacity hover:opacity-80 ${!visibleStatuses.has(SCOOTER_STATUSES.MAINTENANCE) ? 'opacity-40 grayscale' : ''}`}
             >
-              <i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-danger text-[rgba(255,92,122,0.5)]" /> Maintenance
+              <i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-[#ea580c] text-[rgba(234,88,12,0.5)]" /> Maintenance
             </button>
             <button 
               onClick={() => toggleStatus(SCOOTER_STATUSES.CHARGING)}
               className={`inline-flex items-center gap-2 cursor-pointer transition-opacity hover:opacity-80 ${!visibleStatuses.has(SCOOTER_STATUSES.CHARGING) ? 'opacity-40 grayscale' : ''}`}
             >
-              <i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-[#FFB800] text-[rgba(255,184,0,0.5)]" /> Charging
+              <i className="w-3 h-3 rounded-full inline-block shadow-[0_0_8px_currentColor] bg-[#f59e0b] text-[rgba(245,158,11,0.5)]" /> Charging
             </button>
           </>
         ) : (
@@ -305,7 +305,7 @@ export default function ScooterMap({ scooters = [], stations = [], zones = [], p
       </div>
 
       {mappedScooters.length === 0 && (
-        <div className="p-6 rounded-lg bg-[rgba(0,82,255,0.08)] border border-[rgba(0,82,255,0.22)] text-text-muted">
+        <div className="p-6 rounded-lg bg-[rgba(220,38,38,0.08)] border border-[rgba(220,38,38,0.22)] text-text-muted">
           No scooters with coordinates available. Please add lat/lng in the scooter form to display them on the map.
         </div>
       )}
