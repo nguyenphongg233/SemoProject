@@ -14,9 +14,10 @@ import { SectionHeader,
  } from '@/components'
 import { SCOOTER_STATUSES } from '@/constants'
 import { createScooter, getAllScooters, updateScooter, exportScootersExcel } from '@/features/scooters'
+import { getStations } from '@/features/stations'
 import { formatBatteryLevel, formatDateTime, getApiErrorMessage } from '@/utils'
 
-import type { Scooter } from '@/types/models'
+import type { Scooter, Station } from '@/types/models'
 
 // FIX 3: Định nghĩa Interface riêng cho Form State (Cho phép batteryLevel tạm thời nhận cả chuỗi khi đang gõ)
 interface ScooterFormState {
@@ -24,6 +25,7 @@ interface ScooterFormState {
   name: string
   batteryLevel: number | string
   status: string
+  stationId: number | string
   currentLat: number | string
   currentLng: number | string
 }
@@ -33,6 +35,7 @@ const initialForm: ScooterFormState = {
   name: '',
   batteryLevel: 100,
   status: SCOOTER_STATUSES.AVAILABLE,
+  stationId: '',
   currentLat: '',
   currentLng: '',
 }
@@ -52,6 +55,7 @@ function getStatusLabel(status: string): string {
 export default function ScootersPage() {
   // FIX 5: Ép kiểu mảng dữ liệu thành Scooter[] thay vì never[]
   const [scooters, setScooters] = useState<Scooter[]>([])
+  const [stations, setStations] = useState<Station[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [saving, setSaving] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
@@ -66,9 +70,13 @@ export default function ScootersPage() {
       try {
         if (showLoading) setLoading(true)
         setError('')
-        const data = await getAllScooters()
+        const [scootersData, stationsData] = await Promise.all([
+          getAllScooters(),
+          getStations()
+        ])
         if (mounted) {
-          setScooters(Array.isArray(data) ? data : [])
+          setScooters(Array.isArray(scootersData) ? scootersData : [])
+          setStations(Array.isArray(stationsData) ? stationsData : [])
         }
       } catch (err) {
         if (mounted && showLoading) {
@@ -136,6 +144,7 @@ export default function ScootersPage() {
     { key: 'name', label: 'Scooter' },
     { key: 'batteryLevel', label: 'Battery', align: 'right' as const, isNumeric: true, render: (row: Scooter) => formatBatteryLevel(row.batteryLevel) },
     { key: 'status', label: 'Status', render: (row: Scooter) => getStatusLabel(row.status) },
+    { key: 'stationName', label: 'Station', render: (row: Scooter) => row.stationName || '-' },
     { key: 'cycleCount', label: 'Cycles', align: 'right' as const, isNumeric: true },
     {
       key: 'stateOfHealth',
@@ -184,11 +193,27 @@ export default function ScootersPage() {
 
   // FIX 7: Định nghĩa type cho tham số callback từ Map click
   function handleMapClick({ lat, lng }: { lat: number; lng: number }) {
+    // Optionally find nearest station
+    let nearestStationId: string | number = ''
+    if (stations.length > 0) {
+      let minDist = Infinity
+      let nearestId = stations[0].id
+      stations.forEach(st => {
+        const dist = Math.sqrt(Math.pow(Number(st.lat) - lat, 2) + Math.pow(Number(st.lng) - lng, 2))
+        if (dist < minDist) {
+          minDist = dist
+          nearestId = st.id
+        }
+      })
+      if (minDist < 0.05) nearestStationId = nearestId
+    }
+
     setForm({
       id: null,
       name: '',
       batteryLevel: 100,
       status: SCOOTER_STATUSES.AVAILABLE,
+      stationId: nearestStationId,
       currentLat: lat?.toFixed ? lat.toFixed(5) : lat,
       currentLng: lng?.toFixed ? lng.toFixed(5) : lng,
     })
@@ -202,6 +227,7 @@ export default function ScootersPage() {
       name: row.name || '',
       batteryLevel: row.batteryLevel ?? 100,
       status: row.status || SCOOTER_STATUSES.AVAILABLE,
+      stationId: row.stationId || '',
       currentLat: row.currentLat ?? '',
       currentLng: row.currentLng ?? '',
     })
@@ -228,6 +254,7 @@ export default function ScootersPage() {
       name: form.name.trim(),
       batteryLevel: Number(form.batteryLevel),
       status: form.status,
+      stationId: form.stationId === '' ? null : Number(form.stationId),
       currentLat: form.currentLat === '' ? null : Number(form.currentLat),
       currentLng: form.currentLng === '' ? null : Number(form.currentLng),
     }
@@ -355,6 +382,37 @@ export default function ScootersPage() {
             onChange={(event: ChangeEvent<HTMLInputElement>) => setForm((current) => ({ ...current, batteryLevel: event.target.value }))}
             required
           />
+
+          <label className="grid gap-2">
+            <span className="text-sm font-semibold text-(--text)">Station</span>
+            <select
+              className="w-full min-h-13 p-4 border border-(--border) rounded-[14px]
+                       bg-[rgba(11,17,32,0.65)] text-(--text-strong)
+                         transition-[border-color,box-shadow,background] duration-200 ease-out
+                         placeholder:text-(--text-faded) hover:border-(--border-strong)
+                         focus:outline-none focus:border-(--border-glow)
+                         focus:bg-[rgba(11,17,32,0.85)]
+                         focus:shadow-[0_0_0_4px_rgba(0,209,255,0.15),0_0_24px_rgba(0,82,255,0.18)]"
+              value={form.stationId}
+              onChange={(event: ChangeEvent<HTMLSelectElement>) => {
+                const val = event.target.value
+                const selectedStation = stations.find(s => s.id.toString() === val)
+                setForm(current => ({ 
+                  ...current, 
+                  stationId: val,
+                  currentLat: selectedStation ? Number(selectedStation.lat).toFixed(5) : current.currentLat,
+                  currentLng: selectedStation ? Number(selectedStation.lng).toFixed(5) : current.currentLng
+                }))
+              }}
+            >
+              <option value="">-- No Station (Free Floating) --</option>
+              {stations.map((st) => (
+                <option key={st.id} value={st.id}>
+                  {st.name}
+                </option>
+              ))}
+            </select>
+          </label>
 
           <TextField
             label="Latitude"

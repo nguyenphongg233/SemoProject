@@ -827,10 +827,33 @@ export default function BookingPage() {
         {(!ride || ride.state === 'idle') ? (
           <div className="flex-1 flex flex-col min-h-[400px] bg-surface border-border rounded-3xl shadow-2xl overflow-hidden p-5 pointer-events-auto">
             {!selectedStation ? (
-              <div className="flex flex-col items-center justify-center py-20 text-text-muted">
-                <MapPin size={48} className="mb-4 text-brand opacity-50" />
-                <p className="text-lg font-bold text-text-strong">Select a Station</p>
-                <p className="text-sm text-center max-w-xs mt-2">Click on a parking station on the map to view available scooters.</p>
+              <div className="flex flex-col h-full">
+                <h2 className="text-xl font-bold text-text-strong tracking-tight mb-4">Parking Stations</h2>
+                <div className="flex-1 overflow-y-auto pr-2 -mr-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-brand/20 [&::-webkit-scrollbar-thumb]:rounded-full">
+                  {stations.length === 0 ? (
+                    <p className="text-text-muted text-sm text-center py-8">Loading stations...</p>
+                  ) : (
+                    <div className="grid gap-3">
+                      {stations.map(st => (
+                        <div 
+                          key={st.id} 
+                          className="p-4 rounded-2xl border border-white/5 bg-surface-elevated hover:bg-surface-muted hover:border-brand-strong cursor-pointer transition-all duration-200"
+                          onClick={() => setSelectedStation(st)}
+                        >
+                          <h3 className="font-bold text-text-strong text-lg mb-1">{st.name}</h3>
+                          <div className="flex items-center gap-4 text-sm text-text-muted">
+                            <span className="flex items-center gap-1">
+                              <Zap size={14} className="text-brand" /> {st.availableScootersCount} available
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <MapPin size={14} className="text-brand" /> Capacity: {st.capacity}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               <>
