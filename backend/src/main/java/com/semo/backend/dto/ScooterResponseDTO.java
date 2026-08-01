@@ -13,6 +13,8 @@ public class ScooterResponseDTO {
     private String status;
     private Double currentLat;
     private Double currentLng;
+    private Integer stationId;
+    private String stationName;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -105,5 +107,21 @@ public class ScooterResponseDTO {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Integer getStationId() {
+        return stationId;
+    }
+
+    public void setStationId(Integer stationId) {
+        this.stationId = stationId;
+    }
+
+    public String getStationName() {
+        return stationName;
+    }
+
+    public void setStationName(String stationName) {
+        this.stationName = stationName;
     }
 }

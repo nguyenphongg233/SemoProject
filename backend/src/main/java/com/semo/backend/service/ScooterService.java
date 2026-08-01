@@ -15,15 +15,20 @@ import com.semo.backend.entity.Scooter;
 import com.semo.backend.repository.ScooterRepository;
 import com.semo.backend.util.AuthUtil;
 
+import com.semo.backend.repository.StationRepository;
+import com.semo.backend.entity.Station;
+
 @Service
 public class ScooterService {
     private final ScooterRepository scooterRepository;
+    private final StationRepository stationRepository;
     private final AuthUtil authUtil;
 
     private static final List<String> VALID_STATUSES = List.of("AVAILABLE", "MAINTENANCE", "IN_USE", "CHARGING");
 
-    public ScooterService(ScooterRepository scooterRepository, AuthUtil authUtil) {
+    public ScooterService(ScooterRepository scooterRepository, StationRepository stationRepository, AuthUtil authUtil) {
         this.scooterRepository = scooterRepository;
+        this.stationRepository = stationRepository;
         this.authUtil = authUtil;
     }
 
@@ -52,6 +57,15 @@ public class ScooterService {
         scooter.setStatus(validateAndNormalizeStatus(requestDTO.getStatus()));
         scooter.setCurrentLat(requestDTO.getCurrentLat());
         scooter.setCurrentLng(requestDTO.getCurrentLng());
+
+        if (requestDTO.getStationId() != null) {
+            Station station = stationRepository.findById(requestDTO.getStationId())
+                .orElseThrow(() -> new RuntimeException("Station not found with ID: " + requestDTO.getStationId()));
+            scooter.setStation(station);
+            // Optionally snap to station coords
+            if (requestDTO.getCurrentLat() == null) scooter.setCurrentLat(station.getLat());
+            if (requestDTO.getCurrentLng() == null) scooter.setCurrentLng(station.getLng());
+        }
 
         scooter = scooterRepository.save(scooter);
         return mapToResponseDTO(scooter);
@@ -107,6 +121,13 @@ public class ScooterService {
         if (requestDTO.getCurrentLng() != null) {
             scooter.setCurrentLng(requestDTO.getCurrentLng());
         }
+        if (requestDTO.getStationId() != null) {
+            Station station = stationRepository.findById(requestDTO.getStationId())
+                .orElseThrow(() -> new RuntimeException("Station not found with ID: " + requestDTO.getStationId()));
+            scooter.setStation(station);
+        } else {
+            scooter.setStation(null);
+        }
 
         Scooter updatedScooter = scooterRepository.save(scooter);
         return mapToResponseDTO(updatedScooter);
@@ -143,6 +164,10 @@ public class ScooterService {
         dto.setStatus(scooter.getStatus());
         dto.setCurrentLat(scooter.getCurrentLat());
         dto.setCurrentLng(scooter.getCurrentLng());
+        if (scooter.getStation() != null) {
+            dto.setStationId(scooter.getStation().getId());
+            dto.setStationName(scooter.getStation().getName());
+        }
         dto.setCreatedAt(scooter.getCreatedAt());
         dto.setUpdatedAt(scooter.getUpdatedAt());
 

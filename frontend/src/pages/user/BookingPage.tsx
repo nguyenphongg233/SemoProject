@@ -15,20 +15,20 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import 'leaflet/dist/leaflet.css'
 import { Client } from '@stomp/stompjs'
 import SockJS from 'sockjs-client'
-import { CircleMarker, MapContainer, Popup, TileLayer, Tooltip, Circle, useMap, Polyline } from 'react-leaflet'
+import { CircleMarker, MapContainer, Popup, TileLayer, Tooltip, useMap, Polyline } from 'react-leaflet'
 import type { LatLngTuple } from 'leaflet'
 import {
-  Search, Filter, MapPin, RefreshCcw, Crosshair, Zap, Unlock, Play, Square,
+  Search, MapPin, Zap, Unlock, Play, Square,
   Battery, Gauge, Thermometer, ShieldAlert, Sparkles, Clock, Bike, Eye, EyeOff,
 } from 'lucide-react'
 
 import { Alert, Button } from '@/components'
-import { getAllScooters } from '@/features/scooters'
+import { getStations, getScootersByStation } from '@/features/stations'
 import { startRental, endRental, getRentalHistory } from '@/features/rentals'
 import { getRouteToScooter } from '@/features/routing'
 import { useAuth } from '@/hooks/useAuth'
-import { SCOOTER_STATUSES, SCOOTER_STATUS_OPTIONS } from '@/constants'
-import { formatBatteryLevel, formatCoordinates, formatCurrency,
+import { SCOOTER_STATUSES } from '@/constants'
+import { formatBatteryLevel, formatCurrency,
   formatDateTime, getApiErrorMessage, cn
  } from '@/utils'
 import { APP_ENV } from '@/config/env'
@@ -36,7 +36,7 @@ import { axiosClient } from '@/config/axiosClient'
 
 
 // ----- Interfaces & Types -----
-import type { Scooter, RoutingResponse } from '@/types/models'
+import type { Scooter, Station, RoutingResponse } from '@/types/models'
 
 // Đối với EnrichedScooter, kế thừa trực tiếp từ core Scooter:
 interface EnrichedScooter extends Scooter {
@@ -76,12 +76,6 @@ interface TimelineRowProps {
 
 const BACH_KHOA_CENTER: LatLngTuple = [21.0052, 105.8433]
 const ACTIVE_RIDE_KEY = 'semo_active_ride'
-
-const statusStyles: Record<string, { color: string; fillColor: string }> = {
-  [SCOOTER_STATUSES.AVAILABLE]:   { color: 'var(--color-cyan)', fillColor: 'var(--color-cyan)' },
-  [SCOOTER_STATUSES.IN_USE]:      { color: 'var(--color-brand)', fillColor: 'var(--color-brand)' },
-  [SCOOTER_STATUSES.MAINTENANCE]: { color: 'var(--color-electric)', fillColor: 'var(--color-electric)' },
-}
 
 const statusLabel: Record<string, string> = {
   [SCOOTER_STATUSES.AVAILABLE]:   'Available',
@@ -135,19 +129,19 @@ export default function BookingPage() {
 
   // Dữ liệu xe
   const [scooters, setScooters] = useState<Scooter[]>([])
-  const [scootersLoading, setScootersLoading] = useState<boolean>(true)
+  const [scootersLoading, setScootersLoading] = useState<boolean>(false)
   const [scootersError, setScootersError] = useState<string | null>(null)
+  
+  const [stations, setStations] = useState<Station[]>([])
+  const [selectedStation, setSelectedStation] = useState<Station | null>(null)
+
   const [refreshKey, setRefreshKey] = useState<number>(0)
 
   // Vị trí user
   const [userPos, setUserPos] = useState<LatLngTuple | null>(null)
-  const [geoError, setGeoError] = useState<string | null>(null)
 
   // Bộ lọc
   const [query, setQuery] = useState<string>('')
-  const [statusFilter, setStatusFilter] = useState<string>('ALL')
-  const [useRadius, setUseRadius] = useState<boolean>(true)
-  const [radiusKm, setRadiusKm] = useState<number>(1.5)
   const [showPanels, setShowPanels] = useState<boolean>(true)
 
   // Trạng thái flow (persist localStorage)
@@ -279,17 +273,35 @@ export default function BookingPage() {
     return () => { client.deactivate() }
   }, [])
 
-  // Load scooters
+  // Load stations
   useEffect(() => {
     let alive = true
-    setScootersLoading(true)
-    setScootersError(null)
-    getAllScooters()
-      .then((data) => { if (alive) setScooters(Array.isArray(data) ? data : []) })
-      .catch((err) => { if (alive) setScootersError(getApiErrorMessage(err, 'Failed to load scooter list. Please try again later.')) })
-      .finally(() => { if (alive) setScootersLoading(false) })
+    getStations(true)
+      .then((data: Station[]) => { if (alive) setStations(Array.isArray(data) ? data : []) })
+      .catch((err: any) => { console.error('Failed to load stations.', err) })
     return () => { alive = false }
   }, [refreshKey])
+
+  // Load scooters when station selected
+  useEffect(() => {
+    let alive = true
+    if (!selectedStation) {
+      if (ride?.state !== 'idle' && ride?.scooterId) {
+        // If riding, we still need to fetch this single scooter somehow, or just let real-time update it
+      } else {
+        setScooters([])
+      }
+      return
+    }
+    setScootersLoading(true)
+    setScootersError(null)
+    getScootersByStation(selectedStation.id)
+      .then((data: Scooter[]) => { if (alive) setScooters(data || []) })
+      .catch((err: any) => { if (alive) setScootersError(getApiErrorMessage(err, 'Failed to load scooters.')) })
+      .finally(() => { if (alive) setScootersLoading(false) })
+      
+    return () => { alive = false }
+  }, [selectedStation?.id, refreshKey])
 
   // Sync active ride from backend on mount in case user changed devices
   useEffect(() => {
@@ -327,16 +339,15 @@ export default function BookingPage() {
 
   function requestLocation() {
     if (!navigator.geolocation) {
-      setGeoError('Browser does not support geolocation.')
+      console.warn('Browser does not support geolocation.')
       return
     }
-    setGeoError(null)
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setUserPos([pos.coords.latitude, pos.coords.longitude])
       },
       (err) => {
-        setGeoError(err.message || 'Failed to get location.')
+        console.warn(err.message || 'Failed to get location.')
       },
       { enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 },
     )
@@ -364,13 +375,11 @@ export default function BookingPage() {
     return enrichedScooters
       .filter((s) => s._hasPos)
       .filter((s) => {
-        if (statusFilter !== 'ALL' && s._status !== statusFilter) return false
         if (query) {
           const q = query.toLowerCase()
           const name = (s.name || `#${s.id}`).toLowerCase()
           if (!name.includes(q)) return false
         }
-        if (useRadius && userPos && s._distance != null && s._distance > radiusKm) return false
         return true
       })
       .sort((a, b) => {
@@ -379,7 +388,7 @@ export default function BookingPage() {
         if (av !== bv) return av - bv
         return (a._distance ?? 9e9) - (b._distance ?? 9e9)
       })
-  }, [enrichedScooters, statusFilter, query, useRadius, userPos, radiusKm])
+  }, [enrichedScooters, query])
 
   const selectedScooter = useMemo<EnrichedScooter | null>(
     () => enrichedScooters.find((s) => s.id === selectedId) || null,
@@ -551,13 +560,6 @@ export default function BookingPage() {
               >
                 <Tooltip direction="top" offset={[0, -8]} permanent>You are here</Tooltip>
               </CircleMarker>
-              {useRadius && (
-                <Circle
-                  center={userPos}
-                  radius={radiusKm * 1000}
-                  pathOptions={{ color: 'var(--color-brand)', fillColor: 'var(--color-brand)', fillOpacity: 0.06, weight: 1, dashArray: '6 6' }}
-                />
-              )}
             </>
           )}
 
@@ -568,36 +570,52 @@ export default function BookingPage() {
             />
           )}
 
-          {visibleScooters.map((s) => {
-            const style = statusStyles[s._status] || { color: '#8BA0C7', fillColor: '#8BA0C7' }
-            const isSel = s.id === selectedId
+          {stations.map((st) => {
+            const isSel = st.id === selectedStation?.id
             return (
               <CircleMarker
-                key={s.id}
-                center={[s._lat, s._lng]}
-                radius={isSel ? 14 : 10}
+                key={st.id}
+                center={[st.lat, st.lng]}
+                radius={isSel ? 16 : 12}
                 pathOptions={{
-                  color: isSel ? '#fff' : style.color,
-                  fillColor: style.fillColor,
+                  color: isSel ? '#fff' : 'var(--color-brand)',
+                  fillColor: 'var(--color-brand)',
                   fillOpacity: 0.9,
                   weight: isSel ? 3 : 2,
                 }}
-                eventHandlers={{ click: () => handleSelect(s) }}
+                eventHandlers={{ click: () => setSelectedStation(st) }}
               >
                 <Tooltip direction="top" offset={[0, -8]} permanent>
-                  {s.name || `#${s.id}`}
+                  {st.availableScootersCount} available
                 </Tooltip>
                 <Popup>
                   <div className="grid gap-1.5 min-w-50 text-text-strong">
-                    <strong>{s.name || `Scooter #${s.id}`}</strong>
-                    <p>Status: {statusLabel[s._status]}</p>
-                    <p>Battery: {formatBatteryLevel(s.batteryLevel) || '—'}</p>
-                    {s._distance != null && <p>Distance: {fmtKm(s._distance)}</p>}
+                    <strong>{st.name}</strong>
+                    <p>Capacity: {st.capacity}</p>
+                    <p>Available Scooters: {st.availableScootersCount}</p>
                   </div>
                 </Popup>
               </CircleMarker>
             )
           })}
+          
+          {/* Vẫn render xe đang được chọn (để xem route) hoặc xe đang đi */}
+          {selectedScooter && selectedScooter._hasPos && ride?.state === 'riding' && (
+            <CircleMarker
+              center={[selectedScooter._lat, selectedScooter._lng]}
+              radius={10}
+              pathOptions={{
+                color: '#fff',
+                fillColor: 'var(--color-brand)',
+                fillOpacity: 0.9,
+                weight: 3,
+              }}
+            >
+              <Tooltip direction="top" offset={[0, -8]} permanent>
+                {selectedScooter.name || `#${selectedScooter.id}`}
+              </Tooltip>
+            </CircleMarker>
+          )}
         </MapContainer>
         </div>
 
@@ -808,87 +826,47 @@ export default function BookingPage() {
         {/* DYNAMIC RIGHT BOTTOM PANEL */}
         {(!ride || ride.state === 'idle') ? (
           <div className="flex-1 flex flex-col min-h-[400px] bg-surface border-border rounded-3xl shadow-2xl overflow-hidden p-5 pointer-events-auto">
-            <div className="shrink-0">
-            <div className="flex items-center gap-2 mb-4">
-              <span
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold transition-colors
-                  ${userPos 
-                    ? 'text-cyan-400 border-cyan-500/20 bg-cyan-500/10' 
-                    : 'text-amber-400 border-amber-500/20 bg-amber-500/10'
-                  }`}
-              >
-                <Crosshair size={14} strokeWidth={2} />
-                {userPos ? 'Located' : geoError ? 'Location error' : 'No location'}
-              </span>
-
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-brand border border-brand/20 bg-brand/10">
-                <Zap size={14} strokeWidth={2} />
-                {visibleScooters.length} scooters
-              </span>
-            </div>
-
-            <h2 className="text-xl font-bold text-text-strong tracking-tight mb-1">Find the Right Ride</h2>
-            <p className="text-text-muted text-sm mb-4">Find scooters near you or filter by status.</p>
-            
-            <form className="grid gap-3" onSubmit={(e) => e.preventDefault()}>
-              <div className="relative">
-                <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
-                <input
-                  type="text"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search by name / ID..."
-                  className="w-full bg-surface hover:bg-surface-muted border-border text-text-strong text-sm rounded-full pl-10 pr-4 py-2.5 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition-all placeholder:text-slate-500"
-                />
+            {!selectedStation ? (
+              <div className="flex flex-col items-center justify-center py-20 text-text-muted">
+                <MapPin size={48} className="mb-4 text-brand opacity-50" />
+                <p className="text-lg font-bold text-text-strong">Select a Station</p>
+                <p className="text-sm text-center max-w-xs mt-2">Click on a parking station on the map to view available scooters.</p>
               </div>
+            ) : (
+              <>
+                <div className="shrink-0">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Button 
+                      variant="ghost" 
+                      className="px-2" 
+                      onClick={() => setSelectedStation(null)}
+                    >
+                      ← Back
+                    </Button>
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-brand border border-brand/20 bg-brand/10 ml-auto">
+                      <Zap size={14} strokeWidth={2} />
+                      {visibleScooters.length} scooters
+                    </span>
+                  </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <select
-                  className="w-full bg-surface hover:bg-surface-muted border-border text-slate-200 text-sm rounded-full px-4 py-2.5 focus:outline-none focus:border-cyan-500/50 appearance-none"
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                >
-                  <option value="ALL">All Status</option>
-                  {SCOOTER_STATUS_OPTIONS.map((s) => (
-                    <option key={s} value={s}>{statusLabel[s]}</option>
-                  ))}
-                </select>
+                  <h2 className="text-xl font-bold text-text-strong tracking-tight mb-1">{selectedStation.name}</h2>
+                  <p className="text-text-muted text-sm mb-4">Select a scooter from this station to begin.</p>
+                  
+                  <form className="grid gap-3" onSubmit={(e) => e.preventDefault()}>
+                    <div className="relative">
+                      <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
+                      <input
+                        type="text"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        placeholder="Search by name / ID..."
+                        className="w-full bg-surface hover:bg-surface-muted border-border text-text-strong text-sm rounded-full pl-10 pr-4 py-2.5 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition-all placeholder:text-slate-500"
+                      />
+                    </div>
+                  </form>
+                </div>
 
-                <Button
-                  variant="secondary"
-                  className="w-full rounded-full border-border bg-surface-muted hover:bg-surface-elevated justify-center h-auto py-2.5"
-                  onClick={() => setRefreshKey((k) => k + 1)}
-                >
-                  <RefreshCcw size={16} className="mr-2" /> Refresh
-                </Button>
-              </div>
-
-              <div className="px-1 py-1">
-                <label className="flex items-center justify-between text-sm text-text-muted cursor-pointer select-none mb-2">
-                  <span className="flex items-center gap-2">
-                    <Filter size={14} className="text-brand" />
-                    Radius: <strong className="text-text-strong">{radiusKm.toFixed(1)} km</strong>
-                  </span>
-                  <input
-                    type="checkbox"
-                    checked={useRadius}
-                    onChange={(e) => setUseRadius(e.target.checked)}
-                    className="w-4 h-4 accent-brand rounded cursor-pointer"
-                  />
-                </label>
-                <input
-                  type="range"
-                  className="w-full accent-brand cursor-pointer disabled:opacity-50"
-                  min="0.3" max="40" step="0.1"
-                  value={radiusKm}
-                  onChange={(e) => setRadiusKm(Number(e.target.value))}
-                  disabled={!useRadius}
-                />
-              </div>
-            </form>
-          </div>
-
-          <div className="flex-1 overflow-y-auto pr-2 -mr-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-brand/20 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-brand/40">
+                <div className="flex-1 overflow-y-auto pr-2 mt-4 -mr-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-brand/20 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-brand/40">
             <div className="grid gap-3 pt-2">
               {scootersLoading && <p className="text-text-muted text-sm text-center py-4">Loading scooters...</p>}
               {!scootersLoading && visibleScooters.length === 0 && (
@@ -917,9 +895,6 @@ export default function BookingPage() {
                           {s.name || `Scooter #${s.id}`}
                           {isSelected && <span className="w-2 h-2 rounded-full bg-brand animate-pulse" />}
                         </p>
-                        <p className="text-text-muted text-[0.8rem] mt-0.5">
-                          {formatCoordinates(Number(s._lat), Number(s._lng))}
-                        </p>
                       </div>
                       <span className={cn(
                         "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border",
@@ -936,18 +911,14 @@ export default function BookingPage() {
                         <Battery size={12} className={s.batteryLevel > 20 ? "text-emerald-400" : "text-rose-400"} /> 
                         {formatBatteryLevel(s.batteryLevel) || '—'}
                       </span>
-                      
-                      {s._distance != null && (
-                        <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-slate-900/40 text-slate-300 border border-white/5">
-                          <MapPin size={12} className="text-cyan-400" /> {fmtKm(s._distance)}
-                        </span>
-                      )}
                     </div>
                   </div>
                 )
               })}
             </div>
           </div>
+          </>
+          )}
         </div>
         ) : (
           <div className="flex-1 flex flex-col bg-surface border-border rounded-3xl shadow-2xl p-5 pointer-events-auto">

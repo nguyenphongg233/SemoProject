@@ -23,6 +23,8 @@ export interface Scooter {
   status: 'AVAILABLE' | 'IN_USE' | 'MAINTENANCE' | string
   currentLat: number | string | null
   currentLng: number | string | null
+  stationId?: number | null
+  stationName?: string | null
   createdAt?: string
   updatedAt?: string
 }
@@ -49,9 +51,13 @@ export interface LatLngPos {
 }
 
 export interface Station {
-  lat: number | string
-  lng: number | string
-  name?: string
+  id: number
+  name: string
+  lat: number
+  lng: number
+  capacity?: number
+  status?: string
+  availableScootersCount?: number
 }
 
 // --- DTOs cho các feature mới ---

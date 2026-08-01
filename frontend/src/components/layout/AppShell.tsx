@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 import { AppNavbar } from '@/components/layout'
-import { cn } from '@/utils'
 import { useAuth } from '@/hooks/useAuth'
 
 interface AppShellProps {

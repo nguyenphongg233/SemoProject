@@ -1,14 +1,12 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { ChevronDown, Menu, LogOut, User as UserIcon, Moon, GraduationCap, Zap, Bike, Users, Receipt, MessageSquare, Map, Settings, BarChart3, Wrench } from 'lucide-react'
+import { ChevronDown, Menu, LogOut, User as UserIcon, Zap, Bike, Receipt, MessageSquare, Map, Settings, BarChart3, Wrench } from 'lucide-react'
 import { Button } from '@/components/ui'
 import { ROUTES, ROLES } from '@/constants'
 import { useAuth } from '@/hooks/useAuth'
-import { useTheme } from '@/contexts/ThemeContext'
 import SemoIcon from '@/assets/semo-icon.svg?react'
 
 export default function AppNavbar() {
   const { user, isAuthenticated, logout } = useAuth()
-  const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
 
   const isAdmin = user?.role === ROLES.ADMIN

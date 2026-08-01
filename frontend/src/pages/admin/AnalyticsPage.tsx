@@ -209,7 +209,7 @@ export default function AnalyticsPage() {
         <div>
           <ScooterMap
             scooters={scooters}
-            stations={points.map((p, i) => ({ lat: p.lat, lng: p.lng, name: `Station ${i + 1}` }))}
+            stations={points.map((p, i) => ({ id: -i, lat: p.lat, lng: p.lng, name: `Station ${i + 1}` }))}
             clusterAssignments={Object.keys(clusterAssignments).length > 0 ? clusterAssignments : undefined}
           />
         </div>

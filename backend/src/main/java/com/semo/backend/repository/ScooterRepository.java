@@ -14,6 +14,10 @@ public interface ScooterRepository extends JpaRepository<Scooter, Integer> {
     long countByStatus(String status);
     boolean existsByName(String name);
 
+    List<Scooter> findByStationId(Integer stationId);
+    List<Scooter> findByStationIdAndStatus(Integer stationId, String status);
+    long countByStationIdAndStatus(Integer stationId, String status);
+
     @Query("SELECT s FROM Scooter s WHERE s.status = 'AVAILABLE' AND s.batteryLevel < :threshold ORDER BY s.batteryLevel ASC")
     List<Scooter> findScootersForCharging(@Param("threshold") Integer threshold, Pageable pageable);
 }

@@ -22,6 +22,11 @@ public class Scooter {
     // status: ("MAINTENANCE", "AVAILABLE", "IN_USE")
     private String status;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "station_id")
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private Station station;
+
     @Column(name = "battery_level")
     private Integer batteryLevel;
 
@@ -67,6 +72,9 @@ public class Scooter {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public Station getStation() { return station; }
+    public void setStation(Station station) { this.station = station; }
 
     public Integer getBatteryLevel() { return batteryLevel; }
     public void setBatteryLevel(Integer batteryLevel) { this.batteryLevel = batteryLevel; }

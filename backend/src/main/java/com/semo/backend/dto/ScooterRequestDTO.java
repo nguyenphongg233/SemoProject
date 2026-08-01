@@ -21,6 +21,8 @@ public class ScooterRequestDTO {
     private Double currentLat;
     private Double currentLng;
 
+    private Integer stationId;
+
     // Constructors
     public ScooterRequestDTO() {
     }
@@ -64,5 +66,13 @@ public class ScooterRequestDTO {
 
     public void setCurrentLng(Double currentLng) {
         this.currentLng = currentLng;
+    }
+
+    public Integer getStationId() {
+        return stationId;
+    }
+
+    public void setStationId(Integer stationId) {
+        this.stationId = stationId;
     }
 }
